@@ -40,7 +40,7 @@ public class FichaSocioeconomicaController {
         return (dto != null) ? ResponseEntity.ok(dto) : ResponseEntity.notFound().build();
     }
 
-    @PostMapping("/crearFicha") // Endpoint que usaste en Postman (image_711328.png)
+    @PostMapping("/crearFicha") 
     public ResponseEntity<FichaSocioeconomicaDTO> crear(@RequestBody FichaSocioeconomicaRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(fichaService.crearFicha(request));
     }
