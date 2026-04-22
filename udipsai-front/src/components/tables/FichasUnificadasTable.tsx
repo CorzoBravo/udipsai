@@ -28,7 +28,9 @@ import { TableActionHeader } from "../common/TableActionHeader";
 import { HistoriaClinicaViewModal } from "../modals/HistoriaClinicaViewModal";
 import { PsicologiaEducativaViewModal } from "../modals/PsicologiaEducativaViewModal";
 import { PsicologiaClinicaViewModal } from "../modals/PsicologiaClinicaViewModal";
-import { FonoaudiologiaViewModal } from "../modals/FonoaudiologiaViewModal";
+import { FonoaudiologiaViewModal } from "../modals/FonoaudiologiaViewModal"
+//Implemento de sistemasocioeconmico 
+//import {} from ../modals/SocioeconomicoViewModal;
 
 import { useAuth } from "../../context/AuthContext";
 import { fichasService } from "../../services/fichas";

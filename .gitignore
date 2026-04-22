@@ -46,3 +46,4 @@ build/
 env.sh
 uploads
 application-dev.properties
+.fake
