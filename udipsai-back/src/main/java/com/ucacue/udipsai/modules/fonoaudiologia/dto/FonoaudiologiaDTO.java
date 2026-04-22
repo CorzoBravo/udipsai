@@ -9,7 +9,6 @@ public class FonoaudiologiaDTO {
     private Integer id;
     private PacienteFichaDTO paciente;
     private Boolean activo;
-    
     private Habla habla;
     private Audicion audicion;
     private Fonacion fonacion;
