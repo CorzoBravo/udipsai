@@ -1,4 +1,4 @@
-package com.ucacue.udipsai.modules.fichasocial.Service;
+package com.ucacue.udipsai.modules.fichasocial.service;
 
 import com.ucacue.udipsai.modules.fichasocial.domain.FichaSocioeconomica;
 import com.ucacue.udipsai.modules.fichasocial.domain.components.FichaSocioFamiliar;
