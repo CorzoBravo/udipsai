@@ -1,4 +1,4 @@
-package com.ucacue.udipsai.modules.fichasocial.controller.domain.dto;
+package com.ucacue.udipsai.modules.fichasocial.dto;
 
 import com.ucacue.udipsai.modules.historiaclinica.domain.components.*;
 import com.ucacue.udipsai.modules.paciente.dto.PacienteFichaDTO;
