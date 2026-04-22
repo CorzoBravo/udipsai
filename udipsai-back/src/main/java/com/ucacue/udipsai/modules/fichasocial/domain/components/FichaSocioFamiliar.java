@@ -8,6 +8,7 @@ import lombok.Data;
 @Entity
 @Table(name = "ficha_socio_familiares")
 @Data
+
 public class FichaSocioFamiliar {
 
     @Id
