@@ -1,5 +1,6 @@
-package com.ucacue.udipsai.modules.fichasocial.dto;
+package com.ucacue.udipsai.modules.informesocial.domain;
 
+import com.ucacue.udipsai.modules.informesocial.dto.InformeSocialFamiliarDTO;
 import com.ucacue.udipsai.modules.paciente.dto.PacienteFichaDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -17,10 +18,11 @@ public class InformeSocialDTO {
     private String numFicha;
     private Date fechaElaboracion;
     
-   
+    
     private String genogramaUrl;
     private String ecomapaUrl;
 
+   
     private String descripcionDinamicaFamiliar;
     private String situacionEconomica;
     private String situacionHabitabilidad;
