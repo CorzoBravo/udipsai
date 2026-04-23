@@ -1,6 +1,6 @@
-import PageBreadcrumb from "../../../components/common/PageBreadcrumb";
+import PageBreadcrumb from "../../../components/common/PageBreadCrumb";
 import PageMeta from "../../../components/common/PageMeta";
-import FormularioSocioEconomico from "../../../components/form/fichas-form/FormularioSocioEconomico";
+import FormularioSocioEconomica from "../../../components/form/fichas-form/FormularioSocioEconomica";
 
 export default function NuevaSocioEconomico() {
   return (
@@ -18,7 +18,7 @@ export default function NuevaSocioEconomico() {
         ]}
       />
       <div className="grid grid-cols-1 gap-6">
-        <FormularioSocioEconomico />
+        <FormularioSocioEconomica />
       </div>
     </>
   );
