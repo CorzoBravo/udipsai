@@ -48,6 +48,11 @@ public class SeguimientoSocialFichaService {
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
     }
+    public SeguimientoSocialFichaDTO obtenerPorId(Integer id) {
+        SeguimientoSocialFicha entity = seguimientoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Seguimiento no encontrado"));
+        return mapToDTO(entity);
+    }
 
     // --- Función auxiliar: Convertir Entidad a DTO ---
     private SeguimientoSocialFichaDTO mapToDTO(SeguimientoSocialFicha entity) {

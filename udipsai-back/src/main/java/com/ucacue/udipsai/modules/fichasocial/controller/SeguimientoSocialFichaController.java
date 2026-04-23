@@ -31,4 +31,10 @@ public class SeguimientoSocialFichaController {
         List<SeguimientoSocialFichaDTO> lista = seguimientoService.listarPorPaciente(pacienteId);
         return ResponseEntity.ok(lista);
     }
+    // GET: http://localhost:8080/api/seguimientos-sociales/1
+    @GetMapping("/{id}")
+    public ResponseEntity<SeguimientoSocialFichaDTO> obtenerPorId(@PathVariable Integer id) {
+        // En el Service debemos crear este método también
+        return ResponseEntity.ok(seguimientoService.obtenerPorId(id));
+    }
 }
