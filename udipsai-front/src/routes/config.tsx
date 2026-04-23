@@ -34,6 +34,8 @@ const EditarPsicologiaEducativa = lazy(() => import("../pages/Fichas/PsicologiaE
 const WaisEvaluacion = lazy(() => import("../pages/Fichas/Wais/Wais"));
 const NuevaHistoriaClinica = lazy(() => import("../pages/Fichas/HistoriaClinica/NuevaHistoriaClinica"));
 const EditarHistoriaClinica = lazy(() => import("../pages/Fichas/HistoriaClinica/EditarHistoriaClinica"));
+//const NuevoSocioEconomico = lazy(() => import("../pages/Fichas/SocioEconomico/NuevoSocioEconomico"));
+//const EditarSocioEconomico = lazy(() => import("../pages/Fichas/SocioEconomico/EditarSocioEconomico"));
 
 const protectedRoute = (permission: string, element: ReactNode, children?: RouteObject[]): RouteObject => ({
   element: <PermissionRoute requiredPermission={permission} />,
@@ -102,18 +104,28 @@ export const privateRouteObjects: RouteObject[] = [
     children: [
       { index: true, element: <ListaFichasUnificadas /> },
 
-      // Sub-rutas específicas para Crear/Editar
+      // WAIS
+      { path: "wais", ...protectedRoute("PERM_RECURSOS", <WaisEvaluacion />) },
+
+      // Historia Clínica
       { path: "historia-clinica/nuevo", ...protectedRoute("PERM_HISTORIA_CLINICA_CREAR", <NuevaHistoriaClinica />) },
       { path: "historia-clinica/editar/:id", ...protectedRoute("PERM_HISTORIA_CLINICA_EDITAR", <EditarHistoriaClinica />) },
 
+      // Fonoaudiología
       { path: "fonoaudiologia/nuevo", ...protectedRoute("PERM_FONOAUDIOLOGIA_CREAR", <NuevaFonoaudiologia />) },
       { path: "fonoaudiologia/editar/:id", ...protectedRoute("PERM_FONOAUDIOLOGIA_EDITAR", <EditarFonoaudiologia />) },
 
+      // Psicología Clínica
       { path: "psicologia-clinica/nuevo", ...protectedRoute("PERM_PSICOLOGIA_CLINICA_CREAR", <NuevaPsicologiaClinica />) },
       { path: "psicologia-clinica/editar/:id", ...protectedRoute("PERM_PSICOLOGIA_CLINICA_EDITAR", <EditarPsicologiaClinica />) },
 
+      // Psicología Educativa
       { path: "psicologia-educativa/nuevo", ...protectedRoute("PERM_PSICOLOGIA_EDUCATIVA_CREAR", <NuevaPsicologiaEducativa />) },
       { path: "psicologia-educativa/editar/:id", ...protectedRoute("PERM_PSICOLOGIA_EDUCATIVA_EDITAR", <EditarPsicologiaEducativa />) },
+
+      // Socioeconómico
+      { path: "socioeconomico/nuevo", ...protectedRoute("PERM_SOCIO_ECONOMICO_CREAR", <div>NuevoSocioEconomico </div>) },
+      { path: "socioeconomico/editar/:id", ...protectedRoute("PERM_SOCIO_ECONOMICO_EDITAR", <div>EditarSocioEconomico</div>) },
     ]
   },
 

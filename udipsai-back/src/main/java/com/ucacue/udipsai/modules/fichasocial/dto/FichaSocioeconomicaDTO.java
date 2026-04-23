@@ -15,7 +15,6 @@ public class FichaSocioeconomicaDTO {
     private Boolean activo;
     private Date fechaElaboracion;
     
-    
     private RiesgosSociales riesgosSociales;
     private VulnerabilidadDetalle vulnerabilidad;
     private DinamicaFamiliar dinamicaFamiliar;

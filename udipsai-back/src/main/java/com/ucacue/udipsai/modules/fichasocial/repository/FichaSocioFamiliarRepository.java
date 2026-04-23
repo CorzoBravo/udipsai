@@ -8,5 +8,6 @@ import java.util.List;
 @Repository
 public interface FichaSocioFamiliarRepository extends JpaRepository<FichaSocioFamiliar, Integer> {
 
+
     List<FichaSocioFamiliar> findByFichaId(Integer idFicha);
 }

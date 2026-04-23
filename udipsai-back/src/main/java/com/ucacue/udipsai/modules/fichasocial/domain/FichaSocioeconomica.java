@@ -37,7 +37,6 @@ public class FichaSocioeconomica {
     @Column(name = "fecha_elaboracion")
     private Date fechaElaboracion;
 
-    // --- Componentes @Embeddable (Mapeo de Secciones del Documento) ---
 
     @Embedded
     private RiesgosSociales riesgosSociales;
@@ -60,7 +59,6 @@ public class FichaSocioeconomica {
     @Embedded
     private SituacionEconomica situacionEconomica;
 
-
     @Column(name = "conclusiones_finales", columnDefinition = "TEXT")
     private String conclusiones;
 
@@ -69,7 +67,6 @@ public class FichaSocioeconomica {
 
     @Column(name = "nombre_responsable_registro")
     private String responsable;
-
 
     @OneToMany(mappedBy = "ficha", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<FichaSocioFamiliar> familiares = new ArrayList<>();

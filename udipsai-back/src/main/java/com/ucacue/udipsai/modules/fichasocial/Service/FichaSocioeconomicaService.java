@@ -1,5 +1,6 @@
 package com.ucacue.udipsai.modules.fichasocial.service;
 
+
 import com.ucacue.udipsai.modules.fichasocial.domain.FichaSocioeconomica;
 import com.ucacue.udipsai.modules.fichasocial.domain.components.FichaSocioFamiliar;
 import com.ucacue.udipsai.modules.fichasocial.dto.FichaSocioeconomicaDTO;
@@ -52,6 +53,7 @@ public class FichaSocioeconomicaService {
     public FichaSocioeconomicaDTO crearFicha(FichaSocioeconomicaRequest request) {
         log.info("Creando ficha socioeconómica para Paciente ID: {}", request.getPacienteId());
 
+
         
         FichaSocioeconomica existing = fichaRepository.findByPacienteIdAndActivo(request.getPacienteId(), true);
         //El siguiente bloque se encarga de inactivar la ficha anterior en caso de que exista
@@ -67,6 +69,7 @@ public class FichaSocioeconomicaService {
         // Búsqueda de Entidades Relacionadas
         Paciente paciente = pacienteRepository.findById(request.getPacienteId())
                 .orElseThrow(() -> new RuntimeException("Paciente no encontrado"));
+
 
         Especialista especialista = especialistaRepository.findById(request.getEspecialistaId())
                 .orElseThrow(() -> new RuntimeException("Especialista no encontrado"));
@@ -95,7 +98,7 @@ public class FichaSocioeconomicaService {
 
         mapRequestToEntity(request, ficha);
 
-        // Limpiar y actualizar lista de familiares 
+
         ficha.getFamiliares().clear();
         procesarFamiliares(request.getFamiliares(), ficha);
 
@@ -130,6 +133,7 @@ public class FichaSocioeconomicaService {
                 familiar.setIngresoMensual(fDto.getIngresoMensual());
 
                 familiar.setFicha(ficha); 
+
                 ficha.getFamiliares().add(familiar);
             }
         }
@@ -147,6 +151,7 @@ public class FichaSocioeconomicaService {
                     ficha.getPaciente().getId(),
                     ficha.getPaciente().getNombresApellidos(),
                     ficha.getPaciente().getCedula()));
+
         }
 
         // Mapeo de Componentes
