@@ -19,8 +19,8 @@ import java.io.IOException;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/fichas-socioeconomicas") // Ruta estándar del proyecto
-@CrossOrigin(origins = "*") // Permite conexión desde el frontend de React
+@RequestMapping("/api/fichas-socioeconomicas")
+@CrossOrigin(origins = "*") 
 public class FichaSocioeconomicaController {
 
     @Autowired
@@ -56,8 +56,7 @@ public class FichaSocioeconomicaController {
         return ResponseEntity.noContent().build();
     }
 
-    // --- Endpoints de Reporte ---
-
+  
     @GetMapping("/reporte/excel")
     public ResponseEntity<Resource> descargarExcel(@RequestParam(required = false) Integer pacienteId) throws IOException {
         ByteArrayInputStream in = reportService.exportarExcel(pacienteId);

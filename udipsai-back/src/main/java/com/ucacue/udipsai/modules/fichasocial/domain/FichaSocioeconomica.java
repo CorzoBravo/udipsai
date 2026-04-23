@@ -60,7 +60,6 @@ public class FichaSocioeconomica {
     @Embedded
     private SituacionEconomica situacionEconomica;
 
-    // --- Campos de Cierre y Reporte ---
 
     @Column(name = "conclusiones_finales", columnDefinition = "TEXT")
     private String conclusiones;
@@ -71,7 +70,6 @@ public class FichaSocioeconomica {
     @Column(name = "nombre_responsable_registro")
     private String responsable;
 
-    // --- Relación de Detalle (Tabla de Conformación Familiar) ---
 
     @OneToMany(mappedBy = "ficha", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<FichaSocioFamiliar> familiares = new ArrayList<>();

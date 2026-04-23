@@ -8,9 +8,5 @@ import java.util.List;
 @Repository
 public interface FichaSocioFamiliarRepository extends JpaRepository<FichaSocioFamiliar, Integer> {
 
-    /**
-     * Recupera la lista de familiares asociados a una ficha específica 
-     * para llenar la tabla del reporte[cite: 2].
-     */
     List<FichaSocioFamiliar> findByFichaId(Integer idFicha);
 }
