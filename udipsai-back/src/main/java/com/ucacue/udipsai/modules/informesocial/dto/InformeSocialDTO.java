@@ -1,6 +1,5 @@
-package com.ucacue.udipsai.modules.informesocial.domain;
+package com.ucacue.udipsai.modules.informesocial.dto;
 
-import com.ucacue.udipsai.modules.informesocial.dto.InformeSocialFamiliarDTO;
 import com.ucacue.udipsai.modules.paciente.dto.PacienteFichaDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;

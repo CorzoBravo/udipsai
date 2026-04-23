@@ -1,7 +1,7 @@
 package com.ucacue.udipsai.modules.informesocial.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ucacue.udipsai.modules.informesocial.domain.InformeSocialDTO;
+import com.ucacue.udipsai.modules.informesocial.dto.InformeSocialDTO;
 import com.ucacue.udipsai.modules.informesocial.dto.InformeSocialRequest;
 import com.ucacue.udipsai.modules.informesocial.service.InformeSocialService;
 import org.springframework.beans.factory.annotation.Autowired;
