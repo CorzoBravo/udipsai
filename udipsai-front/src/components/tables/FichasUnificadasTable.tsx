@@ -29,9 +29,11 @@ import { HistoriaClinicaViewModal } from "../modals/HistoriaClinicaViewModal";
 import { PsicologiaEducativaViewModal } from "../modals/PsicologiaEducativaViewModal";
 import { PsicologiaClinicaViewModal } from "../modals/PsicologiaClinicaViewModal";
 import { FonoaudiologiaViewModal } from "../modals/FonoaudiologiaViewModal";
+import { SocioEconomicoViewModal } from "../modals/SocioEconomicoViewModal";
 
 import { useAuth } from "../../context/AuthContext";
 import { fichasService } from "../../services/fichas";
+
 
 interface FichaListDTO {
   id: number;
@@ -48,7 +50,8 @@ type TabKey =
   | "historia_clinica"
   | "psicologia_educativa"
   | "psicologia_clinica"
-  | "fonoaudiologia";
+  | "fonoaudiologia"
+  | "socioeconomico";
 
 interface TabConfig {
   key: TabKey;
@@ -126,6 +129,20 @@ export default function FichasUnificadasTable() {
       permRead: "PERM_FONOAUDIOLOGIA",
       title: "Fonoaudiología",
     },
+    {
+      key: "socioeconomico",
+      label: "Socioeconómico",
+      icon: "time",
+      fetch: fichasService.listarSocioEconomico,
+      delete: fichasService.eliminarSocioEconomico,
+      editPath: "/fichas/socioeconomico/editar",
+      createPath: "/fichas/socioeconomico/nuevo",
+      permEdit: "PERM_SOCIO_ECONOMICO_EDITAR",
+      permCreate: "PERM_SOCIO_ECONOMICO_CREAR",
+      permDelete: "PERM_SOCIO_ECONOMICO_ELIMINAR",
+      permRead: "PERM_SOCIO_ECONOMICO",
+      title: "Socioeconómico",
+    }
   ];
 
   const [searchParams, setSearchParams] = useSearchParams();
@@ -148,6 +165,7 @@ export default function FichasUnificadasTable() {
   const [viewEduModalOpen, setViewEduModalOpen] = useState(false);
   const [viewClinicaModalOpen, setViewClinicaModalOpen] = useState(false);
   const [viewFonoModalOpen, setViewFonoModalOpen] = useState(false);
+  const [viewSocioModalOpen, setViewSocioModalOpen] = useState(false);
 
   const activeTab = tabs.find((t) => t.key === activeTabKey) || tabs[0];
 
@@ -218,6 +236,9 @@ export default function FichasUnificadasTable() {
       case "fonoaudiologia":
         setViewFonoModalOpen(true);
         break;
+      case "socioeconomico":
+        setViewSocioModalOpen(true);
+        break;
     }
   };
 
@@ -282,10 +303,9 @@ export default function FichasUnificadasTable() {
                 onClick={() => handleTabChange(tab.key)}
                 className={`
                   flex items-center gap-2 px-4 py-2 rounded-t-lg transition-all duration-200 text-sm font-medium
-                  ${
-                    isActive
-                      ? "bg-brand-50 text-brand-600 border-b-2 border-brand-500 dark:bg-white/5 dark:text-brand-400"
-                      : "text-gray-500 hover:text-gray-700 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-white/5"
+                  ${isActive
+                    ? "bg-brand-50 text-brand-600 border-b-2 border-brand-500 dark:bg-white/5 dark:text-brand-400"
+                    : "text-gray-500 hover:text-gray-700 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-white/5"
                   }
                 `}
               >
@@ -398,6 +418,11 @@ export default function FichasUnificadasTable() {
             <FonoaudiologiaViewModal
               isOpen={viewFonoModalOpen}
               onClose={() => setViewFonoModalOpen(false)}
+              pacienteId={selectedPacienteId}
+            />
+            <SocioEconomicoViewModal
+              isOpen={viewSocioModalOpen}
+              onClose={() => setViewSocioModalOpen(false)}
               pacienteId={selectedPacienteId}
             />
           </>

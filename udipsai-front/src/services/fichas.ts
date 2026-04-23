@@ -258,8 +258,8 @@ export const fichasService = {
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
       link.href = url;
-      const filename = pacienteId 
-        ? `ficha_fonoaudiologia_${pacienteId}.xlsx` 
+      const filename = pacienteId
+        ? `ficha_fonoaudiologia_${pacienteId}.xlsx`
         : "fichas_fonoaudiologia.xlsx";
       link.setAttribute("download", filename);
       document.body.appendChild(link);
@@ -280,8 +280,8 @@ export const fichasService = {
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
       link.href = url;
-      const filename = pacienteId 
-        ? `historia_clinica_${pacienteId}.xlsx` 
+      const filename = pacienteId
+        ? `historia_clinica_${pacienteId}.xlsx`
         : "historias_clinicas.xlsx";
       link.setAttribute("download", filename);
       document.body.appendChild(link);
@@ -302,8 +302,8 @@ export const fichasService = {
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
       link.href = url;
-      const filename = pacienteId 
-        ? `psicologia_educativa_${pacienteId}.xlsx` 
+      const filename = pacienteId
+        ? `psicologia_educativa_${pacienteId}.xlsx`
         : "fichas_psicologia_educativa.xlsx";
       link.setAttribute("download", filename);
       document.body.appendChild(link);
@@ -324,8 +324,8 @@ export const fichasService = {
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
       link.href = url;
-      const filename = pacienteId 
-        ? `psicologia_clinica_${pacienteId}.xlsx` 
+      const filename = pacienteId
+        ? `psicologia_clinica_${pacienteId}.xlsx`
         : "fichas_psicologia_clinica.xlsx";
       link.setAttribute("download", filename);
       document.body.appendChild(link);
@@ -336,4 +336,32 @@ export const fichasService = {
       throw error;
     }
   },
+
+  // Socioeconómico
+  listarSocioEconomico: async () => {
+    const res = await api.get("/socioeconomicas");
+    return res.data;
+  },
+
+  obtenerSocioEconomico: async (id: number | string) => {
+    const res = await api.get(`/socioeconomicas/paciente/${id}`);
+    return res.data;
+  },
+
+  crearSocioEconomico: async (data: any) => {
+    const res = await api.post("/socioeconomicas", data);
+    return res.data;
+  },
+
+  actualizarSocioEconomico: async (id: number | string, data: any) => {
+    const res = await api.put(`/socioeconomicas/${id}`, data);
+    return res.data;
+  },
+
+  eliminarSocioEconomico: async (id: number | string) => {
+    const res = await api.delete(`/socioeconomicas/${id}`);
+    return res.data;
+  },
 };
+
+
