@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import InputField from "../input/InputField";
 import TextArea from "../input/TextArea";
-import Label from "../Label"; // Importación del componente Label para alineación exacta
+import Label from "../Label"; 
 import Button from "../../ui/button/Button";
 import { toast } from "react-toastify";
 import api from "../../../api/api";
@@ -22,6 +22,7 @@ const FormularioSeguimientoSocial: React.FC<FormularioSeguimientoSocialProps> = 
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(false);
 
+  // ESTADO LIMPIO: Solo los datos de texto para imprimir luego en el PDF
   const [formData, setFormData] = useState({
     pacienteId: pacienteId,
     areaAcompanamiento: "",
@@ -34,16 +35,13 @@ const FormularioSeguimientoSocial: React.FC<FormularioSeguimientoSocialProps> = 
     participantes: "",
     actividades: "",
     observaciones: "",
-    lugarFirma: "", // "CASA", "ESCUELA", "OTRO"
+    lugarFirma: "", 
     nombreRepresentante: "",
     rolEscuela: "",
     nombrePersonalEscuela: "",
     especificarOtro: "",
-    firmaVisitadorUrl: "",
-    firmaUsuarioUrl: "",
   });
 
-  // Restauración de lógica de carga y autoincremento
   useEffect(() => {
     const inicializarDatos = async () => {
       try {
@@ -96,7 +94,7 @@ const FormularioSeguimientoSocial: React.FC<FormularioSeguimientoSocialProps> = 
         toast.success("Ficha actualizada");
       } else {
         await fichasService.crearSeguimientoSocial(formData);
-        toast.success("Ficha guardada");
+        toast.success("Ficha guardada correctamente");
       }
       if (onSuccess) onSuccess();
     } catch (error) {
@@ -117,7 +115,6 @@ const FormularioSeguimientoSocial: React.FC<FormularioSeguimientoSocialProps> = 
         </h2>
       </div>
 
-      {/* BLOQUE 1: CONTEXTO INICIAL (Restaurado) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="space-y-1">
           <Label>Área de Acompañamiento</Label>
@@ -133,7 +130,6 @@ const FormularioSeguimientoSocial: React.FC<FormularioSeguimientoSocialProps> = 
         </div>
       </div>
 
-      {/* BLOQUE 2: VISITADOR (Con Placeholders y Transparente) */}
       <div className="space-y-4">
         <div className="flex items-center gap-2 text-brand-600 font-bold text-xs uppercase tracking-widest">
           <User size={14} /> Información del Visitador
@@ -150,7 +146,6 @@ const FormularioSeguimientoSocial: React.FC<FormularioSeguimientoSocialProps> = 
         </div>
       </div>
 
-      {/* BLOQUE 3: UBICACIÓN */}
       <div className="space-y-4">
         <div className="flex items-center gap-2 text-brand-600 font-bold text-xs uppercase tracking-widest">
           <MapPin size={14} /> Ubicación de la Visita
@@ -161,7 +156,6 @@ const FormularioSeguimientoSocial: React.FC<FormularioSeguimientoSocialProps> = 
         </div>
       </div>
 
-      {/* BLOQUE 4: CONTENIDO */}
       <div className="space-y-6">
         <div className="space-y-2">
           <Label>Objetivo de la Intervención</Label>
@@ -185,10 +179,9 @@ const FormularioSeguimientoSocial: React.FC<FormularioSeguimientoSocialProps> = 
         </div>
       </div>
 
-      {/* BLOQUE 5: FIRMA (Corregido alineación Escuela) */}
       <div className="pt-8 border-t border-gray-100 dark:border-gray-800 space-y-6">
         <div className="flex items-center gap-2 text-brand-600 font-bold text-xs uppercase tracking-widest">
-          <CheckCircle2 size={14} /> Responsable de la Firma
+          <CheckCircle2 size={14} /> Responsable para imprimir firma
         </div>
 
         <div className="flex flex-wrap gap-8 p-5 bg-gray-50/50 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/[0.05]">
@@ -204,13 +197,12 @@ const FormularioSeguimientoSocial: React.FC<FormularioSeguimientoSocialProps> = 
           {formData.lugarFirma === "CASA" && (
             <div className="space-y-1 animate-in fade-in slide-in-from-top-2">
               <Label>Nombre del Representante / Familiar</Label>
-              <InputField name="nombreRepresentante" value={formData.nombreRepresentante} onChange={handleChange} placeholder="Nombre completo" required />
+              <InputField name="nombreRepresentante" value={formData.nombreRepresentante} onChange={handleChange} placeholder="Nombre completo para colocar debajo de la firma" required />
             </div>
           )}
 
           {formData.lugarFirma === "ESCUELA" && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-top-2">
-              {/* Contenedor del Select con Label para alineación perfecta */}
               <div className="flex flex-col space-y-1">
                 <Label>Rol del Personal</Label>
                 <select 
@@ -226,10 +218,9 @@ const FormularioSeguimientoSocial: React.FC<FormularioSeguimientoSocialProps> = 
                   <option value="PSICOLOGO">Psicólogo/a</option>
                 </select>
               </div>
-              {/* Contenedor del Input con Label para alineación perfecta */}
               <div className="flex flex-col space-y-1">
                 <Label>Nombre del Personal Identificado</Label>
-                <InputField name="nombrePersonalEscuela" value={formData.nombrePersonalEscuela} onChange={handleChange} placeholder="Nombre completo" required />
+                <InputField name="nombrePersonalEscuela" value={formData.nombrePersonalEscuela} onChange={handleChange} placeholder="Nombre completo para el PDF" required />
               </div>
             </div>
           )}
