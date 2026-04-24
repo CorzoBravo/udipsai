@@ -27,6 +27,7 @@ export default function FormularioPacientes() {
     cedula: "",
     nombresApellidos: "",
     fechaNacimiento: new Date().toISOString().split("T")[0],
+    lugarNacimiento: "",
     fotoUrl: "",
     ciudad: "",
     domicilio: "",
@@ -48,6 +49,7 @@ export default function FormularioPacientes() {
     tipoDiscapacidad: "",
     detalleDiscapacidad: "",
     porcentajeDiscapacidad: 0,
+    numCarne: "",
     activo: true,
   });
 
@@ -87,6 +89,7 @@ export default function FormularioPacientes() {
 
           setFormData({
             ...data,
+            numcarne: data.numCarne || "",
             institucionEducativaId: data.institucionEducativa?.id || 0,
             sedeId: data.sede?.id || 0,
           });
@@ -99,7 +102,7 @@ export default function FormularioPacientes() {
               (d: any) => d.nombre === "Ficha Detección",
             );
             setExistingFichas({ compromiso, deteccion });
-            
+
             const otros = data.documentos.filter(
               (d: any) => d.nombre !== "Ficha Compromiso" && d.nombre !== "Ficha Detección"
             );
@@ -470,6 +473,15 @@ export default function FormularioPacientes() {
               />
             </div>
             <div>
+              <Label htmlFor="lugarNacimiento">Lugar de Nacimiento</Label>
+              <Input
+                id="lugarNacimiento"
+                placeholder="Ingrese el lugar de nacimiento"
+                value={formData.lugarNacimiento}
+                onChange={handleChange}
+              />
+            </div>
+            <div>
               <Label htmlFor="domicilio">Domicilio</Label>
               <Input
                 id="domicilio"
@@ -584,6 +596,17 @@ export default function FormularioPacientes() {
                     onChange={handleChange}
                   />
                 </div>
+                <div>
+                  <Label htmlFor="numCarne">
+                    N° de Carnet de Discapacidad
+                  </Label>
+                  <Input
+                    id="numCarne"
+                    placeholder="Ingrese el número de carnet"
+                    value={formData.numCarne || ""}
+                    onChange={handleChange}
+                  />
+                </div>
               </>
             )}
           </div>
@@ -632,16 +655,16 @@ export default function FormularioPacientes() {
                 {permissions.includes(
                   "PERM_INSTITUCIONES_EDUCATIVAS_CREAR",
                 ) && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={openInstitucionModal}
-                    title="Agregar nueva institución"
-                    className="hover:bg-red-500 hover:text-white"
-                  >
-                    <Plus size={18} />
-                  </Button>
-                )}
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={openInstitucionModal}
+                      title="Agregar nueva institución"
+                      className="hover:bg-red-500 hover:text-white"
+                    >
+                      <Plus size={18} />
+                    </Button>
+                  )}
               </div>
             </div>
             <div>
@@ -735,11 +758,10 @@ export default function FormularioPacientes() {
             <div className="flex flex-col gap-3">
               <Label>Ficha de Compromiso (PDF)</Label>
               <div
-                className={`relative border-2 border-dashed rounded-2xl p-6 flex flex-col items-center justify-center transition-all h-32 ${
-                  fichaCompromisoFile || existingFichas.compromiso
-                    ? "border-green-200 bg-green-50/30 dark:border-green-500/30 dark:bg-green-500/5"
-                    : "border-gray-200 dark:border-gray-700 hover:border-brand-300 dark:hover:border-brand-500 bg-white dark:bg-gray-900"
-                }`}
+                className={`relative border-2 border-dashed rounded-2xl p-6 flex flex-col items-center justify-center transition-all h-32 ${fichaCompromisoFile || existingFichas.compromiso
+                  ? "border-green-200 bg-green-50/30 dark:border-green-500/30 dark:bg-green-500/5"
+                  : "border-gray-200 dark:border-gray-700 hover:border-brand-300 dark:hover:border-brand-500 bg-white dark:bg-gray-900"
+                  }`}
               >
                 <input
                   id="fichaCompromiso"
@@ -785,11 +807,10 @@ export default function FormularioPacientes() {
             <div className="flex flex-col gap-3">
               <Label>Ficha de Detección (PDF)</Label>
               <div
-                className={`relative border-2 border-dashed rounded-2xl p-6 flex flex-col items-center justify-center transition-all h-32 ${
-                  fichaDeteccionFile || existingFichas.deteccion
-                    ? "border-green-200 bg-green-50/30 dark:border-green-500/30 dark:bg-green-500/5"
-                    : "border-gray-200 dark:border-gray-700 hover:border-brand-300 dark:hover:border-brand-500 bg-white dark:bg-gray-900"
-                }`}
+                className={`relative border-2 border-dashed rounded-2xl p-6 flex flex-col items-center justify-center transition-all h-32 ${fichaDeteccionFile || existingFichas.deteccion
+                  ? "border-green-200 bg-green-50/30 dark:border-green-500/30 dark:bg-green-500/5"
+                  : "border-gray-200 dark:border-gray-700 hover:border-brand-300 dark:hover:border-brand-500 bg-white dark:bg-gray-900"
+                  }`}
               >
                 <input
                   id="fichaDeteccion"
@@ -886,7 +907,7 @@ export default function FormularioPacientes() {
                     </button>
                   </div>
                 ))}
-                
+
                 <div className="relative border-2 border-dashed border-gray-200 dark:border-gray-700 hover:border-brand-300 dark:hover:border-brand-500 rounded-xl p-4 flex flex-col items-center justify-center transition-all bg-white dark:bg-gray-900 h-[58px] cursor-pointer group">
                   <input
                     id="otrosDocumentos"

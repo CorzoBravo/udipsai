@@ -343,7 +343,7 @@ export const fichasService = {
     return res.data;
   },
 
-  obtenerSocioEconomico: async (id: number | string) => {
+  obtenerPorPaciente: async (id: number | string) => {
     const res = await api.get(`/socioeconomicas/paciente/${id}`);
     return res.data;
   },

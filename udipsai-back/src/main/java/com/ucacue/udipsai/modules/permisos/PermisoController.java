@@ -20,7 +20,8 @@ public class PermisoController {
 
     @PutMapping("/especialista/{id}")
     @PreAuthorize("hasAnyRole('ESPECIALISTA')")
-    public ResponseEntity<PermisosDTO> actualizarPermisosEspecialista(@PathVariable Integer id, @RequestBody PermisosDTO dto) {
+    public ResponseEntity<PermisosDTO> actualizarPermisosEspecialista(@PathVariable Integer id,
+            @RequestBody PermisosDTO dto) {
         return ResponseEntity.ok(permisoService.actualizarPermisosEspecialista(id, dto));
     }
 
@@ -31,7 +32,8 @@ public class PermisoController {
 
     @PutMapping("/pasante/{id}")
     @PreAuthorize("hasAnyRole('ESPECIALISTA')")
-    public ResponseEntity<PermisosDTO> actualizarPermisosPasante(@PathVariable Integer id, @RequestBody PermisosDTO dto) {
+    public ResponseEntity<PermisosDTO> actualizarPermisosPasante(@PathVariable Integer id,
+            @RequestBody PermisosDTO dto) {
         return ResponseEntity.ok(permisoService.actualizarPermisosPasante(id, dto));
     }
 }
