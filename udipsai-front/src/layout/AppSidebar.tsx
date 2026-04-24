@@ -45,9 +45,9 @@ const navItems: NavItem[] = [
     requiredPermission: "PERM_PACIENTES",
   },
   {
-    name: "Fichas",
+   name: "Fichas",
     icon: <ClipboardList size={20} />,
-    path: "/fichas",
+    path: "/fichas", // Vuelve a ser un path directo
     requiredPermission: "PERM_PACIENTES",
   },
   {
@@ -98,9 +98,8 @@ const navItems: NavItem[] = [
   {
     name: "Tests",
     icon: <ClipboardList size={20} />,
-    // path: "/tests",  // Removed path as it now has subItems
     subItems: [
-      { name: "WAIS", path: "/fichas/wais", pro: false }, // Using /fichas/wais as planned
+      { name: "WAIS", path: "/fichas/wais", pro: false },
     ],
     requiredPermission: "PERM_RECURSOS",
   },
@@ -140,8 +139,14 @@ const AppSidebar: React.FC = () => {
   const subMenuRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const isActive = useCallback(
-    (path: string) => location.pathname === path,
-    [location.pathname]
+    (path: string) => {
+      // Ajuste para que los tabs con query params también marquen el menú como activo
+      if (path.includes('?')) {
+        return location.pathname + location.search === path;
+      }
+      return location.pathname === path;
+    },
+    [location.pathname, location.search]
   );
 
   const filterItems = (items: NavItem[]) => {
@@ -177,9 +182,6 @@ const AppSidebar: React.FC = () => {
   );
 
   useEffect(() => {
-  }, [permissions, filteredNavItems]);
-
-  useEffect(() => {
     let submenuMatched = false;
     ["main", "others"].forEach((menuType) => {
       const items =
@@ -202,7 +204,7 @@ const AppSidebar: React.FC = () => {
     if (!submenuMatched) {
       setOpenSubmenu(null);
     }
-  }, [location.pathname, filteredNavItems, filteredOthersItems, isActive]);
+  }, [location.pathname, location.search, filteredNavItems, filteredOthersItems, isActive]);
 
   useEffect(() => {
     if (openSubmenu !== null) {

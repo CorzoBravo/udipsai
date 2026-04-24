@@ -362,6 +362,55 @@ export const fichasService = {
     const res = await api.delete(`/socioeconomicas/${id}`);
     return res.data;
   },
+
+  // Seguimiento Social
+  listarSeguimientoSocial: async () => {
+    try {
+      const response = await api.get("/seguimientos-sociales");
+      return response.data;
+    } catch (error) {
+      console.error("Error al listar seguimiento social:", error);
+      throw error;
+    }
+  },
+
+  obtenerSeguimientoSocial: async (id: number | string) => {
+    try {
+      const response = await api.get(`/seguimientos-sociales/paciente/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error al obtener seguimiento social:", error);
+      throw error;
+    }
+  },
+
+  crearSeguimientoSocial: async (data: any) => {
+    try {
+      const response = await api.post("/seguimientos-sociales", data);
+      return response.data;
+    } catch (error) {
+      console.error("Error al crear seguimiento social:", error);
+      throw error;
+    }
+  },
+
+  actualizarSeguimientoSocial: async (id: number | string, data: any) => {
+    try {
+      const response = await api.put(`/seguimientos-sociales/${id}`, data);
+      return response.data;
+    } catch (error) {
+      console.error("Error al actualizar seguimiento social:", error);
+      throw error;
+    }
+  },
+
+  eliminarSeguimientoSocial: async (id: number | string) => {
+    try {
+      const response = await api.delete(`/seguimientos-sociales/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error al eliminar seguimiento social:", error);
+      throw error;
+    }
+  },
 };
-
-
