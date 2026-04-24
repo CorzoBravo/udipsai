@@ -124,8 +124,8 @@ export const privateRouteObjects: RouteObject[] = [
       { path: "psicologia-educativa/editar/:id", ...protectedRoute("PERM_PSICOLOGIA_EDUCATIVA_EDITAR", <EditarPsicologiaEducativa />) },
 
       // Socioeconómico
-      { path: "socioeconomico/nuevo", ...protectedRoute("PERM_SOCIO_ECONOMICO_CREAR", <div>NuevoSocioEconomico </div>) },
-      { path: "socioeconomico/editar/:id", ...protectedRoute("PERM_SOCIO_ECONOMICO_EDITAR", <div>EditarSocioEconomico</div>) },
+      { path: "socioeconomico/nuevo", ...protectedRoute("PERM_SOCIOECONOMICA_CREAR", <div>NuevoSocioEconomico </div>) },
+      { path: "socioeconomico/editar/:id", ...protectedRoute("PERM_SOCIOECONOMICA_EDITAR", <div>EditarSocioEconomico</div>) },
     ]
   },
 

@@ -1,13 +1,41 @@
 import api from "../api/api";
 
 export interface FichaSocioeconomica {
-    pacienteId: number;
-    especialistaId: number;
-    situacionEconomica: string;
-    ingresos: number;
-    egresos: number;
-    conclusion: string;
-    recomendaciones: string;
+  id: number;
+
+  paciente: {
+    id: number;
+    nombresApellidos: string;
+    cedula: string;
+  };
+
+  especialista: {
+    id: number;
+    nombresApellidos: string;
+  };
+
+  situacionEconomica: {
+    totalIngresos: number;
+    totalEgresos: number;
+    condicionEconomica: string;
+  };
+
+  desgloseEconomico: {
+    ingresoPadre: number;
+    ingresoMadre: number;
+    ingresoFamiliares: number;
+    ingresoOtros: number;
+    egresoAlimentacion: number;
+    egresoArriendo: number;
+    egresoServiciosBasicos: number;
+    egresoSalud: number;
+    egresoEducacion: number;
+    egresoPrestamos: number;
+    egresoOtros: number;
+  };
+
+  conclusiones: string;
+  recomendaciones: string;
 }
 
 export const SocioEconomicoService = {
