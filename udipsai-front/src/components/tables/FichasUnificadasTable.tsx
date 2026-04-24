@@ -28,14 +28,10 @@ import { TableActionHeader } from "../common/TableActionHeader";
 import { HistoriaClinicaViewModal } from "../modals/HistoriaClinicaViewModal";
 import { PsicologiaEducativaViewModal } from "../modals/PsicologiaEducativaViewModal";
 import { PsicologiaClinicaViewModal } from "../modals/PsicologiaClinicaViewModal";
-<<<<<<< HEAD
-import { FonoaudiologiaViewModal } from "../modals/FonoaudiologiaViewModal"
-//Implemento de sistemasocioeconmico 
-//import {} from ../modals/SocioeconomicoViewModal;
-=======
+
 import { FonoaudiologiaViewModal } from "../modals/FonoaudiologiaViewModal";
 import { SocioEconomicoViewModal } from "../modals/SocioEconomicoViewModal";
->>>>>>> origin/main
+
 
 import { useAuth } from "../../context/AuthContext";
 import { fichasService } from "../../services/fichas";
