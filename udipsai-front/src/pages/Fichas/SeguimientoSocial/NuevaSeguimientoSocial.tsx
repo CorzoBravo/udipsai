@@ -14,12 +14,11 @@ const NuevaSeguimientoSocial: React.FC = () => {
       <PageBreadCrumb pageTitle="Nueva Ficha de Seguimiento Social" />
       <div className="mt-6">
         {!selectedPatient ? (
-          /* Muestra el buscador original del proyecto */
+         
           <PatientSelector 
             onSelect={(patient) => setSelectedPatient(patient)} 
           />
         ) : (
-          /* Una vez seleccionado, muestra el formulario con el ID real */
           <FormularioSeguimientoSocial 
             pacienteId={selectedPatient.id} 
             onSuccess={() => navigate('/fichas?tab=seguimiento_social')} 
