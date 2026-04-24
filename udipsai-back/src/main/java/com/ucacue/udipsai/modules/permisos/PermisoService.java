@@ -122,7 +122,12 @@ public class PermisoService {
         dto.setPsicologiaEducativaCrear(entity.getPsicologiaEducativaCrear());
         dto.setPsicologiaEducativaEditar(entity.getPsicologiaEducativaEditar());
         dto.setPsicologiaEducativaEliminar(entity.getPsicologiaEducativaEliminar());
-        
+
+        dto.setSocioeconomica(entity.getSocioEconomica());
+        dto.setSocioeconomicaCrear(entity.getSocioEconomicaCrear());
+        dto.setSocioeconomicaEditar(entity.getSocioEconomicaEditar());
+        dto.setSocioeconomicaEliminar(entity.getSocioEconomicaEliminar());
+
         return dto;
     }
 

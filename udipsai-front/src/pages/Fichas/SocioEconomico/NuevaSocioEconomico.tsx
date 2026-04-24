@@ -17,9 +17,7 @@ export default function NuevaSocioEconomico() {
           { label: "Nueva Ficha Socioeconómica" },
         ]}
       />
-      <div className="grid grid-cols-1 gap-6">
         <FormularioSocioEconomica />
-      </div>
     </>
   );
 }

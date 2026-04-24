@@ -11,6 +11,7 @@ interface Paciente {
   nombresApellidos: string;
   cedula: string;
   fechaNacimiento: string;
+  lugarNacimiento: string;
   fechaApertura: string;
   activo: boolean;
   ciudad: string;
@@ -21,6 +22,7 @@ interface Paciente {
   sede: { id: number; nombre: string };
   motivoConsulta: string;
   observaciones: string;
+  
 }
 
 interface PatientDetailsModalProps {

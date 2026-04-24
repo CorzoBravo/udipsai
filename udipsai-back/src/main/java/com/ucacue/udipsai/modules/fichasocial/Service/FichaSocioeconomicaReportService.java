@@ -1,5 +1,5 @@
 
-package com.ucacue.udipsai.modules.fichasocial.service;
+package com.ucacue.udipsai.modules.fichasocial.Service;
 
 
 import java.io.ByteArrayInputStream;
