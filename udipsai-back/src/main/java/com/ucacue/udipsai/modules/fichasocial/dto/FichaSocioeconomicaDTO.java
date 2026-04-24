@@ -15,7 +15,6 @@ public class FichaSocioeconomicaDTO {
     private Boolean activo;
     private Date fechaElaboracion;
     
-    // --- Componentes @Embeddable ---
     private RiesgosSociales riesgosSociales;
     private VulnerabilidadDetalle vulnerabilidad;
     private DinamicaFamiliar dinamicaFamiliar;
@@ -24,7 +23,6 @@ public class FichaSocioeconomicaDTO {
     private DesgloseEconomico desgloseEconomico;
     private SituacionEconomica situacionEconomica;
     
-    // --- Campos de Texto y Listas ---
     private String conclusiones;
     private String recomendaciones;
     private String responsable;

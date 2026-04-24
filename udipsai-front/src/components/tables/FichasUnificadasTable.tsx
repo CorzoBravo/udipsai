@@ -28,8 +28,10 @@ import { TableActionHeader } from "../common/TableActionHeader";
 import { HistoriaClinicaViewModal } from "../modals/HistoriaClinicaViewModal";
 import { PsicologiaEducativaViewModal } from "../modals/PsicologiaEducativaViewModal";
 import { PsicologiaClinicaViewModal } from "../modals/PsicologiaClinicaViewModal";
+
 import { FonoaudiologiaViewModal } from "../modals/FonoaudiologiaViewModal";
 import { } from "../modals/SocioEconomicoViewModal";
+
 
 import { useAuth } from "../../context/AuthContext";
 import { fichasService } from "../../services/fichas";

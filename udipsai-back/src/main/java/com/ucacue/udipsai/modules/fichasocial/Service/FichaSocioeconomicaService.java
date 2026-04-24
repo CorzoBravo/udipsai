@@ -1,4 +1,5 @@
-package com.ucacue.udipsai.modules.fichasocial.Service;
+package com.ucacue.udipsai.modules.fichasocial.service;
+
 
 import com.ucacue.udipsai.modules.fichasocial.domain.FichaSocioeconomica;
 import com.ucacue.udipsai.modules.fichasocial.domain.components.FichaSocioFamiliar;
@@ -51,26 +52,32 @@ public class FichaSocioeconomicaService {
     @Transactional
     public FichaSocioeconomicaDTO crearFicha(FichaSocioeconomicaRequest request) {
         log.info("Creando ficha socioeconómica para Paciente ID: {}", request.getPacienteId());
+
+
         
-        // Validación de existencia previa (Sigue patrón de Clínica)
         FichaSocioeconomica existing = fichaRepository.findByPacienteIdAndActivo(request.getPacienteId(), true);
+        //El siguiente bloque se encarga de inactivar la ficha anterior en caso de que exista
+        // esto para mantener un historial de fichas sin perder información.
         if (existing != null) {
-            throw new IllegalStateException("El paciente ya posee una ficha socioeconómica activa");
+            log.info("Archivando ficha anterior del paciente ID: {}", request.getPacienteId());
+            existing.setActivo(false);
+            fichaRepository.save(existing);
         }
 
         FichaSocioeconomica ficha = new FichaSocioeconomica();
-        
+
         // Búsqueda de Entidades Relacionadas
         Paciente paciente = pacienteRepository.findById(request.getPacienteId())
                 .orElseThrow(() -> new RuntimeException("Paciente no encontrado"));
-        
+
+
         Especialista especialista = especialistaRepository.findById(request.getEspecialistaId())
                 .orElseThrow(() -> new RuntimeException("Especialista no encontrado"));
 
         ficha.setPaciente(paciente);
         ficha.setEspecialista(especialista);
         ficha.setActivo(true);
-        
+
         mapRequestToEntity(request, ficha);
         procesarFamiliares(request.getFamiliares(), ficha);
 
@@ -90,8 +97,8 @@ public class FichaSocioeconomicaService {
         }
 
         mapRequestToEntity(request, ficha);
-        
-        // Limpiar y actualizar lista de familiares (Guardado en cascada)
+
+
         ficha.getFamiliares().clear();
         procesarFamiliares(request.getFamiliares(), ficha);
 
@@ -124,8 +131,9 @@ public class FichaSocioeconomicaService {
                 familiar.setInstruccion(fDto.getInstruccion());
                 familiar.setOcupacion(fDto.getOcupacion());
                 familiar.setIngresoMensual(fDto.getIngresoMensual());
-                
-                familiar.setFicha(ficha); // Vinculación obligatoria para FK
+
+                familiar.setFicha(ficha); 
+
                 ficha.getFamiliares().add(familiar);
             }
         }
@@ -136,13 +144,14 @@ public class FichaSocioeconomicaService {
         dto.setId(ficha.getId());
         dto.setActivo(ficha.getActivo());
         dto.setFechaElaboracion(ficha.getFechaElaboracion());
-        
-        // Mapeo de Paciente (Sigue patrón de Clínica)
+
+        // Mapeo de Paciente 
         if (ficha.getPaciente() != null) {
             dto.setPaciente(new PacienteFichaDTO(
-                ficha.getPaciente().getId(), 
-                ficha.getPaciente().getNombresApellidos(), 
-                ficha.getPaciente().getCedula()));
+                    ficha.getPaciente().getId(),
+                    ficha.getPaciente().getNombresApellidos(),
+                    ficha.getPaciente().getCedula()));
+
         }
 
         // Mapeo de Componentes
@@ -153,7 +162,7 @@ public class FichaSocioeconomicaService {
         dto.setSalud(ficha.getSalud());
         dto.setDesgloseEconomico(ficha.getDesgloseEconomico());
         dto.setSituacionEconomica(ficha.getSituacionEconomica());
-        
+
         dto.setConclusiones(ficha.getConclusiones());
         dto.setRecomendaciones(ficha.getRecomendaciones());
         dto.setResponsable(ficha.getResponsable());
