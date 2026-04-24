@@ -1,56 +1,62 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
-import { User } from "lucide-react";
 import ComponentCard from "../../common/ComponentCard";
 import Button from "../../ui/button/Button";
 import Switch from "../switch/Switch";
-
-// Importa tus componentes (asegúrate de que las rutas sean correctas)
 import ViviendaHabitabilidadForm from "./sections/SocioEconomica/ViviendaHabitabilidadFrom";
+
+import { fichasService } from "../../../services/fichas";
 
 export interface FichaSocioeconomicaState {
   id?: number;
   pacienteId: number;
   activo: boolean;
-  viviendaHabitabilidad: any; 
-  // ... resto de propiedades
+  viviendaHabitabilidad: any;
 }
-
 
 export default function FormularioFichaSocioeconomica() {
   const navigate = useNavigate();
-  const { id } = useParams<{ id: string }>(); // 'id' de la ficha a editar
-  
+  const { id } = useParams<{ id: string }>();
+
+  const idNumber = id ? Number(id) : null;
+
   const [formData, setFormData] = useState<FichaSocioeconomicaState>({
     pacienteId: 0,
     activo: true,
     viviendaHabitabilidad: {},
   });
-  
-  const [loading] = useState(false);
+
+  const [loading, setLoading] = useState(false);
   const [verVivienda, setVerVivienda] = useState(false);
 
   useEffect(() => {
-    if (id) {
+    if (idNumber) {
       const fetchData = async () => {
         try {
           setLoading(true);
-          const data = await fichasService.obtenerSocioEconomico(id);
+          const data = await fichasService.obtenerSocioEconomico(idNumber);
           setFormData(data);
-          // Si los datos existen, activamos la vista automáticamente
-          if (data.viviendaHabitabilidad) setVerVivienda(true);
+
+          if (data.viviendaHabitabilidad) {
+            setVerVivienda(true);
+          }
         } catch (error) {
           console.error("Error al cargar ficha:", error);
         } finally {
           setLoading(false);
         }
       };
+
       fetchData();
     }
-  }, [id]);
+  }, [idNumber]);
 
-  // Función para manejar cambios en objetos anidados
-const handleNestedChange = (section: keyof FichaSocioeconomicaState, field: string, value: any) => {
+  // Manejar cambios en objetos anidados
+  const handleNestedChange = (
+    section: keyof FichaSocioeconomicaState,
+    field: string,
+    value: any
+  ) => {
     setFormData((prev) => ({
       ...prev,
       [section]: {
@@ -60,20 +66,20 @@ const handleNestedChange = (section: keyof FichaSocioeconomicaState, field: stri
     }));
   };
 
-  // 2. Manejar envío (Crear vs Actualizar)
+  // Guardar (crear o actualizar)
   const handleSubmit = async () => {
     try {
       setLoading(true);
-      if (id) {
-        // Modo Edición
-        await fichasService.actualizarSocioEconomico(id, formData);
+
+      if (idNumber) {
+        await fichasService.actualizarSocioEconomico(idNumber, formData);
         alert("Ficha actualizada correctamente");
       } else {
-        // Modo Creación
         await fichasService.crearSocioEconomico(formData);
         alert("Ficha creada correctamente");
       }
-      navigate("/fichas"); // Redirigir al listado
+
+      navigate("/fichas");
     } catch (error) {
       console.error("Error al guardar:", error);
       alert("Ocurrió un error al guardar. Intente de nuevo.");
@@ -98,8 +104,8 @@ const handleNestedChange = (section: keyof FichaSocioeconomicaState, field: stri
       >
         <ViviendaHabitabilidadForm
           data={formData.viviendaHabitabilidad}
-          onChange={(f: string, v: any) => 
-            handleNestedChange("viviendaHabitabilidad", f, v)
+          onChange={(field: string, value: any) =>
+            handleNestedChange("viviendaHabitabilidad", field, value)
           }
         />
       </ComponentCard>
@@ -108,8 +114,13 @@ const handleNestedChange = (section: keyof FichaSocioeconomicaState, field: stri
         <Button variant="outline" onClick={() => navigate(-1)}>
           Cancelar
         </Button>
+
         <Button onClick={handleSubmit} disabled={loading}>
-          {loading ? "Guardando..." : (id ? "Actualizar Ficha" : "Guardar Ficha")}
+          {loading
+            ? "Guardando..."
+            : idNumber
+              ? "Actualizar Ficha"
+              : "Guardar Ficha"}
         </Button>
       </div>
     </div>

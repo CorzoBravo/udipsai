@@ -30,12 +30,12 @@ import { PsicologiaEducativaViewModal } from "../modals/PsicologiaEducativaViewM
 import { PsicologiaClinicaViewModal } from "../modals/PsicologiaClinicaViewModal";
 
 import { FonoaudiologiaViewModal } from "../modals/FonoaudiologiaViewModal";
-import { } from "../modals/SocioEconomicoViewModal";
+import { SocioEconomicoViewModal } from "../modals/SocioEconomicoViewModal";
 
 
 import { useAuth } from "../../context/AuthContext";
 import { fichasService } from "../../services/fichas";
-import { SocioEconomicoViewModal } from "../modals/SocioEconomicoViewModal";
+
 
 
 interface FichaListDTO {
