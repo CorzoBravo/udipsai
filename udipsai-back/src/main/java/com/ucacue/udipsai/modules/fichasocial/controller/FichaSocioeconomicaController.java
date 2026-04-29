@@ -45,20 +45,15 @@ public class FichaSocioeconomicaController {
         return (dto != null) ? ResponseEntity.ok(dto) : ResponseEntity.notFound().build();
     }
 
-    @PostMapping("/crearFicha") // Endpoint que usaste en Postman (image_711328.png)
-    @PreAuthorize("hasAuthority('PERM_SOCIOECONOMICA_CREAR') and @asignacionSecurity.checkPasanteAcceso(#request.pacienteId)") // Permiso
-                                                                                                                               // específico
-                                                                                                                               // para
-                                                                                                                               // crear
-                                                                                                                               // fichas
-                                                                                                                               // socioeconómicas
+    @PostMapping("/crearFicha")
+    @PreAuthorize("hasAuthority('PERM_SOCIOECONOMICA_CREAR') and @asignacionSecurity.checkPasanteAcceso(#request.pacienteId)")
 
     public ResponseEntity<FichaSocioeconomicaDTO> crear(@RequestBody FichaSocioeconomicaRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(fichaService.crearFicha(request));
     }
 
     @PutMapping("/socioeconomicas/{id}")
-    @PreAuthorize("hasAuthority('PERM_SOCIOECONOMICA_EDITAR')") // Permiso específico para editar fichas socioeconómicas
+    @PreAuthorize("hasAuthority('PERM_SOCIOECONOMICA_EDITAR')")
 
     public ResponseEntity<FichaSocioeconomicaDTO> actualizar(@PathVariable Integer id,
             @RequestBody FichaSocioeconomicaRequest request) {
