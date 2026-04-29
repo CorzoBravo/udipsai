@@ -13,6 +13,7 @@ import PatientSelector from "../../common/PatientSelector";
 import { fichasService } from "../../../services/fichas";
 
 import InformacionPacienteForm from "./sections/SocioEconomica/InformacionPacienteForm";
+import RiesgosFamiliaresForm from "./sections/SocioEconomica/RiesgosFamiliaresForm";
 
 
 
@@ -231,7 +232,7 @@ export default function FormularioFichaSocioeconomica() {
 
   const [loading, setLoading] = useState(false);
   const [verInformacionPaciente, setVerInformacionPaciente] = useState(false);
-
+  const [verRiesgosFamiliares, setVerRiesgosFamiliares] = useState(false);
 
   const [selectedPatient, setSelectedPatient] = useState<{
     nombresApellidos: string;
@@ -294,14 +295,14 @@ export default function FormularioFichaSocioeconomica() {
       if (data) {
         const loadedData = {
           ...data,
-          paciente: data.paciente, 
+          paciente: data.paciente,
         };
         setFormData(loadedData);
         // Colocar los campos del formulario
         const hasInformacionPaciente = !isSectionEmpty(data.paciente, initialFichaSocioeconomicaState.paciente);
-
+        const hasRiesgosFamiliares = !isSectionEmpty(data.riesgosFamiliares, initialFichaSocioeconomicaState.riesgosFamiliares);
         if (hasInformacionPaciente) setVerInformacionPaciente(true);
-
+        if (hasRiesgosFamiliares) setVerRiesgosFamiliares(true);
 
         if (data.paciente) {
           try {
@@ -438,7 +439,7 @@ export default function FormularioFichaSocioeconomica() {
       )}
 
       {/* Tarjetas */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-1cle gap-6">
         <div
           onClick={() => setVerInformacionPaciente(!verInformacionPaciente)}
           className={`cursor-pointer group relative overflow-hidden p-6 rounded-3xl border-2 transition-all duration-500 ${verInformacionPaciente
@@ -464,43 +465,92 @@ export default function FormularioFichaSocioeconomica() {
                 Datos personales y demográficos
               </p>
             </div>
+
           </div>
 
           {/* Sección desplegable */}
-          {verInformacionPaciente && (
-            <div className="mt-6 space-y-6 animate-in slide-in-from-bottom-4 duration-500">
-              <ComponentCard
-                title="Información del Paciente"
-                onHeaderClick={() =>
-                  setVerInformacionPaciente(!verInformacionPaciente)
-                }
-                bodyDisabled={!verInformacionPaciente}
-              >
-                <InformacionPacienteForm
-                  data={formData.paciente}
-                  onChange={(field, value) =>
-                    handleNestedChange("paciente", field, value)
-                  }
-                />
-              </ComponentCard>
-            </div>
-          )}
+
         </div>
-      </div>
+        {verInformacionPaciente && (
+          <div className="mt-6 space-y-6 animate-in slide-in-from-bottom-4 duration-500">
+            <ComponentCard
+              title="Información del Paciente"
+              onHeaderClick={() =>
+                setVerInformacionPaciente(!verInformacionPaciente)
+              }
+              bodyDisabled={!verInformacionPaciente}
+            >
+              <InformacionPacienteForm
+                data={formData.paciente}
+                onChange={(field, value) =>
+                  handleNestedChange("paciente", field, value)
+                }
+              />
+            </ComponentCard>
+          </div>
+        )}
 
-      {/* Botones (FUERA del grid) */}
-      <div className="flex justify-end gap-4">
-        <Button variant="outline" onClick={() => navigate(-1)}>
-          Cancelar
-        </Button>
+        <div
+          onClick={() => setVerRiesgosFamiliares(!verRiesgosFamiliares)}
+          className={`cursor-pointer group relative overflow-hidden p-6 rounded-3xl border-2 transition-all duration-500 ${verRiesgosFamiliares
+            ? "border-brand-100 bg-brand-50/20 dark:border-gray-600 dark:bg-gray-800 scale-[1.02]"
+            : "border-gray-100 bg-white dark:border-gray-800 dark:bg-white/[0.03] dark:hover:border-gray-600"
+            }`}
+        >
+          {/* Cabecera tarjeta */}
+          <div className="flex items-center gap-5">
+            <div
+              className={`p-4 rounded-2xl transition-all duration-500 ${verRiesgosFamiliares
+                ? "bg-brand-400 text-white rotate-12 dark:bg-gray-500 dark:text-gray-200"
+                : "bg-brand-50 text-brand-500 dark:bg-gray-800 dark:text-gray-300"
+                }`}
+            >
+              <MessageSquare size={24} />
+            </div>
+            <div>
+              <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100">
+                Riesgos Familiares
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Factores de riesgo presentes en el entorno familiar
+              </p>
+            </div>
+          </div>
+          {/* Sección desplegable */}
+        </div>
+        {verRiesgosFamiliares && (
+          <div className="mt-6 space-y-6 animate-in slide-in-from-bottom-4 duration-500">
+            <ComponentCard
+              title="Riesgos Familiares"
+              onHeaderClick={() =>
+                setVerRiesgosFamiliares(!verRiesgosFamiliares)
+              }
+              bodyDisabled={!verRiesgosFamiliares}
+            >
+              <RiesgosFamiliaresForm
+                data={formData.riesgosFamiliares}
+                onChange={(field, value) =>
+                  handleNestedChange("riesgosFamiliares", field, value)
+                }
+              />
+            </ComponentCard>
+          </div>
+        )}
 
-        <Button onClick={handleSubmit} disabled={loading}>
-          {loading
-            ? "Guardando..."
-            : id
-              ? "Actualizar Ficha"
-              : "Guardar Ficha"}
-        </Button>
+        {/* Botones (FUERA del grid) */}
+        <div className="flex justify-end gap-4">
+          <Button variant="outline" onClick={() => navigate(-1)}>
+            Cancelar
+          </Button>
+
+          <Button onClick={handleSubmit} disabled={loading}>
+            {loading
+              ? "Guardando..."
+              : id
+                ? "Actualizar Ficha"
+                : "Guardar Ficha"}
+          </Button>
+        </div>
       </div>
     </div>
   );
