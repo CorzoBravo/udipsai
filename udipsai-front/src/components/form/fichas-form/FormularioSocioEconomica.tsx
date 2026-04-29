@@ -14,6 +14,7 @@ import { fichasService } from "../../../services/fichas";
 
 import InformacionPacienteForm from "./sections/SocioEconomica/InformacionPacienteForm";
 import RiesgosFamiliaresForm from "./sections/SocioEconomica/RiesgosFamiliaresForm";
+import VulnerabilidadesForm from "./sections/SocioEconomica/VulnerabilidadesForm";
 
 
 
@@ -232,7 +233,13 @@ export default function FormularioFichaSocioeconomica() {
 
   const [loading, setLoading] = useState(false);
   const [verInformacionPaciente, setVerInformacionPaciente] = useState(false);
+  const [verConformacionFamiliar, setVerConformacionFamiliar] = useState(false);
   const [verRiesgosFamiliares, setVerRiesgosFamiliares] = useState(false);
+  const [verVulnerabilidades, setVerVulnerabilidades] = useState(false);
+  const [verRelaacionFamiliar, setVerRelacionFamiliar] = useState(false);
+  const [verVivienda, setVerVivienda] = useState(false);
+  const [verSalud, setVerSalud] = useState(false);
+  const [verSituacionEconomica, setVerSituacionEconomica] = useState(false);
 
   const [selectedPatient, setSelectedPatient] = useState<{
     nombresApellidos: string;
@@ -300,9 +307,22 @@ export default function FormularioFichaSocioeconomica() {
         setFormData(loadedData);
         // Colocar los campos del formulario
         const hasInformacionPaciente = !isSectionEmpty(data.paciente, initialFichaSocioeconomicaState.paciente);
+        const hasConformacionFamiliar = data.familiares && data.familiares.length > 0;
         const hasRiesgosFamiliares = !isSectionEmpty(data.riesgosFamiliares, initialFichaSocioeconomicaState.riesgosFamiliares);
+        const hasVulnerabilidades = !isSectionEmpty(data.vulnerabilidadesDetalle, initialFichaSocioeconomicaState.vulnerabilidadesDetalle);
+        const hasDinamicaFamiliar = !isSectionEmpty(data.dinamicaFamiliar, initialFichaSocioeconomicaState.dinamicaFamiliar);
+        const hasVivienda = !isSectionEmpty(data.vivienda, initialFichaSocioeconomicaState.vivienda);
+        const hasSalud = !isSectionEmpty(data.salud, initialFichaSocioeconomicaState.salud);
+        const hasSituacionEconomica = !isSectionEmpty(data.situacionEconomica, initialFichaSocioeconomicaState.situacionEconomica);
+
         if (hasInformacionPaciente) setVerInformacionPaciente(true);
+        if (hasConformacionFamiliar) setVerConformacionFamiliar(true);
         if (hasRiesgosFamiliares) setVerRiesgosFamiliares(true);
+        if (hasVulnerabilidades) setVerVulnerabilidades(true);
+        if (hasDinamicaFamiliar) setVerRelacionFamiliar(true);
+        if (hasVivienda) setVerVivienda(true);
+        if (hasSalud) setVerSalud(true);
+        if (hasSituacionEconomica) setVerSituacionEconomica(true);
 
         if (data.paciente) {
           try {
@@ -489,6 +509,53 @@ export default function FormularioFichaSocioeconomica() {
             </ComponentCard>
           </div>
         )}
+        <div
+          onClick={() => setVerConformacionFamiliar(!verConformacionFamiliar)}
+          className={`cursor-pointer group relative overflow-hidden p-6 rounded-3xl border-2 transition-all duration-500 ${verConformacionFamiliar
+            ? "border-brand-100 bg-brand-50/20 dark:border-gray-600 dark:bg-gray-800 scale-[1.02]"
+            : "border-gray-100 bg-white dark:border-gray-800 dark:bg-white/[0.03] dark:hover:border-gray-600"
+            }`}
+        >
+          {/* Cabecera tarjeta */}
+          <div className="flex items-center gap-5">
+            <div
+              className={`p-4 rounded-2xl transition-all duration-500 ${verConformacionFamiliar
+                ? "bg-brand-400 text-white rotate-12 dark:bg-gray-500 dark:text-gray-200"
+                : "bg-brand-50 text-brand-500 dark:bg-gray-800 dark:text-gray-300"
+                }`}
+            >
+              <User size={24} />
+            </div>
+            <div>
+              <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100">
+                Conformación Familiar
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Información sobre los miembros de la familia
+              </p>
+            </div>
+
+          </div>
+
+          {/* Sección desplegable */}
+
+        </div>
+        {verConformacionFamiliar && (
+          <div className="mt-6 space-y-6 animate-in slide-in-from-bottom-4 duration-500">
+            <ComponentCard
+              title="Conformación Familiar"
+              onHeaderClick={() =>
+                setVerConformacionFamiliar(!verConformacionFamiliar)
+              }
+              bodyDisabled={!verConformacionFamiliar}
+            >
+              {/* Aquí iría el formulario de conformación familiar, similar a InformacionPacienteForm */}
+              <p className="text-gray-500 dark:text-gray-400">
+                Formulario de Conformación Familiar (en construcción)
+              </p>
+            </ComponentCard>
+          </div>
+        )}
 
         <div
           onClick={() => setVerRiesgosFamiliares(!verRiesgosFamiliares)}
@@ -533,6 +600,229 @@ export default function FormularioFichaSocioeconomica() {
                   handleNestedChange("riesgosFamiliares", field, value)
                 }
               />
+            </ComponentCard>
+          </div>
+        )}
+
+        <div
+          onClick={() => setVerVulnerabilidades(!verVulnerabilidades)}
+          className={`cursor-pointer group relative overflow-hidden p-6 rounded-3xl border-2 transition-all duration-500 ${verVulnerabilidades
+            ? "border-brand-100 bg-brand-50/20 dark:border-gray-600 dark:bg-gray-800 scale-[1.02]"
+            : "border-gray-100 bg-white dark:border-gray-800 dark:bg-white/[0.03] dark:hover:border-gray-600"
+            }`}
+        >
+          {/* Cabecera tarjeta */}
+          <div className="flex items-center gap-5">
+            <div
+              className={`p-4 rounded-2xl transition-all duration-500 ${verVulnerabilidades
+                ? "bg-brand-400 text-white rotate-12 dark:bg-gray-500 dark:text-gray-200"
+                : "bg-brand-50 text-brand-500 dark:bg-gray-800 dark:text-gray-300"
+                }`}
+            >
+              <MessageSquare size={24} />
+            </div>
+            <div>
+              <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100">
+                Vulnerabilidades
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Factores de vulnerabilidad presentes en el entorno familiar
+              </p>
+            </div>
+          </div>
+          {/* Sección desplegable */}
+        </div>
+        {verVulnerabilidades && (
+          <div className="mt-6 space-y-6 animate-in slide-in-from-bottom-4 duration-500">
+            <ComponentCard
+              title="Vulnerabilidades"
+              onHeaderClick={() =>
+                setVerVulnerabilidades(!verVulnerabilidades)
+              }
+              bodyDisabled={!verVulnerabilidades}
+            >
+              <VulnerabilidadesForm
+                data={formData.vulnerabilidadesDetalle}
+                onChange={(field, value) =>
+                  handleNestedChange("vulnerabilidadesDetalle", field, value)
+                }
+              />
+            </ComponentCard>
+          </div>
+        )}
+
+        <div
+          onClick={() => setVerRelacionFamiliar(!verRelaacionFamiliar)}
+          className={`cursor-pointer group relative overflow-hidden p-6 rounded-3xl border-2 transition-all duration-500 ${verRelaacionFamiliar
+            ? "border-brand-100 bg-brand-50/20 dark:border-gray-600 dark:bg-gray-800 scale-[1.02]"
+            : "border-gray-100 bg-white dark:border-gray-800 dark:bg-white/[0.03] dark:hover:border-gray-600"
+            }`}
+        >
+          {/* Cabecera tarjeta */}
+          <div className="flex items-center gap-5">
+            <div
+              className={`p-4 rounded-2xl transition-all duration-500 ${verRelaacionFamiliar
+                ? "bg-brand-400 text-white rotate-12 dark:bg-gray-500 dark:text-gray-200"
+                : "bg-brand-50 text-brand-500 dark:bg-gray-800 dark:text-gray-300"
+                }`}
+            >
+              <MessageSquare size={24} />
+            </div>
+            <div>
+              <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100">
+                Dinámica Familiar
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Relaciones  y dinámicas dentro del núcleo familiar
+              </p>
+            </div>
+          </div>
+          {/* Sección desplegable */}
+        </div>
+        {verRelaacionFamiliar && (
+          <div className="mt-6 space-y-6 animate-in slide-in-from-bottom-4 duration-500">
+            <ComponentCard
+              title="Dinámica Familiar"
+              onHeaderClick={() =>
+                setVerRelacionFamiliar(!verRelaacionFamiliar)
+              }
+              bodyDisabled={!verRelaacionFamiliar}
+            >
+              {/* Aquí iría el formulario de dinámica familiar, similar a RiesgosFamiliaresForm */}
+              <p className="text-gray-500 dark:text-gray-400">
+                Formulario de Dinámica Familiar (en construcción)
+              </p>
+            </ComponentCard>
+          </div>
+        )}
+
+        <div
+          onClick={() => setVerVivienda(!verVivienda)}
+          className={`cursor-pointer group relative overflow-hidden p-6 rounded-3xl border-2 transition-all duration-500 ${verVivienda
+            ? "border-brand-100 bg-brand-50/20 dark:border-gray-600 dark:bg-gray-800 scale-[1.02]"
+            : "border-gray-100 bg-white dark:border-gray-800 dark:bg-white/[0.03] dark:hover:border-gray-600"
+            }`}
+        >
+          {/* Cabecera tarjeta */}
+          <div className="flex items-center gap-5">
+            <div
+              className={`p-4 rounded-2xl transition-all duration-500 ${verVivienda
+                ? "bg-brand-400 text-white rotate-12 dark:bg-gray-500 dark:text-gray-200"
+                : "bg-brand-50 text-brand-500 dark:bg-gray-800 dark:text-gray-300"
+                }`}
+            >
+              <MessageSquare size={24} />
+            </div>
+            <div>
+              <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100">
+                Condiciones de Vivienda
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Información sobre las condiciones habitacionales
+              </p>
+            </div>
+          </div>
+          {/* Sección desplegable */}
+        </div>
+        {verVivienda && (
+          <div className="mt-6 space-y-6 animate-in slide-in-from-bottom-4 duration-500">
+            <ComponentCard
+              title="Condiciones de Vivienda"
+              onHeaderClick={() => setVerVivienda(!verVivienda)}
+              bodyDisabled={!verVivienda}
+            >
+              {/* Aquí iría el formulario de condiciones de vivienda, similar a RiesgosFamiliaresForm */}
+              <p className="text-gray-500 dark:text-gray-400">
+                Formulario de Condiciones de Vivienda (en construcción)
+              </p>
+            </ComponentCard>
+          </div>
+        )}
+
+        <div
+          onClick={() => setVerSalud(!verSalud)}
+          className={`cursor-pointer group relative overflow-hidden p-6 rounded-3xl border-2 transition-all duration-500 ${verSalud
+            ? "border-brand-100 bg-brand-50/20 dark:border-gray-600 dark:bg-gray-800 scale-[1.02]"
+            : "border-gray-100 bg-white dark:border-gray-800 dark:bg-white/[0.03] dark:hover:border-gray-600"
+            }`}
+        >
+          {/* Cabecera tarjeta */}
+          <div className="flex items-center gap-5">
+            <div
+              className={`p-4 rounded-2xl transition-all duration-500 ${verSalud
+                ? "bg-brand-400 text-white rotate-12 dark:bg-gray-500 dark:text-gray-200"
+                : "bg-brand-50 text-brand-500 dark:bg-gray-800 dark:text-gray-300"
+                }`}
+            >
+              <MessageSquare size={24} />
+            </div>
+            <div>
+              <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100">
+                Salud
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Información sobre la salud del paciente y su familia
+              </p>
+            </div>
+          </div>
+          {/* Sección desplegable */}
+        </div>
+        {verSalud && (
+          <div className="mt-6 space-y-6 animate-in slide-in-from-bottom-4 duration-500">
+            <ComponentCard
+              title="Salud"
+              onHeaderClick={() => setVerSalud(!verSalud)}
+              bodyDisabled={!verSalud}
+            >
+              {/* Aquí iría el formulario de salud, similar a RiesgosFamiliaresForm */}
+              <p className="text-gray-500 dark:text-gray-400">
+                Formulario de Salud (en construcción)
+              </p>
+            </ComponentCard>
+          </div>
+        )}
+
+        <div
+          onClick={() => setVerSituacionEconomica(!verSituacionEconomica)}
+          className={`cursor-pointer group relative overflow-hidden p-6 rounded-3xl border-2 transition-all duration-500 ${verSituacionEconomica
+            ? "border-brand-100 bg-brand-50/20 dark:border-gray-600 dark:bg-gray-800 scale-[1.02]"
+            : "border-gray-100 bg-white dark:border-gray-800 dark:bg-white/[0.03] dark:hover:border-gray-600"
+            }`}
+        >
+          {/* Cabecera tarjeta */}
+          <div className="flex items-center gap-5">
+            <div
+              className={`p-4 rounded-2xl transition-all duration-500 ${verSituacionEconomica
+                ? "bg-brand-400 text-white rotate-12 dark:bg-gray-500 dark:text-gray-200"
+                : "bg-brand-50 text-brand-500 dark:bg-gray-800 dark:text-gray-300"
+                }`}
+            >
+              <MessageSquare size={24} />
+            </div>
+            <div>
+              <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100">
+                Situación Económica
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Información sobre los ingresos, egresos y condiciones económicas
+              </p>
+            </div>
+          </div>
+          {/* Sección desplegable */}
+        </div>
+        {verSituacionEconomica && (
+          <div className="mt-6 space-y-6 animate-in slide-in-from-bottom-4 duration-500">
+            <ComponentCard
+              title="Situación Económica"
+              onHeaderClick={() =>
+                setVerSituacionEconomica(!verSituacionEconomica)
+              }
+              bodyDisabled={!verSituacionEconomica}
+            >
+              {/* Aquí iría el formulario de situación económica, similar a RiesgosFamiliaresForm */}
+              <p className="text-gray-500 dark:text-gray-400">
+                Formulario de Situación Económica (en construcción)
+              </p>
             </ComponentCard>
           </div>
         )}
