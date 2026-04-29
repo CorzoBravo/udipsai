@@ -9,7 +9,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data   
+      - postgres_data:/var/lib/postgresql/data
       - ./scripts:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U udipsai_user -d udipsai"]
@@ -39,10 +39,10 @@ services:
       retries: 5
       start_period: 20s
     volumes:
-      - /Volumes/EXT_KM/Contenedores/udipsai/uploads:/uploads
+      - ./uploads:/uploads
 
   frontend:
-    build: ./udipsai-front
+    image: nginx:alpine
     container_name: udipsai-frontend
     ports:
       - "80:80"
@@ -54,4 +54,4 @@ services:
       - ./certs:/etc/nginx/certs:ro
 
 volumes:
-  postgres_data:    
+  postgres_data:
