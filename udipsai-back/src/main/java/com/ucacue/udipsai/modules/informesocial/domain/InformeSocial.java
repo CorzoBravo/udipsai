@@ -28,11 +28,11 @@ public class InformeSocial {
     @Column(name = "activo")
     private Boolean activo = true;
 
-    // Rutas de imágenes procesadas por StorageService
+    
     private String genogramaUrl;
     private String ecomapaUrl;
 
-    // Secciones de texto extenso del documento
+    
     @Column(columnDefinition = "TEXT")
     private String descripcionDinamicaFamiliar;
     

@@ -32,7 +32,7 @@ public class InformeSocialService {
         informe.setNumFicha(request.getNumFicha());
         informe.setFechaElaboracion(new java.util.Date());
 
-        // Procesamiento de imágenes con StorageService
+        
         if (genograma != null && !genograma.isEmpty()) {
             informe.setGenogramaUrl(storageService.store(genograma));
         }
@@ -40,14 +40,13 @@ public class InformeSocialService {
             informe.setEcomapaUrl(storageService.store(ecomapa));
         }
 
-        // Mapeo de bloques de texto
         informe.setSituacionEconomica(request.getSituacionEconomica());
         informe.setSituacionHabitabilidad(request.getSituacionHabitabilidad());
         informe.setValoracionProfesional(request.getValoracionProfesional());
         informe.setRecomendaciones(request.getRecomendaciones());
         informe.setElaboradoPor(request.getElaboradoPor());
 
-        // Persistencia en cascada de familiares
+        
         if (request.getFamiliares() != null) {
             informe.setFamiliares(request.getFamiliares().stream().map(fDto -> {
                 InformeSocialFamiliar familiar = new InformeSocialFamiliar();
@@ -63,7 +62,6 @@ public class InformeSocialService {
     }
 
     private InformeSocialDTO convertirADTO(InformeSocial entity) {
-        // Lógica de conversión a DTO incluyendo URLs de StorageService
         return new InformeSocialDTO(); 
     }
 }
