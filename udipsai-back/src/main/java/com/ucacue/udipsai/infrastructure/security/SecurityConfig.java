@@ -66,8 +66,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-                        .requestMatchers("/api/socioeconomicas/**").permitAll()
-                        .requestMatchers("/api/socioeconomicas/crearFicha").permitAll()
+                        .requestMatchers("/api/fichas-socioeconomicas/**").permitAll()
+                        .requestMatchers("/api/fichas-socioeconomicas/crearFicha").permitAll()
                         .anyRequest().authenticated());
 
         http.authenticationProvider(authenticationProvider());
