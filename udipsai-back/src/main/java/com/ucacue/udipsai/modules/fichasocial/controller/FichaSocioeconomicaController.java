@@ -33,7 +33,7 @@ public class FichaSocioeconomicaController {
     private FichaSocioeconomicaReportService reportService;
 
     @GetMapping
-    @PreAuthorize("hasAuthority('PERM_SOCIOECONOMICA')") // Permiso específico para listar fichas socioeconómicas
+    @PreAuthorize("hasAuthority('PERM_SOCIOECONOMICA')") 
     public ResponseEntity<List<FichaSocioeconomicaDTO>> listar() {
         return ResponseEntity.ok(fichaService.listarFichas());
     }

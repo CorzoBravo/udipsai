@@ -66,7 +66,7 @@ public class FichaSocioeconomicaService {
 
         FichaSocioeconomica ficha = new FichaSocioeconomica();
 
-        // Búsqueda de Entidades Relacionadas
+        
         Paciente paciente = pacienteRepository.findById(request.getPacienteId())
                 .orElseThrow(() -> new RuntimeException("Paciente no encontrado"));
 
@@ -145,7 +145,6 @@ public class FichaSocioeconomicaService {
         dto.setActivo(ficha.getActivo());
         dto.setFechaElaboracion(ficha.getFechaElaboracion());
 
-        // Mapeo de Paciente 
         if (ficha.getPaciente() != null) {
             dto.setPaciente(new PacienteFichaDTO(
                     ficha.getPaciente().getId(),
@@ -154,7 +153,7 @@ public class FichaSocioeconomicaService {
 
         }
 
-        // Mapeo de Componentes
+       
         dto.setRiesgosSociales(ficha.getRiesgosSociales());
         dto.setVulnerabilidad(ficha.getVulnerabilidad());
         dto.setDinamicaFamiliar(ficha.getDinamicaFamiliar());
@@ -167,7 +166,7 @@ public class FichaSocioeconomicaService {
         dto.setRecomendaciones(ficha.getRecomendaciones());
         dto.setResponsable(ficha.getResponsable());
 
-        // Convertir lista de entidades familiares a DTOs
+       
         if (ficha.getFamiliares() != null) {
             dto.setFamiliares(ficha.getFamiliares().stream().map(f -> {
                 FamiliarDTO fDto = new FamiliarDTO();
