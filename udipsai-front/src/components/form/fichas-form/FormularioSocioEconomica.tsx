@@ -17,6 +17,7 @@ import RiesgosFamiliaresForm from "./sections/SocioEconomica/RiesgosFamiliaresFo
 import VulnerabilidadesForm from "./sections/SocioEconomica/VulnerabilidadesForm";
 import RelacionFamiliar from "./sections/SocioEconomica/RelacionFamiliar";
 import CondicionesViviendaForm from "./sections/SocioEconomica/CondicionesViviendaForm";
+import ConformacionFamiliar from "./sections/SocioEconomica/ConformacionFamiliarForm";
 
 
 
@@ -550,6 +551,7 @@ export default function FormularioFichaSocioeconomica() {
           {/* Sección desplegable */}
 
         </div>
+
         {verConformacionFamiliar && (
           <div className="mt-6 space-y-6 animate-in slide-in-from-bottom-4 duration-500">
             <ComponentCard
@@ -559,10 +561,22 @@ export default function FormularioFichaSocioeconomica() {
               }
               bodyDisabled={!verConformacionFamiliar}
             >
-              {/* Aquí iría el formulario de conformación familiar, similar a InformacionPacienteForm */}
-              <p className="text-gray-500 dark:text-gray-400">
-                Formulario de Conformación Familiar (en construcción)
-              </p>
+              <ConformacionFamiliar
+                data={formData.familiares}
+                onChange={(index, field, value) => {
+                  const updatedFamiliares = [...formData.familiares];
+
+                  updatedFamiliares[index] = {
+                    ...updatedFamiliares[index],
+                    [field]: value,
+                  };
+
+                  setFormData({
+                    ...formData,
+                    familiares: updatedFamiliares,
+                  });
+                }}
+              />
             </ComponentCard>
           </div>
         )}
