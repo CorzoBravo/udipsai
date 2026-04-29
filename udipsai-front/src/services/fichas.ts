@@ -349,17 +349,17 @@ export const fichasService = {
   },
 
   crearSocioEconomico: async (data: any) => {
-    const res = await api.post("/fichas-socioeconomicas", data);
+    const res = await api.post("/fichas-socioeconomicas/crearFicha", data);
     return res.data;
   },
 
   actualizarSocioEconomico: async (id: number | string, data: any) => {
-    const res = await api.put(`/fichas-socioeconomicas/${id}`, data);
+    const res = await api.put(`/fichas-socioeconomicas/socioeconomicas/${id}`, data);
     return res.data;
   },
 
   eliminarSocioEconomico: async (id: number | string) => {
-    const res = await api.delete(`/fichas-socioeconomicas/${id}`);
+    const res = await api.delete(`/fichas-socioeconomicas/socioeconomicas/${id}`);
     return res.data;
   },
 };
