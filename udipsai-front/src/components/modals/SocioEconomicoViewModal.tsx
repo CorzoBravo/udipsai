@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Modal } from "../ui/modal";
-import Button from "../ui/button/Button";
-import { FileDown } from "lucide-react";
 import { toast } from "react-toastify";
-import { SocioeconomicaState } from "../form/fichas-form/FormularioSocioEconomica";
+import { FichaSocioeconomicaState } from "../form/fichas-form/FormularioSocioEconomica";
 import { fichasService } from "../../services";
 interface SocioEconomicoProps {
   isOpen: boolean;
@@ -16,7 +14,7 @@ export const SocioEconomicoViewModal: React.FC<SocioEconomicoProps> = ({
   onClose,
   pacienteId,
 }) => {
-  const [data, setData] = useState<SocioeconomicaState | null>(null);
+  const [data, setData] = useState<FichaSocioeconomicaState | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -28,7 +26,7 @@ export const SocioEconomicoViewModal: React.FC<SocioEconomicoProps> = ({
   const cargarFicha = async () => {
     try {
       setLoading(true);
-      const res = await fichasService.obtenerPorPaciente(pacienteId);
+      const res = await fichasService.obtenerSocioEconomico(pacienteId);
       setData(res);
     } catch (error) {
       console.error(error);
@@ -37,7 +35,7 @@ export const SocioEconomicoViewModal: React.FC<SocioEconomicoProps> = ({
       setLoading(false);
     }
   };
-// Función para exportar a PDF
+  // Función para exportar a PDF
 
   const normalizarValor = (val?: string) => {
     if (!val) return "";
@@ -85,17 +83,7 @@ export const SocioEconomicoViewModal: React.FC<SocioEconomicoProps> = ({
           </h3>
           <p className="text-gray-500">Paciente ID: {pacienteId}</p>
         </div>
-
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleExportPdf}
-          disabled={isExporting}
-          className="flex items-center gap-2"
-        >
-          <FileDown size={16} />
-          {isExporting ? "Generando..." : "Exportar PDF"}
-        </Button>
+        {/* Exportar PDF */}
       </div>
 
       {/* LOADING */}
@@ -122,7 +110,7 @@ export const SocioEconomicoViewModal: React.FC<SocioEconomicoProps> = ({
             <p>Nombres y Apellidos: {data.paciente?.nombresApellidos ?? "N/A"}</p>
             <p>Fecha de Nacimiento: {data.paciente?.fechaNacimiento || "N/A"}</p>
             <p>Edad: {data.paciente?.edad ?? "N/A"}</p>
-            <p>Lugar de nacimiento: {data.lugarNacimiento ?? "N/A"}</p>
+            <p>Lugar de nacimiento: {data.paciente?.lugarNacimiento ?? "N/A"}</p>
             <p>Cédula: {data.paciente?.cedula ?? "N/A"}</p>
           </div>
 

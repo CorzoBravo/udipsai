@@ -34,8 +34,8 @@ const EditarPsicologiaEducativa = lazy(() => import("../pages/Fichas/PsicologiaE
 const WaisEvaluacion = lazy(() => import("../pages/Fichas/Wais/Wais"));
 const NuevaHistoriaClinica = lazy(() => import("../pages/Fichas/HistoriaClinica/NuevaHistoriaClinica"));
 const EditarHistoriaClinica = lazy(() => import("../pages/Fichas/HistoriaClinica/EditarHistoriaClinica"));
-//const NuevoSocioEconomico = lazy(() => import("../pages/Fichas/SocioEconomico/NuevoSocioEconomico"));
-//const EditarSocioEconomico = lazy(() => import("../pages/Fichas/SocioEconomico/EditarSocioEconomico"));
+const NuevaSocioEconomico = lazy(() => import("../pages/Fichas/SocioEconomico/NuevaSocioEconomico"));
+const EditarSocioEconomico = lazy(() => import("../pages/Fichas/SocioEconomico/EditarSocioEconomico"));
 
 const protectedRoute = (permission: string, element: ReactNode, children?: RouteObject[]): RouteObject => ({
   element: <PermissionRoute requiredPermission={permission} />,
@@ -124,8 +124,8 @@ export const privateRouteObjects: RouteObject[] = [
       { path: "psicologia-educativa/editar/:id", ...protectedRoute("PERM_PSICOLOGIA_EDUCATIVA_EDITAR", <EditarPsicologiaEducativa />) },
 
       // Socioeconómico
-      { path: "socioeconomico/nuevo", ...protectedRoute("PERM_SOCIOECONOMICA_CREAR", <div>NuevoSocioEconomico </div>) },
-      { path: "socioeconomico/editar/:id", ...protectedRoute("PERM_SOCIOECONOMICA_EDITAR", <div>EditarSocioEconomico</div>) },
+      { path: "socioeconomico/nuevo", ...protectedRoute("PERM_SOCIOECONOMICA_CREAR", <NuevaSocioEconomico />) },
+      { path: "socioeconomico/editar/:id", ...protectedRoute("PERM_SOCIOECONOMICA_EDITAR", <EditarSocioEconomico />) },
     ]
   },
 

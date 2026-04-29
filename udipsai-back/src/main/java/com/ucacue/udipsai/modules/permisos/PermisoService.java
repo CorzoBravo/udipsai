@@ -34,11 +34,11 @@ public class PermisoService {
     public PermisosDTO actualizarPermisosEspecialista(Integer id, PermisosDTO dto) {
         Especialista especialista = especialistaRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Especialista no encontrado"));
-        
+
         if (especialista.getPermisos() == null) {
             especialista.setPermisos(new Permisos());
         }
-        
+
         updatePermisosFromDTO(especialista.getPermisos(), dto);
         especialistaRepository.save(especialista);
         return mapToDTO(especialista.getPermisos());
@@ -59,10 +59,11 @@ public class PermisoService {
     }
 
     private PermisosDTO mapToDTO(Permisos entity) {
-        if (entity == null) return new PermisosDTO();
+        if (entity == null)
+            return new PermisosDTO();
         PermisosDTO dto = new PermisosDTO();
         dto.setId(entity.getId());
-        
+
         dto.setPacientes(entity.getPacientes());
         dto.setPacientesCrear(entity.getPacientesCrear());
         dto.setPacientesEditar(entity.getPacientesEditar());
@@ -132,64 +133,121 @@ public class PermisoService {
     }
 
     private void updatePermisosFromDTO(Permisos entity, PermisosDTO dto) {
-        if (dto.getPacientes() != null) entity.setPacientes(dto.getPacientes());
-        if (dto.getPacientesCrear() != null) entity.setPacientesCrear(dto.getPacientesCrear());
-        if (dto.getPacientesEditar() != null) entity.setPacientesEditar(dto.getPacientesEditar());
-        if (dto.getPacientesEliminar() != null) entity.setPacientesEliminar(dto.getPacientesEliminar());
+        if (dto.getPacientes() != null)
+            entity.setPacientes(dto.getPacientes());
+        if (dto.getPacientesCrear() != null)
+            entity.setPacientesCrear(dto.getPacientesCrear());
+        if (dto.getPacientesEditar() != null)
+            entity.setPacientesEditar(dto.getPacientesEditar());
+        if (dto.getPacientesEliminar() != null)
+            entity.setPacientesEliminar(dto.getPacientesEliminar());
 
-        if (dto.getPasantes() != null) entity.setPasantes(dto.getPasantes());
-        if (dto.getPasantesCrear() != null) entity.setPasantesCrear(dto.getPasantesCrear());
-        if (dto.getPasantesEditar() != null) entity.setPasantesEditar(dto.getPasantesEditar());
-        if (dto.getPasantesEliminar() != null) entity.setPasantesEliminar(dto.getPasantesEliminar());
+        if (dto.getPasantes() != null)
+            entity.setPasantes(dto.getPasantes());
+        if (dto.getPasantesCrear() != null)
+            entity.setPasantesCrear(dto.getPasantesCrear());
+        if (dto.getPasantesEditar() != null)
+            entity.setPasantesEditar(dto.getPasantesEditar());
+        if (dto.getPasantesEliminar() != null)
+            entity.setPasantesEliminar(dto.getPasantesEliminar());
 
-        if (dto.getSedes() != null) entity.setSedes(dto.getSedes());
-        if (dto.getSedesCrear() != null) entity.setSedesCrear(dto.getSedesCrear());
-        if (dto.getSedesEditar() != null) entity.setSedesEditar(dto.getSedesEditar());
-        if (dto.getSedesEliminar() != null) entity.setSedesEliminar(dto.getSedesEliminar());
+        if (dto.getSedes() != null)
+            entity.setSedes(dto.getSedes());
+        if (dto.getSedesCrear() != null)
+            entity.setSedesCrear(dto.getSedesCrear());
+        if (dto.getSedesEditar() != null)
+            entity.setSedesEditar(dto.getSedesEditar());
+        if (dto.getSedesEliminar() != null)
+            entity.setSedesEliminar(dto.getSedesEliminar());
 
-        if (dto.getEspecialistas() != null) entity.setEspecialistas(dto.getEspecialistas());
-        if (dto.getEspecialistasCrear() != null) entity.setEspecialistasCrear(dto.getEspecialistasCrear());
-        if (dto.getEspecialistasEditar() != null) entity.setEspecialistasEditar(dto.getEspecialistasEditar());
-        if (dto.getEspecialistasEliminar() != null) entity.setEspecialistasEliminar(dto.getEspecialistasEliminar());
+        if (dto.getEspecialistas() != null)
+            entity.setEspecialistas(dto.getEspecialistas());
+        if (dto.getEspecialistasCrear() != null)
+            entity.setEspecialistasCrear(dto.getEspecialistasCrear());
+        if (dto.getEspecialistasEditar() != null)
+            entity.setEspecialistasEditar(dto.getEspecialistasEditar());
+        if (dto.getEspecialistasEliminar() != null)
+            entity.setEspecialistasEliminar(dto.getEspecialistasEliminar());
 
-        if (dto.getEspecialidades() != null) entity.setEspecialidades(dto.getEspecialidades());
-        if (dto.getEspecialidadesCrear() != null) entity.setEspecialidadesCrear(dto.getEspecialidadesCrear());
-        if (dto.getEspecialidadesEditar() != null) entity.setEspecialidadesEditar(dto.getEspecialidadesEditar());
-        if (dto.getEspecialidadesEliminar() != null) entity.setEspecialidadesEliminar(dto.getEspecialidadesEliminar());
+        if (dto.getEspecialidades() != null)
+            entity.setEspecialidades(dto.getEspecialidades());
+        if (dto.getEspecialidadesCrear() != null)
+            entity.setEspecialidadesCrear(dto.getEspecialidadesCrear());
+        if (dto.getEspecialidadesEditar() != null)
+            entity.setEspecialidadesEditar(dto.getEspecialidadesEditar());
+        if (dto.getEspecialidadesEliminar() != null)
+            entity.setEspecialidadesEliminar(dto.getEspecialidadesEliminar());
 
-        if (dto.getAsignaciones() != null) entity.setAsignaciones(dto.getAsignaciones());
-        if (dto.getAsignacionesCrear() != null) entity.setAsignacionesCrear(dto.getAsignacionesCrear());
-        if (dto.getAsignacionesEditar() != null) entity.setAsignacionesEditar(dto.getAsignacionesEditar());
-        if (dto.getAsignacionesEliminar() != null) entity.setAsignacionesEliminar(dto.getAsignacionesEliminar());
+        if (dto.getAsignaciones() != null)
+            entity.setAsignaciones(dto.getAsignaciones());
+        if (dto.getAsignacionesCrear() != null)
+            entity.setAsignacionesCrear(dto.getAsignacionesCrear());
+        if (dto.getAsignacionesEditar() != null)
+            entity.setAsignacionesEditar(dto.getAsignacionesEditar());
+        if (dto.getAsignacionesEliminar() != null)
+            entity.setAsignacionesEliminar(dto.getAsignacionesEliminar());
 
-        if (dto.getRecursos() != null) entity.setRecursos(dto.getRecursos());
-        if (dto.getRecursosCrear() != null) entity.setRecursosCrear(dto.getRecursosCrear());
-        if (dto.getRecursosEditar() != null) entity.setRecursosEditar(dto.getRecursosEditar());
-        if (dto.getRecursosEliminar() != null) entity.setRecursosEliminar(dto.getRecursosEliminar());
+        if (dto.getRecursos() != null)
+            entity.setRecursos(dto.getRecursos());
+        if (dto.getRecursosCrear() != null)
+            entity.setRecursosCrear(dto.getRecursosCrear());
+        if (dto.getRecursosEditar() != null)
+            entity.setRecursosEditar(dto.getRecursosEditar());
+        if (dto.getRecursosEliminar() != null)
+            entity.setRecursosEliminar(dto.getRecursosEliminar());
 
-        if (dto.getInstitucionesEducativas() != null) entity.setInstitucionesEducativas(dto.getInstitucionesEducativas());
-        if (dto.getInstitucionesEducativasCrear() != null) entity.setInstitucionesEducativasCrear(dto.getInstitucionesEducativasCrear());
-        if (dto.getInstitucionesEducativasEditar() != null) entity.setInstitucionesEducativasEditar(dto.getInstitucionesEducativasEditar());
-        if (dto.getInstitucionesEducativasEliminar() != null) entity.setInstitucionesEducativasEliminar(dto.getInstitucionesEducativasEliminar());
+        if (dto.getInstitucionesEducativas() != null)
+            entity.setInstitucionesEducativas(dto.getInstitucionesEducativas());
+        if (dto.getInstitucionesEducativasCrear() != null)
+            entity.setInstitucionesEducativasCrear(dto.getInstitucionesEducativasCrear());
+        if (dto.getInstitucionesEducativasEditar() != null)
+            entity.setInstitucionesEducativasEditar(dto.getInstitucionesEducativasEditar());
+        if (dto.getInstitucionesEducativasEliminar() != null)
+            entity.setInstitucionesEducativasEliminar(dto.getInstitucionesEducativasEliminar());
 
-        if (dto.getHistoriaClinica() != null) entity.setHistoriaClinica(dto.getHistoriaClinica());
-        if (dto.getHistoriaClinicaCrear() != null) entity.setHistoriaClinicaCrear(dto.getHistoriaClinicaCrear());
-        if (dto.getHistoriaClinicaEditar() != null) entity.setHistoriaClinicaEditar(dto.getHistoriaClinicaEditar());
-        if (dto.getHistoriaClinicaEliminar() != null) entity.setHistoriaClinicaEliminar(dto.getHistoriaClinicaEliminar());
+        if (dto.getHistoriaClinica() != null)
+            entity.setHistoriaClinica(dto.getHistoriaClinica());
+        if (dto.getHistoriaClinicaCrear() != null)
+            entity.setHistoriaClinicaCrear(dto.getHistoriaClinicaCrear());
+        if (dto.getHistoriaClinicaEditar() != null)
+            entity.setHistoriaClinicaEditar(dto.getHistoriaClinicaEditar());
+        if (dto.getHistoriaClinicaEliminar() != null)
+            entity.setHistoriaClinicaEliminar(dto.getHistoriaClinicaEliminar());
 
-        if (dto.getFonoAudiologia() != null) entity.setFonoAudiologia(dto.getFonoAudiologia());
-        if (dto.getFonoAudiologiaCrear() != null) entity.setFonoAudiologiaCrear(dto.getFonoAudiologiaCrear());
-        if (dto.getFonoAudiologiaEditar() != null) entity.setFonoAudiologiaEditar(dto.getFonoAudiologiaEditar());
-        if (dto.getFonoAudiologiaEliminar() != null) entity.setFonoAudiologiaEliminar(dto.getFonoAudiologiaEliminar());
+        if (dto.getFonoAudiologia() != null)
+            entity.setFonoAudiologia(dto.getFonoAudiologia());
+        if (dto.getFonoAudiologiaCrear() != null)
+            entity.setFonoAudiologiaCrear(dto.getFonoAudiologiaCrear());
+        if (dto.getFonoAudiologiaEditar() != null)
+            entity.setFonoAudiologiaEditar(dto.getFonoAudiologiaEditar());
+        if (dto.getFonoAudiologiaEliminar() != null)
+            entity.setFonoAudiologiaEliminar(dto.getFonoAudiologiaEliminar());
 
-        if (dto.getPsicologiaClinica() != null) entity.setPsicologiaClinica(dto.getPsicologiaClinica());
-        if (dto.getPsicologiaClinicaCrear() != null) entity.setPsicologiaClinicaCrear(dto.getPsicologiaClinicaCrear());
-        if (dto.getPsicologiaClinicaEditar() != null) entity.setPsicologiaClinicaEditar(dto.getPsicologiaClinicaEditar());
-        if (dto.getPsicologiaClinicaEliminar() != null) entity.setPsicologiaClinicaEliminar(dto.getPsicologiaClinicaEliminar());
+        if (dto.getPsicologiaClinica() != null)
+            entity.setPsicologiaClinica(dto.getPsicologiaClinica());
+        if (dto.getPsicologiaClinicaCrear() != null)
+            entity.setPsicologiaClinicaCrear(dto.getPsicologiaClinicaCrear());
+        if (dto.getPsicologiaClinicaEditar() != null)
+            entity.setPsicologiaClinicaEditar(dto.getPsicologiaClinicaEditar());
+        if (dto.getPsicologiaClinicaEliminar() != null)
+            entity.setPsicologiaClinicaEliminar(dto.getPsicologiaClinicaEliminar());
 
-        if (dto.getPsicologiaEducativa() != null) entity.setPsicologiaEducativa(dto.getPsicologiaEducativa());
-        if (dto.getPsicologiaEducativaCrear() != null) entity.setPsicologiaEducativaCrear(dto.getPsicologiaEducativaCrear());
-        if (dto.getPsicologiaEducativaEditar() != null) entity.setPsicologiaEducativaEditar(dto.getPsicologiaEducativaEditar());
-        if (dto.getPsicologiaEducativaEliminar() != null) entity.setPsicologiaEducativaEliminar(dto.getPsicologiaEducativaEliminar());
+        if (dto.getPsicologiaEducativa() != null)
+            entity.setPsicologiaEducativa(dto.getPsicologiaEducativa());
+        if (dto.getPsicologiaEducativaCrear() != null)
+            entity.setPsicologiaEducativaCrear(dto.getPsicologiaEducativaCrear());
+        if (dto.getPsicologiaEducativaEditar() != null)
+            entity.setPsicologiaEducativaEditar(dto.getPsicologiaEducativaEditar());
+        if (dto.getPsicologiaEducativaEliminar() != null)
+            entity.setPsicologiaEducativaEliminar(dto.getPsicologiaEducativaEliminar());
+
+        if (dto.getSocioeconomica() != null)
+            entity.setSocioEconomica(dto.getSocioeconomica());
+        if (dto.getSocioeconomicaCrear() != null)
+            entity.setSocioEconomicaCrear(dto.getSocioeconomicaCrear());
+        if (dto.getSocioeconomicaEditar() != null)
+            entity.setSocioEconomicaEditar(dto.getSocioeconomicaEditar());
+        if (dto.getSocioeconomicaEliminar() != null)
+            entity.setSocioEconomicaEliminar(dto.getSocioeconomicaEliminar());
     }
 }

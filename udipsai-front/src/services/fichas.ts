@@ -339,27 +339,27 @@ export const fichasService = {
 
   // Socioeconómico
   listarSocioEconomico: async () => {
-    const res = await api.get("/socioeconomicas");
+    const res = await api.get("/fichas-socioeconomicas");
     return res.data;
   },
 
-  obtenerPorPaciente: async (id: number | string) => {
-    const res = await api.get(`/socioeconomicas/paciente/${id}`);
+  obtenerSocioEconomico: async (id: number | string) => {
+    const res = await api.get(`/fichas-socioeconomicas/paciente/${id}`);
     return res.data;
   },
 
   crearSocioEconomico: async (data: any) => {
-    const res = await api.post("/socioeconomicas", data);
+    const res = await api.post("/fichas-socioeconomicas", data);
     return res.data;
   },
 
   actualizarSocioEconomico: async (id: number | string, data: any) => {
-    const res = await api.put(`/socioeconomicas/${id}`, data);
+    const res = await api.put(`/fichas-socioeconomicas/${id}`, data);
     return res.data;
   },
 
   eliminarSocioEconomico: async (id: number | string) => {
-    const res = await api.delete(`/socioeconomicas/${id}`);
+    const res = await api.delete(`/fichas-socioeconomicas/${id}`);
     return res.data;
   },
 };
