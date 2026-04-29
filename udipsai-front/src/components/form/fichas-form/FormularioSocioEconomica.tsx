@@ -15,6 +15,8 @@ import { fichasService } from "../../../services/fichas";
 import InformacionPacienteForm from "./sections/SocioEconomica/InformacionPacienteForm";
 import RiesgosFamiliaresForm from "./sections/SocioEconomica/RiesgosFamiliaresForm";
 import VulnerabilidadesForm from "./sections/SocioEconomica/VulnerabilidadesForm";
+import RelacionFamiliar from "./sections/SocioEconomica/RelacionFamiliar";
+import CondicionesViviendaForm from "./sections/SocioEconomica/CondicionesViviendaForm";
 
 
 
@@ -74,9 +76,13 @@ export interface FichaSocioeconomicaState {
   };
 
   dinamicaFamiliar: {
+    opinionfamiliar: boolean;
+    unionfamiliar: boolean;
     resolucionConflictos: string;
     quienesIncumplenReglas: string;
     actividadesCompartidas: string;
+    cumplenReglas: boolean;
+    tieneActividadesFamiliares: boolean;
     relacionHermanos: string;
     relacionPadresHijos: string;
     comunicacionFamiliar: string;
@@ -170,9 +176,13 @@ export const initialFichaSocioeconomicaState: FichaSocioeconomicaState = {
     lugarAgresion: "",
   },
   dinamicaFamiliar: {
+    opinionfamiliar: false,
+    unionfamiliar: false,
     resolucionConflictos: "",
     quienesIncumplenReglas: "",
     actividadesCompartidas: "",
+    cumplenReglas: false,
+    tieneActividadesFamiliares: false,
     relacionHermanos: "",
     relacionPadresHijos: "",
     comunicacionFamiliar: "",
@@ -236,7 +246,7 @@ export default function FormularioFichaSocioeconomica() {
   const [verConformacionFamiliar, setVerConformacionFamiliar] = useState(false);
   const [verRiesgosFamiliares, setVerRiesgosFamiliares] = useState(false);
   const [verVulnerabilidades, setVerVulnerabilidades] = useState(false);
-  const [verRelaacionFamiliar, setVerRelacionFamiliar] = useState(false);
+  const [verRelacionFamiliar, setVerRelacionFamiliar] = useState(false);
   const [verVivienda, setVerVivienda] = useState(false);
   const [verSalud, setVerSalud] = useState(false);
   const [verSituacionEconomica, setVerSituacionEconomica] = useState(false);
@@ -652,8 +662,8 @@ export default function FormularioFichaSocioeconomica() {
         )}
 
         <div
-          onClick={() => setVerRelacionFamiliar(!verRelaacionFamiliar)}
-          className={`cursor-pointer group relative overflow-hidden p-6 rounded-3xl border-2 transition-all duration-500 ${verRelaacionFamiliar
+          onClick={() => setVerRelacionFamiliar(!verRelacionFamiliar)}
+          className={`cursor-pointer group relative overflow-hidden p-6 rounded-3xl border-2 transition-all duration-500 ${verRelacionFamiliar
             ? "border-brand-100 bg-brand-50/20 dark:border-gray-600 dark:bg-gray-800 scale-[1.02]"
             : "border-gray-100 bg-white dark:border-gray-800 dark:bg-white/[0.03] dark:hover:border-gray-600"
             }`}
@@ -661,7 +671,7 @@ export default function FormularioFichaSocioeconomica() {
           {/* Cabecera tarjeta */}
           <div className="flex items-center gap-5">
             <div
-              className={`p-4 rounded-2xl transition-all duration-500 ${verRelaacionFamiliar
+              className={`p-4 rounded-2xl transition-all duration-500 ${verRelacionFamiliar
                 ? "bg-brand-400 text-white rotate-12 dark:bg-gray-500 dark:text-gray-200"
                 : "bg-brand-50 text-brand-500 dark:bg-gray-800 dark:text-gray-300"
                 }`}
@@ -679,19 +689,22 @@ export default function FormularioFichaSocioeconomica() {
           </div>
           {/* Sección desplegable */}
         </div>
-        {verRelaacionFamiliar && (
+        {verRelacionFamiliar && (
           <div className="mt-6 space-y-6 animate-in slide-in-from-bottom-4 duration-500">
             <ComponentCard
               title="Dinámica Familiar"
               onHeaderClick={() =>
-                setVerRelacionFamiliar(!verRelaacionFamiliar)
+                setVerRelacionFamiliar(!verRelacionFamiliar)
               }
-              bodyDisabled={!verRelaacionFamiliar}
+              bodyDisabled={!verRelacionFamiliar}
             >
               {/* Aquí iría el formulario de dinámica familiar, similar a RiesgosFamiliaresForm */}
-              <p className="text-gray-500 dark:text-gray-400">
-                Formulario de Dinámica Familiar (en construcción)
-              </p>
+              <RelacionFamiliar
+                data={formData.dinamicaFamiliar}
+                onChange={(field, value) =>
+                  handleNestedChange("dinamicaFamiliar", field, value)
+                }
+              />
             </ComponentCard>
           </div>
         )}
@@ -732,9 +745,12 @@ export default function FormularioFichaSocioeconomica() {
               bodyDisabled={!verVivienda}
             >
               {/* Aquí iría el formulario de condiciones de vivienda, similar a RiesgosFamiliaresForm */}
-              <p className="text-gray-500 dark:text-gray-400">
-                Formulario de Condiciones de Vivienda (en construcción)
-              </p>
+              <CondicionesViviendaForm
+                data={formData.vivienda}
+                onChange={(field, value) =>
+                  handleNestedChange("vivienda", field, value)
+                }
+              />
             </ComponentCard>
           </div>
         )}
