@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 
+// Solo los campos que pide la Imagen 13
 interface Familiar {
   relacion: string;
   nombres: string;
@@ -11,12 +12,22 @@ interface Familiar {
 }
 
 const ConformacionFamiliar: React.FC = () => {
+  // Inicializamos 10 filas exactas
   const [familiares, setFamiliares] = useState<Familiar[]>(
-    Array(10).fill({ relacion: '', nombres: '', edad: '', estadoCivil: '', instruccion: '', ocupacion: '', ingreso: '' })
+    Array(10).fill({ 
+      relacion: '', 
+      nombres: '', 
+      edad: '', 
+      estadoCivil: '', 
+      instruccion: '', 
+      ocupacion: '', 
+      ingreso: '' 
+    })
   );
 
   const handleInputChange = (index: number, field: keyof Familiar, value: string) => {
     const nuevosFamiliares = [...familiares];
+    // Usamos el spread operator para actualizar solo el campo necesario
     nuevosFamiliares[index] = { ...nuevosFamiliares[index], [field]: value };
     setFamiliares(nuevosFamiliares);
   };
@@ -28,7 +39,7 @@ const ConformacionFamiliar: React.FC = () => {
       <div className="overflow-x-auto">
         <table className="min-w-full border-2 border-black border-collapse">
           <thead>
-            <tr className="text-xs font-bold uppercase">
+            <tr className="text-[10px] font-bold uppercase bg-gray-100">
               <th className="border-2 border-black p-1 w-8 text-center">N°</th>
               <th className="border-2 border-black p-1">Relación</th>
               <th className="border-2 border-black p-1">Nombres y Apellidos</th>
@@ -36,7 +47,7 @@ const ConformacionFamiliar: React.FC = () => {
               <th className="border-2 border-black p-1">Est. Civil</th>
               <th className="border-2 border-black p-1">Instrucción</th>
               <th className="border-2 border-black p-1">Ocupación</th>
-              <th className="border-2 border-black p-1">Ingreso Mensual</th>
+              <th className="border-2 border-black p-1 text-center">Ingreso Mensual</th>
             </tr>
           </thead>
           <tbody>
@@ -51,11 +62,11 @@ const ConformacionFamiliar: React.FC = () => {
                 <td className="border-2 border-black p-0">
                   <input className="w-full h-full p-1 text-xs outline-none" value={familiar.nombres} onChange={(e) => handleInputChange(index, 'nombres', e.target.value)} />
                 </td>
-                <td className="border-2 border-black p-0">
+                <td className="border-2 border-black p-0 text-center">
                   <input type="number" className="w-full h-full p-1 text-xs outline-none text-center" value={familiar.edad} onChange={(e) => handleInputChange(index, 'edad', e.target.value)} />
                 </td>
                 <td className="border-2 border-black p-0">
-                  <input className="w-full h-full p-1 text-xs outline-none" value={familiar.estadoCivil} onChange={(e) => handleInputChange(index, 'estadoCivil', e.target.value)} />
+                  <input className="w-full h-full p-1 text-xs outline-none text-center" value={familiar.estadoCivil} onChange={(e) => handleInputChange(index, 'estadoCivil', e.target.value)} />
                 </td>
                 <td className="border-2 border-black p-0">
                   <input className="w-full h-full p-1 text-xs outline-none" value={familiar.instruccion} onChange={(e) => handleInputChange(index, 'instruccion', e.target.value)} />
