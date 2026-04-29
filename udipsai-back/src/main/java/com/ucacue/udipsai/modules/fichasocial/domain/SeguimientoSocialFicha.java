@@ -4,6 +4,7 @@ import com.ucacue.udipsai.modules.paciente.domain.Paciente;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDate;
+import java.util.Date;
 
 @Data
 @Entity

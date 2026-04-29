@@ -12,29 +12,51 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/seguimientos-sociales")
-// @CrossOrigin(origins = "*") // Descomenta esta línea si tienes problemas de CORS al probar con el frontend local
+@CrossOrigin(origins = "*") 
 @RequiredArgsConstructor
 public class SeguimientoSocialFichaController {
 
     private final SeguimientoSocialFichaService seguimientoService;
 
-    // POST: http://localhost:8080/api/seguimientos-sociales
+    // POST: http://localhost:8081/api/seguimientos-sociales (Para Guardar)
     @PostMapping
     public ResponseEntity<SeguimientoSocialFichaDTO> crearSeguimiento(@RequestBody SeguimientoSocialFichaRequest request) {
         SeguimientoSocialFichaDTO nuevoSeguimiento = seguimientoService.crearSeguimiento(request);
         return new ResponseEntity<>(nuevoSeguimiento, HttpStatus.CREATED);
     }
 
-    // GET: http://localhost:8080/api/seguimientos-sociales/paciente/1
+
+    // GET: http://localhost:8081/api/seguimientos-sociales
+    @GetMapping
+    public ResponseEntity<List<SeguimientoSocialFichaDTO>> listarTodos() {
+        List<SeguimientoSocialFichaDTO> lista = seguimientoService.listarTodos();
+        return ResponseEntity.ok(lista);
+    }
+
+    // GET: http://localhost:8081/api/seguimientos-sociales/paciente/1 (Listar por paciente)
     @GetMapping("/paciente/{pacienteId}")
     public ResponseEntity<List<SeguimientoSocialFichaDTO>> listarPorPaciente(@PathVariable Integer pacienteId) {
         List<SeguimientoSocialFichaDTO> lista = seguimientoService.listarPorPaciente(pacienteId);
         return ResponseEntity.ok(lista);
     }
-    // GET: http://localhost:8080/api/seguimientos-sociales/1
+    
+    // GET: http://localhost:8081/api/seguimientos-sociales/1 (Obtener uno solo)
     @GetMapping("/{id}")
     public ResponseEntity<SeguimientoSocialFichaDTO> obtenerPorId(@PathVariable Integer id) {
-        // En el Service debemos crear este método también
         return ResponseEntity.ok(seguimientoService.obtenerPorId(id));
+    }
+
+    // PUT: http://localhost:8081/api/seguimientos-sociales/1 (Actualizar)
+    @PutMapping("/{id}")
+    public ResponseEntity<SeguimientoSocialFichaDTO> actualizarSeguimiento(@PathVariable Integer id, @RequestBody SeguimientoSocialFichaRequest request) {
+        SeguimientoSocialFichaDTO actualizado = seguimientoService.actualizarSeguimiento(id, request);
+        return ResponseEntity.ok(actualizado);
+    }
+
+    // DELETE: http://localhost:8081/api/seguimientos-sociales/1 (Eliminar)
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> eliminarSeguimiento(@PathVariable Integer id) {
+        seguimientoService.eliminarSeguimiento(id);
+        return ResponseEntity.noContent().build();
     }
 }

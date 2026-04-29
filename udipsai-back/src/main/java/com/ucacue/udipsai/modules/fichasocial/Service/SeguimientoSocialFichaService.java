@@ -8,6 +8,7 @@ import com.ucacue.udipsai.modules.paciente.domain.Paciente;
 import com.ucacue.udipsai.modules.paciente.repository.PacienteRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -19,7 +20,9 @@ public class SeguimientoSocialFichaService {
     private final SeguimientoSocialFichaRepository seguimientoRepository;
     private final PacienteRepository pacienteRepository;
 
-    // --- 1. Crear un nuevo seguimiento ---
+    // 1. Crear un nuevo seguimiento 
+    // (Este no lleva readOnly porque sí modifica la base de datos)
+    @Transactional
     public SeguimientoSocialFichaDTO crearSeguimiento(SeguimientoSocialFichaRequest request) {
         // Buscamos que el paciente exista
         Paciente paciente = pacienteRepository.findById(request.getPacienteId())
@@ -54,6 +57,17 @@ public class SeguimientoSocialFichaService {
         return mapToDTO(seguimiento);
     }
 
+    // 2. Listar absolutamente todos los seguimientos (NUEVO) 
+    @Transactional(readOnly = true)
+    public List<SeguimientoSocialFichaDTO> listarTodos() {
+        return seguimientoRepository.findAll()
+                .stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
+    }
+
+    // 3. Listar seguimientos por paciente 
+    @Transactional(readOnly = true)
     public List<SeguimientoSocialFichaDTO> listarPorPaciente(Integer pacienteId) {
         return seguimientoRepository.findByPacienteIdAndActivoTrue(pacienteId)
                 .stream()
@@ -61,17 +75,21 @@ public class SeguimientoSocialFichaService {
                 .collect(Collectors.toList());
     }
 
+    //  4. Obtener seguimiento por ID 
+    @Transactional(readOnly = true)
     public SeguimientoSocialFichaDTO obtenerPorId(Integer id) {
         SeguimientoSocialFicha entity = seguimientoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Seguimiento no encontrado"));
         return mapToDTO(entity);
     }
 
+    // --- Función auxiliar: Convertir Entidad a DTO ---
     private SeguimientoSocialFichaDTO mapToDTO(SeguimientoSocialFicha entity) {
         SeguimientoSocialFichaDTO dto = new SeguimientoSocialFichaDTO();
         dto.setId(entity.getId());
         dto.setPacienteId(entity.getPaciente().getId());
         dto.setPacienteNombre(entity.getPaciente().getNombresApellidos());
+        dto.setPacienteCedula(entity.getPaciente().getCedula());
         
         dto.setAreaAcompanamiento(entity.getAreaAcompanamiento());
         dto.setNumeroSeguimiento(entity.getNumeroSeguimiento());
@@ -88,7 +106,7 @@ public class SeguimientoSocialFichaService {
         dto.setActividades(entity.getActividades());
         dto.setObservaciones(entity.getObservaciones());
         
-        // Campos de Firma (Nombres para mostrar en el PDF)
+        // Campos de Firma 
         dto.setLugarFirma(entity.getLugarFirma());
         dto.setNombreRepresentante(entity.getNombreRepresentante());
         dto.setRolEscuela(entity.getRolEscuela());

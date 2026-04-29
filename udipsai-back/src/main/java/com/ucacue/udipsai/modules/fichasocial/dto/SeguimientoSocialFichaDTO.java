@@ -7,12 +7,15 @@ import java.time.LocalDate;
 
 @Data
 public class SeguimientoSocialFichaDTO {
+    
     private Integer id;
     private Integer pacienteId;
     private String pacienteNombre; 
     private String areaAcompanamiento;
     private Integer numeroSeguimiento;
     private LocalDate fecha;
+    private String pacienteCedula;
+    
     
     
     private String nombreVisitador;

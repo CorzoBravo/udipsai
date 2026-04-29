@@ -32,19 +32,24 @@ import { PsicologiaEducativaViewModal } from "../modals/PsicologiaEducativaViewM
 import { PsicologiaClinicaViewModal } from "../modals/PsicologiaClinicaViewModal";
 import { FonoaudiologiaViewModal } from "../modals/FonoaudiologiaViewModal";
 import { SocioEconomicoViewModal } from "../modals/SocioEconomicoViewModal";
-import { SeguimientoSocialViewModal } from "../modals/SeguimientoSocialViewModal"; // AGREGADO
+import { SeguimientoSocialViewModal } from "../modals/SeguimientoSocialViewModal"; 
 
 import { useAuth } from "../../context/AuthContext";
 import { fichasService } from "../../services/fichas";
 
 interface FichaListDTO {
   id: number;
-  paciente: {
+  // Para las otras fichas (formato anidado)
+  paciente?: {
     id: number;
     nombresApellidos: string;
     cedula: string;
     email: string;
   };
+  // Para la nueva ficha de Seguimiento Social (formato plano)
+  pacienteId?: number;
+  pacienteNombre?: string;
+  pacienteCedula?: string;
   activo: boolean;
 }
 
@@ -233,7 +238,8 @@ export default function FichasUnificadasTable() {
     return activo ? "success" : "error";
   };
 
-  const handleViewClick = (pacienteId: number) => {
+  const handleViewClick = (pacienteId: number | undefined) => {
+    if (!pacienteId) return;
     setSelectedPacienteId(pacienteId);
     switch (activeTabKey) {
       case "historia_clinica": setViewHistoriaModalOpen(true); break;
@@ -247,8 +253,10 @@ export default function FichasUnificadasTable() {
 
   const filteredFichas = fichas.filter((ficha) => {
     const searchLower = searchTerm.toLowerCase();
-    const nombreCompleto = ficha.paciente?.nombresApellidos ? ficha.paciente.nombresApellidos.toLowerCase() : "";
-    const cedula = ficha.paciente?.cedula ? ficha.paciente.cedula.toLowerCase() : "";
+    // Busca en ambos formatos (anidado o plano)
+    const nombreCompleto = (ficha.paciente?.nombresApellidos || ficha.pacienteNombre || "").toLowerCase();
+    const cedula = (ficha.paciente?.cedula || ficha.pacienteCedula || "").toLowerCase();
+    
     return nombreCompleto.includes(searchLower) || cedula.includes(searchLower);
   });
 
@@ -275,7 +283,7 @@ export default function FichasUnificadasTable() {
       <TableActionHeader
         title={activeTab.title}
         onSearchClick={setSearchTerm}
-        onNew={() => navigate(activeTab.createPath)} // RESTAURADO AL ORIGINAL
+        onNew={() => navigate(activeTab.createPath)} 
         onExport={hasPermission(activeTab.permRead) ? handleExport : undefined}
         createPermission={activeTab.permCreate}
         newButtonText="Agregar"
@@ -317,36 +325,43 @@ export default function FichasUnificadasTable() {
               {loading ? (
                 <TableLoading colSpan={4} message={`Cargando ${activeTab.label}...`} />
               ) : filteredFichas.length > 0 ? (
-                filteredFichas.map((ficha) => (
-                  <TableRow key={ficha.id}>
-                    <TableCell>{ficha.paciente?.nombresApellidos || "Sin Nombre"}</TableCell>
-                    <TableCell>{ficha.paciente?.cedula || "S/N"}</TableCell>
-                    <TableCell>
-                      <Badge size="sm" color={getEstadoBadge(ficha.activo)}>
-                        {ficha.activo ? "Activo" : "Inactivo"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex justify-center gap-2">
-                        {hasPermission(activeTab.permRead) && (
-                          <Button size="sm" variant="info" onClick={() => handleViewClick(ficha.paciente.id)} title="Ver">
-                            <Eye size={14} />
-                          </Button>
-                        )}
-                        {hasPermission(activeTab.permEdit) && (
-                          <Button size="sm" variant="warning" onClick={() => handleEditClick(ficha.id)} title="Editar">
-                            <Pencil size={14} />
-                          </Button>
-                        )}
-                        {hasPermission(activeTab.permDelete) && (
-                          <Button size="sm" variant="danger" onClick={() => handleDeleteClick(ficha.id)} title="Eliminar">
-                            <Trash size={14} />
-                          </Button>
-                        )}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
+                filteredFichas.map((ficha) => {
+                  // Leemos el nombre y la cédula sin importar de qué pestaña vengan
+                  const nombreAMostrar = ficha.paciente?.nombresApellidos || ficha.pacienteNombre || "Sin Nombre";
+                  const cedulaAMostrar = ficha.paciente?.cedula || ficha.pacienteCedula || "S/N";
+                  const idDelPaciente = ficha.paciente?.id || ficha.pacienteId;
+
+                  return (
+                    <TableRow key={ficha.id}>
+                      <TableCell>{nombreAMostrar}</TableCell>
+                      <TableCell>{cedulaAMostrar}</TableCell>
+                      <TableCell>
+                        <Badge size="sm" color={getEstadoBadge(ficha.activo)}>
+                          {ficha.activo ? "Activo" : "Inactivo"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex justify-center gap-2">
+                          {hasPermission(activeTab.permRead) && (
+                            <Button size="sm" variant="info" onClick={() => handleViewClick(idDelPaciente)} title="Ver">
+                              <Eye size={14} />
+                            </Button>
+                          )}
+                          {hasPermission(activeTab.permEdit) && (
+                            <Button size="sm" variant="warning" onClick={() => handleEditClick(ficha.id)} title="Editar">
+                              <Pencil size={14} />
+                            </Button>
+                          )}
+                          {hasPermission(activeTab.permDelete) && (
+                            <Button size="sm" variant="danger" onClick={() => handleDeleteClick(ficha.id)} title="Eliminar">
+                              <Trash size={14} />
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
               ) : (
                 <TableEmpty colSpan={4} message={`No se encontraron registros de ${activeTab.label}`} />
               )}
