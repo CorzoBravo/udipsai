@@ -45,18 +45,4 @@ public class SeguimientoSocialFichaController {
     public ResponseEntity<SeguimientoSocialFichaDTO> obtenerPorId(@PathVariable Integer id) {
         return ResponseEntity.ok(seguimientoService.obtenerPorId(id));
     }
-
-    // PUT: http://localhost:8081/api/seguimientos-sociales/1 (Actualizar)
-    @PutMapping("/{id}")
-    public ResponseEntity<SeguimientoSocialFichaDTO> actualizarSeguimiento(@PathVariable Integer id, @RequestBody SeguimientoSocialFichaRequest request) {
-        SeguimientoSocialFichaDTO actualizado = seguimientoService.actualizarSeguimiento(id, request);
-        return ResponseEntity.ok(actualizado);
-    }
-
-    // DELETE: http://localhost:8081/api/seguimientos-sociales/1 (Eliminar)
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminarSeguimiento(@PathVariable Integer id) {
-        seguimientoService.eliminarSeguimiento(id);
-        return ResponseEntity.noContent().build();
-    }
 }

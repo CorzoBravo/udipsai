@@ -39,14 +39,12 @@ import { fichasService } from "../../services/fichas";
 
 interface FichaListDTO {
   id: number;
-  // Para las otras fichas (formato anidado)
   paciente?: {
     id: number;
     nombresApellidos: string;
     cedula: string;
     email: string;
   };
-  // Para la nueva ficha de Seguimiento Social (formato plano)
   pacienteId?: number;
   pacienteNombre?: string;
   pacienteCedula?: string;
@@ -185,6 +183,9 @@ export default function FichasUnificadasTable() {
   const [viewSeguimientoModalOpen, setViewSeguimientoModalOpen] = useState(false);
 
   const activeTab = tabs.find((t) => t.key === activeTabKey) || tabs[0];
+  
+  // 👇 BANDERA PARA SABER SI ESTAMOS EN SEGUIMIENTO SOCIAL 👇
+  const isSeguimientoSocial = activeTabKey === "seguimiento_social";
 
   const handleTabChange = (key: TabKey) => {
     setActiveTabKey(key);
@@ -241,6 +242,7 @@ export default function FichasUnificadasTable() {
   const handleViewClick = (pacienteId: number | undefined) => {
     if (!pacienteId) return;
     setSelectedPacienteId(pacienteId);
+    // Este Switch sigue abriendo el modal correcto según la pestaña
     switch (activeTabKey) {
       case "historia_clinica": setViewHistoriaModalOpen(true); break;
       case "psicologia_educativa": setViewEduModalOpen(true); break;
@@ -251,14 +253,37 @@ export default function FichasUnificadasTable() {
     }
   };
 
+  // Filtro de búsqueda común para todas las pestañas
   const filteredFichas = fichas.filter((ficha) => {
     const searchLower = searchTerm.toLowerCase();
-    // Busca en ambos formatos (anidado o plano)
     const nombreCompleto = (ficha.paciente?.nombresApellidos || ficha.pacienteNombre || "").toLowerCase();
     const cedula = (ficha.paciente?.cedula || ficha.pacienteCedula || "").toLowerCase();
-    
     return nombreCompleto.includes(searchLower) || cedula.includes(searchLower);
   });
+
+  // 👇 AGRUPACIÓN SÓLO PARA SEGUIMIENTO SOCIAL 👇
+  const groupedFichas = isSeguimientoSocial ? Object.values(
+    filteredFichas.reduce((acc, ficha) => {
+      const pId = ficha.paciente?.id || ficha.pacienteId;
+      if (!pId) return acc;
+
+      if (!acc[pId]) {
+        acc[pId] = {
+          pacienteId: pId,
+          pacienteNombre: ficha.paciente?.nombresApellidos || ficha.pacienteNombre || "Sin Nombre",
+          pacienteCedula: ficha.paciente?.cedula || ficha.pacienteCedula || "S/N",
+          fichasCount: 0,
+          latestFicha: ficha 
+        };
+      } else {
+        if (ficha.id > acc[pId].latestFicha.id) {
+          acc[pId].latestFicha = ficha;
+        }
+      }
+      acc[pId].fichasCount += 1;
+      return acc;
+    }, {} as Record<number, { pacienteId: number, pacienteNombre: string, pacienteCedula: string, fichasCount: number, latestFicha: FichaListDTO }>)
+  ) : [];
 
   const handleExport = async () => {
     try {
@@ -317,53 +342,100 @@ export default function FichasUnificadasTable() {
               <TableRow>
                 <TableCell isHeader>Nombres del Paciente</TableCell>
                 <TableCell isHeader>Cédula</TableCell>
+                
+                {isSeguimientoSocial && <TableCell isHeader>Fichas Creadas</TableCell>}
                 <TableCell isHeader>Estado</TableCell>
                 <TableCell isHeader>Acciones</TableCell>
               </TableRow>
             </TableHeader>
             <TableBody className="relative min-h-[400px]">
               {loading ? (
-                <TableLoading colSpan={4} message={`Cargando ${activeTab.label}...`} />
-              ) : filteredFichas.length > 0 ? (
-                filteredFichas.map((ficha) => {
-                  // Leemos el nombre y la cédula sin importar de qué pestaña vengan
-                  const nombreAMostrar = ficha.paciente?.nombresApellidos || ficha.pacienteNombre || "Sin Nombre";
-                  const cedulaAMostrar = ficha.paciente?.cedula || ficha.pacienteCedula || "S/N";
-                  const idDelPaciente = ficha.paciente?.id || ficha.pacienteId;
-
-                  return (
-                    <TableRow key={ficha.id}>
-                      <TableCell>{nombreAMostrar}</TableCell>
-                      <TableCell>{cedulaAMostrar}</TableCell>
+                <TableLoading colSpan={isSeguimientoSocial ? 5 : 4} message={`Cargando ${activeTab.label}...`} />
+              ) : isSeguimientoSocial ? (
+                // --- RENDERIZADO EXCLUSIVO PARA SEGUIMIENTO SOCIAL (AGRUPADO) ---
+                groupedFichas.length > 0 ? (
+                  groupedFichas.map((group) => (
+                    <TableRow key={group.pacienteId}>
+                      <TableCell>{group.pacienteNombre}</TableCell>
+                      <TableCell>{group.pacienteCedula}</TableCell>
                       <TableCell>
-                        <Badge size="sm" color={getEstadoBadge(ficha.activo)}>
-                          {ficha.activo ? "Activo" : "Inactivo"}
+                        <Badge size="sm" color="info">
+                          {group.fichasCount} {group.fichasCount === 1 ? 'Ficha' : 'Fichas'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge size="sm" color={getEstadoBadge(group.latestFicha.activo)}>
+                          {group.latestFicha.activo ? "Activo" : "Inactivo"}
                         </Badge>
                       </TableCell>
                       <TableCell>
                         <div className="flex justify-center gap-2">
                           {hasPermission(activeTab.permRead) && (
-                            <Button size="sm" variant="info" onClick={() => handleViewClick(idDelPaciente)} title="Ver">
+                            // El botón ver abre tu SeguimientoSocialViewModal
+                            <Button size="sm" variant="info" onClick={() => handleViewClick(group.pacienteId)} title="Ver Historial">
                               <Eye size={14} />
                             </Button>
                           )}
                           {hasPermission(activeTab.permEdit) && (
-                            <Button size="sm" variant="warning" onClick={() => handleEditClick(ficha.id)} title="Editar">
+                            <Button size="sm" variant="warning" onClick={() => handleEditClick(group.latestFicha.id)} title="Editar Ficha Reciente">
                               <Pencil size={14} />
                             </Button>
                           )}
                           {hasPermission(activeTab.permDelete) && (
-                            <Button size="sm" variant="danger" onClick={() => handleDeleteClick(ficha.id)} title="Eliminar">
+                            <Button size="sm" variant="danger" onClick={() => handleDeleteClick(group.latestFicha.id)} title="Eliminar Ficha Reciente">
                               <Trash size={14} />
                             </Button>
                           )}
                         </div>
                       </TableCell>
                     </TableRow>
-                  );
-                })
+                  ))
+                ) : (
+                  <TableEmpty colSpan={5} message="No se encontraron registros de Seguimiento Social" />
+                )
               ) : (
-                <TableEmpty colSpan={4} message={`No se encontraron registros de ${activeTab.label}`} />
+                
+                filteredFichas.length > 0 ? (
+                  filteredFichas.map((ficha) => {
+                    const nombre = ficha.paciente?.nombresApellidos || ficha.pacienteNombre || "Sin Nombre";
+                    const cedula = ficha.paciente?.cedula || ficha.pacienteCedula || "S/N";
+                    const pId = ficha.paciente?.id || ficha.pacienteId;
+
+                    return (
+                      <TableRow key={ficha.id}>
+                        <TableCell>{nombre}</TableCell>
+                        <TableCell>{cedula}</TableCell>
+                        <TableCell>
+                          <Badge size="sm" color={getEstadoBadge(ficha.activo)}>
+                            {ficha.activo ? "Activo" : "Inactivo"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex justify-center gap-2">
+                            {hasPermission(activeTab.permRead) && (
+                              
+                              <Button size="sm" variant="info" onClick={() => handleViewClick(pId)} title="Ver">
+                                <Eye size={14} />
+                              </Button>
+                            )}
+                            {hasPermission(activeTab.permEdit) && (
+                              <Button size="sm" variant="warning" onClick={() => handleEditClick(ficha.id)} title="Editar">
+                                <Pencil size={14} />
+                              </Button>
+                            )}
+                            {hasPermission(activeTab.permDelete) && (
+                              <Button size="sm" variant="danger" onClick={() => handleDeleteClick(ficha.id)} title="Eliminar">
+                                <Trash size={14} />
+                              </Button>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
+                ) : (
+                  <TableEmpty colSpan={4} message={`No se encontraron registros de ${activeTab.label}`} />
+                )
               )}
             </TableBody>
           </Table>
@@ -374,9 +446,10 @@ export default function FichasUnificadasTable() {
           onClose={() => setShowDeleteModal(false)}
           onConfirm={confirmDelete}
           title="Confirmar Eliminación"
-          description={`¿Está seguro que desea eliminar esta ficha de ${activeTab.label}? Esta acción no se puede deshacer.`}
+          description={`¿Está seguro que desea eliminar la ficha de ${activeTab.label}? Esta acción no se puede deshacer.`}
         />
 
+  
         {selectedPacienteId && (
           <>
             <HistoriaClinicaViewModal isOpen={viewHistoriaModalOpen} onClose={() => setViewHistoriaModalOpen(false)} pacienteId={selectedPacienteId} />
@@ -384,6 +457,8 @@ export default function FichasUnificadasTable() {
             <PsicologiaClinicaViewModal isOpen={viewClinicaModalOpen} onClose={() => setViewClinicaModalOpen(false)} pacienteId={selectedPacienteId} />
             <FonoaudiologiaViewModal isOpen={viewFonoModalOpen} onClose={() => setViewFonoModalOpen(false)} pacienteId={selectedPacienteId} />
             <SocioEconomicoViewModal isOpen={viewSocioModalOpen} onClose={() => setViewSocioModalOpen(false)} pacienteId={selectedPacienteId} />
+            
+            
             <SeguimientoSocialViewModal isOpen={viewSeguimientoModalOpen} onClose={() => setViewSeguimientoModalOpen(false)} pacienteId={selectedPacienteId} />
           </>
         )}

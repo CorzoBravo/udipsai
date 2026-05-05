@@ -30,7 +30,7 @@ const EditarSeguimientoSocial: React.FC = () => {
       <div className="mt-6">
         <FormularioSeguimientoSocial 
           pacienteId={pacienteId} 
-          fichaId={Number(id)} // Asegúrate de que tu formulario acepte fichaId para modo edición
+          fichaId={Number(id)} 
           onSuccess={() => navigate('/fichas?tab=seguimiento_social')} 
         />
       </div>
