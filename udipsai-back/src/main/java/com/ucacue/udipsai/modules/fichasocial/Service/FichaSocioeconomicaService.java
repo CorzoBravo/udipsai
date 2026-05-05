@@ -1,6 +1,5 @@
 package com.ucacue.udipsai.modules.fichasocial.Service;
 
-
 import com.ucacue.udipsai.modules.fichasocial.domain.FichaSocioeconomica;
 import com.ucacue.udipsai.modules.fichasocial.domain.components.FichaSocioFamiliar;
 import com.ucacue.udipsai.modules.fichasocial.dto.FichaSocioeconomicaDTO;
@@ -53,10 +52,9 @@ public class FichaSocioeconomicaService {
     public FichaSocioeconomicaDTO crearFicha(FichaSocioeconomicaRequest request) {
         log.info("Creando ficha socioeconómica para Paciente ID: {}", request.getPacienteId());
 
-
-        
         FichaSocioeconomica existing = fichaRepository.findByPacienteIdAndActivo(request.getPacienteId(), true);
-        //El siguiente bloque se encarga de inactivar la ficha anterior en caso de que exista
+        // El siguiente bloque se encarga de inactivar la ficha anterior en caso de que
+        // exista
         // esto para mantener un historial de fichas sin perder información.
         if (existing != null) {
             log.info("Archivando ficha anterior del paciente ID: {}", request.getPacienteId());
@@ -66,10 +64,8 @@ public class FichaSocioeconomicaService {
 
         FichaSocioeconomica ficha = new FichaSocioeconomica();
 
-        // Búsqueda de Entidades Relacionadas
         Paciente paciente = pacienteRepository.findById(request.getPacienteId())
                 .orElseThrow(() -> new RuntimeException("Paciente no encontrado"));
-
 
         Especialista especialista = especialistaRepository.findById(request.getEspecialistaId())
                 .orElseThrow(() -> new RuntimeException("Especialista no encontrado"));
@@ -97,7 +93,6 @@ public class FichaSocioeconomicaService {
         }
 
         mapRequestToEntity(request, ficha);
-
 
         ficha.getFamiliares().clear();
         procesarFamiliares(request.getFamiliares(), ficha);
@@ -132,7 +127,19 @@ public class FichaSocioeconomicaService {
                 familiar.setOcupacion(fDto.getOcupacion());
                 familiar.setIngresoMensual(fDto.getIngresoMensual());
 
-                familiar.setFicha(ficha); 
+                familiar.setProblemasSaludFamiliar(fDto.getProblemas_salud());
+                familiar.setDescripProblemasSaludFamiliar(
+                    fDto.getDescripProblemasSaludFamiliar());
+
+                familiar.setEnfermedadCatastrofica(fDto.getEnfermedad_catastrofica());
+                familiar.setDescripEnfermedadCatastrofica(
+                        fDto.getDescripEnfermedadCatastrofica());
+
+                familiar.setDiscapacidad(fDto.getDiscapacidad());
+                familiar.setDescripDiscapacidad(
+                        fDto.getDescripDiscapacidad());
+
+                familiar.setFicha(ficha);
 
                 ficha.getFamiliares().add(familiar);
             }
@@ -145,7 +152,6 @@ public class FichaSocioeconomicaService {
         dto.setActivo(ficha.getActivo());
         dto.setFechaElaboracion(ficha.getFechaElaboracion());
 
-        // Mapeo de Paciente 
         if (ficha.getPaciente() != null) {
             dto.setPaciente(new PacienteFichaDTO(
                     ficha.getPaciente().getId(),
@@ -154,7 +160,6 @@ public class FichaSocioeconomicaService {
 
         }
 
-        // Mapeo de Componentes
         dto.setRiesgosSociales(ficha.getRiesgosSociales());
         dto.setVulnerabilidad(ficha.getVulnerabilidad());
         dto.setDinamicaFamiliar(ficha.getDinamicaFamiliar());
@@ -167,7 +172,6 @@ public class FichaSocioeconomicaService {
         dto.setRecomendaciones(ficha.getRecomendaciones());
         dto.setResponsable(ficha.getResponsable());
 
-        // Convertir lista de entidades familiares a DTOs
         if (ficha.getFamiliares() != null) {
             dto.setFamiliares(ficha.getFamiliares().stream().map(f -> {
                 FamiliarDTO fDto = new FamiliarDTO();
@@ -178,6 +182,21 @@ public class FichaSocioeconomicaService {
                 fDto.setInstruccion(f.getInstruccion());
                 fDto.setOcupacion(f.getOcupacion());
                 fDto.setIngresoMensual(f.getIngresoMensual());
+
+                fDto.setProblemas_salud(
+                    Boolean.TRUE.equals(f.getProblemasSaludFamiliar()));
+                fDto.setDescripProblemasSaludFamiliar(
+                        f.getDescripProblemasSaludFamiliar());
+
+                fDto.setEnfermedad_catastrofica(
+                        Boolean.TRUE.equals(f.getEnfermedadCatastrofica()));
+                fDto.setDescripEnfermedadCatastrofica(
+                        f.getDescripEnfermedadCatastrofica());
+
+                fDto.setDiscapacidad(
+                    Boolean.TRUE.equals(f.getDiscapacidad()));
+                fDto.setDescripDiscapacidad(
+                        f.getDescripDiscapacidad());
                 return fDto;
             }).collect(Collectors.toList()));
         }

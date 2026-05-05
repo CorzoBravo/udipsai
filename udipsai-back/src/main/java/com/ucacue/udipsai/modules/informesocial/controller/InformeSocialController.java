@@ -26,7 +26,7 @@ public class InformeSocialController {
             @RequestPart(value = "ecomapa", required = false) MultipartFile ecomapa) {
         
         try {
-            // Convertir el String JSON al objeto Request
+            
             InformeSocialRequest request = objectMapper.readValue(informeJson, InformeSocialRequest.class);
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(informeService.crearInforme(request, genograma, ecomapa));
@@ -37,7 +37,7 @@ public class InformeSocialController {
 
     @GetMapping("/paciente/{cedula}")
     public ResponseEntity<InformeSocialDTO> recuperarDatosParaInforme(@PathVariable String cedula) {
-        // Aquí llamarías a la lógica que busca al paciente y su última ficha
+        
         return ResponseEntity.ok().build();
     }
 }

@@ -16,13 +16,4 @@ public class SituacionSalud {
 
     @Column(name = "ayudas_tecnicas_texto", columnDefinition = "TEXT")
     private String ayudasTecnicas;
-
-    @Column(name = "salud_familiar_problemas", columnDefinition = "TEXT")
-    private String problemasSaludFamiliares;
-
-    @Column(name = "salud_familiar_catastrofica", columnDefinition = "TEXT")
-    private String enfermedadesCatastroficas;
-
-    @Column(name = "salud_familiar_discapacidad", columnDefinition = "TEXT")
-    private String discapacidadFamiliares;
 }

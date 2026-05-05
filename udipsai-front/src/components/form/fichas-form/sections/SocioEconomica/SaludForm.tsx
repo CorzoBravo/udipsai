@@ -16,7 +16,7 @@ interface FamiliarSalud {
 
     discapacidad?: boolean;
     tipoDiscapacidad?: string;
-    porcentaje?: string;
+    porcentaje?: number;
     carnet?: string;
 }
 

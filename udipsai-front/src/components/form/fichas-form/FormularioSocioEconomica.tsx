@@ -22,6 +22,19 @@ import SaludForm from "./sections/SocioEconomica/SaludForm";
 
 
 
+interface FamiliarSalud {
+  problema?: boolean;
+  enfermedad?: string;
+
+  catastrofica?: boolean;
+  enfermedadCatastrofica?: string;
+
+  discapacidad?: boolean;
+  tipoDiscapacidad?: string;
+  porcentaje?: number;
+  carnet?: string;
+}
+
 export interface FichaSocioeconomicaState {
   id?: number;
   activo: boolean;
@@ -51,18 +64,7 @@ export interface FichaSocioeconomicaState {
     ocupacion: string;
     ingresoMensual: number;
 
-    salud?: {
-      problema: boolean;
-      enfermedad: string;
-
-      catastrofica: boolean;
-      enfermedadCatastrofica: string;
-
-      discapacidad: boolean;
-      tipoDiscapacidad: string;
-      porcentaje: string;
-      carnet: string;
-    };
+    salud?: FamiliarSalud;
   }[];
 
   riesgosFamiliares: {
@@ -121,9 +123,6 @@ export interface FichaSocioeconomicaState {
     lugarAtencionMedica: string;
     saludEstudiante: string;
     ayudasTecnicas: string;
-    problemasSaludFamiliares: string;
-    enfermedadesCatastroficas: string;
-    discapacidadFamiliares: string;
   };
   situacionEconomica: {
     totalIngresos: number;
@@ -219,9 +218,6 @@ export const initialFichaSocioeconomicaState: FichaSocioeconomicaState = {
     lugarAtencionMedica: "",
     saludEstudiante: "",
     ayudasTecnicas: "",
-    problemasSaludFamiliares: "",
-    enfermedadesCatastroficas: "",
-    discapacidadFamiliares: "",
   },
   situacionEconomica: {
     totalIngresos: 0,
@@ -849,7 +845,7 @@ export default function FormularioFichaSocioeconomica() {
                       enfermedadCatastrofica: "",
                       discapacidad: false,
                       tipoDiscapacidad: "",
-                      porcentaje: "",
+                      porcentaje: 0,
                       carnet: "",
                     };
                   }
