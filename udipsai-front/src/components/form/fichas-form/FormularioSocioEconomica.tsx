@@ -18,6 +18,7 @@ import VulnerabilidadesForm from "./sections/SocioEconomica/VulnerabilidadesForm
 import RelacionFamiliar from "./sections/SocioEconomica/RelacionFamiliar";
 import CondicionesViviendaForm from "./sections/SocioEconomica/CondicionesViviendaForm";
 import ConformacionFamiliar from "./sections/SocioEconomica/ConformacionFamiliarForm";
+import SaludForm from "./sections/SocioEconomica/SaludForm";
 
 
 
@@ -48,8 +49,20 @@ export interface FichaSocioeconomicaState {
     estadocivil: string;
     instruccion: string;
     ocupacion: string;
-    parentesco: string;
     ingresoMensual: number;
+
+    salud?: {
+      problema: boolean;
+      enfermedad: string;
+
+      catastrofica: boolean;
+      enfermedadCatastrofica: string;
+
+      discapacidad: boolean;
+      tipoDiscapacidad: string;
+      porcentaje: string;
+      carnet: string;
+    };
   }[];
 
   riesgosFamiliares: {
@@ -564,17 +577,31 @@ export default function FormularioFichaSocioeconomica() {
               <ConformacionFamiliar
                 data={formData.familiares}
                 onChange={(index, field, value) => {
-                  const updatedFamiliares = [...formData.familiares];
+                  const updated = [...formData.familiares];
+                  updated[index] = { ...updated[index], [field]: value };
 
-                  updatedFamiliares[index] = {
-                    ...updatedFamiliares[index],
-                    [field]: value,
-                  };
-
+                  setFormData({ ...formData, familiares: updated });
+                }}
+                onAdd={() => {
                   setFormData({
                     ...formData,
-                    familiares: updatedFamiliares,
+                    familiares: [
+                      ...formData.familiares,
+                      {
+                        relacion: "",
+                        nombresApellidos: "",
+                        edad: 0,
+                        estadocivil: "",
+                        instruccion: "",
+                        ocupacion: "",
+                        ingresoMensual: 0,
+                      },
+                    ],
                   });
+                }}
+                onRemove={(index) => {
+                  const updated = formData.familiares.filter((_, i) => i !== index);
+                  setFormData({ ...formData, familiares: updated });
                 }}
               />
             </ComponentCard>
@@ -805,9 +832,36 @@ export default function FormularioFichaSocioeconomica() {
               bodyDisabled={!verSalud}
             >
               {/* Aquí iría el formulario de salud, similar a RiesgosFamiliaresForm */}
-              <p className="text-gray-500 dark:text-gray-400">
-                Formulario de Salud (en construcción)
-              </p>
+              <SaludForm
+                familiares={formData.familiares}
+                data={formData.salud}
+                onChange={(field, value) =>
+                  handleNestedChange("salud", field, value)
+                }
+                onChangeFamiliar={(index, field, value) => {
+                  const updated = [...formData.familiares];
+
+                  if (!updated[index].salud) {
+                    updated[index].salud = {
+                      problema: false,
+                      enfermedad: "",
+                      catastrofica: false,
+                      enfermedadCatastrofica: "",
+                      discapacidad: false,
+                      tipoDiscapacidad: "",
+                      porcentaje: "",
+                      carnet: "",
+                    };
+                  }
+
+                  (updated[index].salud as any)[field] = value;
+
+                  setFormData({
+                    ...formData,
+                    familiares: updated,
+                  });
+                }}
+              />
             </ComponentCard>
           </div>
         )}
