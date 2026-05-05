@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <style>
+        body {
+            font-family: Arial;
+            font-size: 12px;
+            color: #333;
+        }
+
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #FA3340;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+        }
+
+        .header h1 {
+            color: #FA3340;
+        }
+
+        .section {
+            margin-top: 20px;
+        }
+
+        .section-title {
+            background: #f5f5f5;
+            padding: 8px;
+            font-weight: bold;
+            border-left: 4px solid #FA3340;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+
+        th, td {
+            padding: 6px;
+        }
+
+        .label {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>UDIPSAI</h1>
+    <h2>FICHA SOCIOECONÓMICA</h2>
+</div>
+
+<!-- DATOS IDENTIFICACIÓN -->
+<div class="section">
+    <div class="section-title">1. Datos de Identificación</div>
+
+    <p><span class="label">Paciente:</span>
+        <span th:text="${f.paciente.nombresApellidos}"></span>
+    </p>
+
+    <p><span class="label">Cédula:</span>
+        <span th:text="${f.paciente.cedula}"></span>
+    </p>
+
+    <p><span class="label">Fecha elaboración:</span>
+        <span th:text="${f.fechaElaboracion}"></span>
+    </p>
+</div>
+
+
+<!-- CONFORMACIÓN FAMILIAR -->
+<div class="section">
+    <div class="section-title">2. Conformación Familiar</div>
+
+    <table>
+        <thead>
+        <tr>
+            <th>Relación</th>
+            <th>Nombres</th>
+            <th>Edad</th>
+            <th>Estado Civil</th>
+            <th>Instrucción</th>
+            <th>Ocupación</th>
+            <th>Ingreso</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        <tr th:each="fam : ${f.familiares}">
+            <td th:text="${fam.relacion}"></td>
+            <td th:text="${fam.nombresApellidos}"></td>
+            <td th:text="${fam.edad}"></td>
+            <td th:text="${fam.estadoCivil}"></td>
+            <td th:text="${fam.instruccion}"></td>
+            <td th:text="${fam.ocupacion}"></td>
+            <td th:text="${fam.ingresoMensual}"></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+
+<!-- RIESGOS -->
+<div class="section">
+    <div class="section-title">
+        3. Problemas Sociales
+    </div>
+
+    <p th:text="${f.riesgosSociales.problemasSociales}"></p>
+</div>
+
+
+<!-- VULNERABILIDAD -->
+<div class="section">
+    <div class="section-title">
+        4. Situación de Vulnerabilidad
+    </div>
+
+    <p th:text="${f.vulnerabilidad}"></p>
+</div>
+
+
+<!-- DINAMICA FAMILIAR -->
+<div class="section">
+    <div class="section-title">
+        5. Relaciones Familiares
+    </div>
+
+    <p>
+        <strong>Comunicación familiar:</strong>
+        <span th:text="${f.dinamicaFamiliar.comunicacionFamiliar}"></span>
+    </p>
+
+    <p>
+        <strong>Tipo hogar:</strong>
+        <span th:text="${f.dinamicaFamiliar.tipoHogar}"></span>
+    </p>
+</div>
+
+
+<!-- VIVIENDA -->
+<div class="section">
+    <div class="section-title">
+        6. Vivienda y Habitabilidad
+    </div>
+
+    <p>
+        <strong>Tipo tenencia:</strong>
+        <span th:text="${f.vivienda.tipoTenencia}"></span>
+    </p>
+
+    <p>
+        <strong>Material paredes:</strong>
+        <span th:text="${f.vivienda.materialParedes}"></span>
+    </p>
+
+    <p>
+        <strong>Agua:</strong>
+        <span th:text="${f.vivienda.procedenciaAgua}"></span>
+    </p>
+
+    <p>
+        <strong>Electricidad:</strong>
+        <span th:text="${f.vivienda.detalleElectricidad}"></span>
+    </p>
+</div>
+
+
+<!-- SALUD -->
+<div class="section">
+    <div class="section-title">
+        7. Situación de Salud
+    </div>
+
+    <p>
+        <strong>Lugar atención médica:</strong>
+        <span th:text="${f.salud.lugarAtencionMedica}"></span>
+    </p>
+
+    <p>
+        <strong>Problemas estudiante:</strong>
+        <span th:text="${f.salud.saludEstudiante}"></span>
+    </p>
+
+    <p>
+        <strong>Ayudas técnicas:</strong>
+        <span th:text="${f.salud.ayudasTecnicas}"></span>
+    </p>
+</div>
+
+
+<!-- SALUD DE FAMILIARES -->
+<div class="section">
+    <div class="section-title">
+        Salud de Familiares
+    </div>
+
+    <table>
+        <thead>
+        <tr>
+            <th>Familiar</th>
+            <th>Problemas Salud</th>
+            <th>Enfermedad Catastrófica</th>
+            <th>Discapacidad</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        <tr th:each="fam : ${f.familiares}">
+            <td th:text="${fam.nombresApellidos}"></td>
+
+            <td>
+                <span th:text="${fam.problemas_salud ? 
+                fam.descripProblemasSaludFamiliar : 'NO'}"></span>
+            </td>
+
+            <td>
+                <span th:text="${fam.enfermedad_catastrofica ?
+                fam.descripEnfermedadCatastrofica : 'NO'}"></span>
+            </td>
+
+            <td>
+                <span th:text="${fam.discapacidad ?
+                fam.descripDiscapacidad : 'NO'}"></span>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+
+<!-- ECONOMIA -->
+<div class="section">
+    <div class="section-title">
+        8. Situación Económica
+    </div>
+
+    <p>
+        <strong>Total ingresos:</strong>
+        <span th:text="${f.situacionEconomica.totalIngresos}"></span>
+    </p>
+
+    <p>
+        <strong>Total egresos:</strong>
+        <span th:text="${f.situacionEconomica.totalEgresos}"></span>
+    </p>
+
+    <p>
+        <strong>Condición:</strong>
+        <span th:text="${f.situacionEconomica.condicionEconomica}"></span>
+    </p>
+</div>
+
+
+<!-- CONCLUSIONES -->
+<div class="section">
+    <div class="section-title">
+        9. Conclusiones
+    </div>
+
+    <p th:text="${f.conclusiones}"></p>
+</div>
+
+
+<!-- RECOMENDACIONES -->
+<div class="section">
+    <div class="section-title">
+        10. Recomendaciones
+    </div>
+
+    <p th:text="${f.recomendaciones}"></p>
+</div>
+
+
+<div style="margin-top:50px">
+    <strong>Responsable:</strong>
+    <span th:text="${f.responsable}"></span>
+</div>
+
+</body>
+</html>
