@@ -70,6 +70,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/socioeconomicas/crearFicha").permitAll()
                         .requestMatchers("/api/seguimientos-sociales/**").permitAll()
                         .requestMatchers("/api/seguimientos-sociales/crearSeguimiento").permitAll()
+                        .requestMatchers("/api/fichas-socioeconomicas/**").permitAll()
+                        .requestMatchers("/api/fichas-socioeconomicas/crearFicha").permitAll()
                         .anyRequest().authenticated());
 
         http.authenticationProvider(authenticationProvider());

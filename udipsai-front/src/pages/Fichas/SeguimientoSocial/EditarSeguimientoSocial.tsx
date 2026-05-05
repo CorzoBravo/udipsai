@@ -7,7 +7,7 @@ import api from '../../../api/api';
 
 const EditarSeguimientoSocial: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();s
+  const navigate = useNavigate();
   const [pacienteId, setPacienteId] = useState<number | null>(null);
 
   useEffect(() => {
@@ -15,6 +15,7 @@ const EditarSeguimientoSocial: React.FC = () => {
       try {
         const response = await api.get(`/api/seguimientos-sociales/${id}`);
         setPacienteId(response.data.pacienteId);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (error) {
         toast.error("Error al cargar los datos de la ficha");
       }

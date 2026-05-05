@@ -14,6 +14,7 @@ export type Paciente = {
   id: number;
   nombresApellidos: string;
   fechaNacimiento: string;
+  lugarNacimiento: string;
   genero: string;
   documento: string;
   tipoDocumento: string;
@@ -24,6 +25,7 @@ export type Paciente = {
   sedeId: number;
   institucionEducativaId: number;
   activo: boolean;
+  numCarne: string;
 };
 
 export interface PacienteCriteria {
@@ -44,6 +46,7 @@ export const pacientesService = {
     try {
       const params = { page, size, sort };
       const response = await api.get("/pacientes/activos", { params });
+      console.log("Respuesta listar activos:", response.data);
       return response.data;
     } catch (error) {
       console.error("Error al listar pacientes activos:", error);

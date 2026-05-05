@@ -49,6 +49,9 @@ public class Paciente {
     @Column(name = "fecha_nacimiento")
     private LocalDate fechaNacimiento;
 
+    @Column(name = "lugar_nacimiento")
+    private String lugarNacimiento;
+
     @Column(columnDefinition = "TEXT")
     private String domicilio;
 
@@ -83,6 +86,9 @@ public class Paciente {
     @Builder.Default
     @Column(name = "portador_carnet")
     private Boolean portadorCarnet = false;
+
+    @Column(name = "num_carne_discapacidad")
+    private String numCarne;
 
     @Builder.Default
     @Column(name = "pertenece_a_proyecto")
@@ -122,7 +128,6 @@ public class Paciente {
     @OneToMany(mappedBy = "paciente", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude
     private List<Documento> documentos = new ArrayList<>();
-
 
     @Transient
     public int getEdad() {

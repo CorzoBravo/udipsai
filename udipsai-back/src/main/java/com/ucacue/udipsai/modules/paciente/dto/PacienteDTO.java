@@ -29,6 +29,7 @@ public class PacienteDTO {
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate fechaNacimiento;
+    private String lugarNacimiento;
 
     private int edad;
     private String cedula;
@@ -52,7 +53,7 @@ public class PacienteDTO {
     private Boolean tieneDiscapacidad;
     private Boolean portadorCarnet;
     private Boolean perteneceAProyecto;
-    
+    private String numCarne;
     private String diagnostico;
     private String motivoConsulta;
     private String observaciones;

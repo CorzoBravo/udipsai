@@ -30,9 +30,11 @@ import { TableActionHeader } from "../common/TableActionHeader";
 import { HistoriaClinicaViewModal } from "../modals/HistoriaClinicaViewModal";
 import { PsicologiaEducativaViewModal } from "../modals/PsicologiaEducativaViewModal";
 import { PsicologiaClinicaViewModal } from "../modals/PsicologiaClinicaViewModal";
+
 import { FonoaudiologiaViewModal } from "../modals/FonoaudiologiaViewModal";
 import { SocioEconomicoViewModal } from "../modals/SocioEconomicoViewModal";
 import { SeguimientoSocialViewModal } from "../modals/SeguimientoSocialViewModal"; 
+
 
 import { useAuth } from "../../context/AuthContext";
 import { fichasService } from "../../services/fichas";
@@ -140,14 +142,15 @@ export default function FichasUnificadasTable() {
       key: "socioeconomico",
       label: "Socioeconómico",
       icon: ClipboardCheck,
+      icon: Ear,
       fetch: fichasService.listarSocioEconomico,
       delete: fichasService.eliminarSocioEconomico,
       editPath: "/fichas/socioeconomico/editar",
       createPath: "/fichas/socioeconomico/nuevo",
-      permEdit: "PERM_SOCIO_ECONOMICO_EDITAR",
-      permCreate: "PERM_SOCIO_ECONOMICO_CREAR",
-      permDelete: "PERM_SOCIO_ECONOMICO_ELIMINAR",
-      permRead: "PERM_SOCIO_ECONOMICO",
+      permEdit: "PERM_SOCIOECONOMICA_EDITAR",
+      permCreate: "PERM_SOCIOECONOMICA_CREAR",
+      permDelete: "PERM_SOCIOECONOMICA_ELIMINAR",
+      permRead: "PERM_SOCIOECONOMICA",
       title: "Socioeconómico",
     },
     {
@@ -310,7 +313,7 @@ export default function FichasUnificadasTable() {
         onSearchClick={setSearchTerm}
         onNew={() => navigate(activeTab.createPath)} 
         onExport={hasPermission(activeTab.permRead) ? handleExport : undefined}
-        createPermission={activeTab.permCreate}
+        createPermission={activeTab.permCreate} // Colocar el permiso de creación específico para cada pestaña socioeconómico
         newButtonText="Agregar"
       />
 

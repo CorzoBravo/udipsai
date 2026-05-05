@@ -283,6 +283,7 @@ public class PacienteService {
         paciente.setNombresApellidos(request.getNombresApellidos());
         paciente.setCiudad(request.getCiudad());
         paciente.setFechaNacimiento(request.getFechaNacimiento());
+        paciente.setLugarNacimiento(request.getLugarNacimiento());
         paciente.setCedula(request.getCedula());
         paciente.setDomicilio(request.getDomicilio());
         paciente.setNumeroTelefono(request.getNumeroTelefono());
@@ -294,6 +295,7 @@ public class PacienteService {
         paciente.setPerteneceInclusion(request.getPerteneceInclusion());
         paciente.setTieneDiscapacidad(request.getTieneDiscapacidad());
         paciente.setPortadorCarnet(request.getPortadorCarnet());
+        paciente.setNumCarne(request.getNumCarne());
         paciente.setPerteneceAProyecto(request.getPerteneceAProyecto());
         paciente.setDiagnostico(request.getDiagnostico());
         paciente.setMotivoConsulta(request.getMotivoConsulta());
@@ -323,6 +325,7 @@ public class PacienteService {
                 .nombresApellidos(paciente.getNombresApellidos())
                 .ciudad(paciente.getCiudad())
                 .fechaNacimiento(paciente.getFechaNacimiento())
+                .lugarNacimiento(paciente.getLugarNacimiento())
                 .edad(paciente.getEdad())
                 .cedula(paciente.getCedula())
                 .domicilio(paciente.getDomicilio())
@@ -341,6 +344,7 @@ public class PacienteService {
                 .perteneceInclusion(paciente.getPerteneceInclusion())
                 .tieneDiscapacidad(paciente.getTieneDiscapacidad())
                 .portadorCarnet(paciente.getPortadorCarnet())
+                .numCarne(paciente.getNumCarne())
                 .perteneceAProyecto(paciente.getPerteneceAProyecto())
                 .diagnostico(paciente.getDiagnostico())
                 .motivoConsulta(paciente.getMotivoConsulta())

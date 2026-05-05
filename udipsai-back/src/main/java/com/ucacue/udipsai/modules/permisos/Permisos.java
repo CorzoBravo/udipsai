@@ -138,93 +138,164 @@ public class Permisos {
     @Column(name = "citas_eliminar")
     private Boolean citasEliminar = false;
 
+    @Column(name = "socioeconomica")
+    private Boolean socioEconomica = false;
+    @Column(name = "socioeconomica_crear")
+    private Boolean socioEconomicaCrear = false;
+    @Column(name = "socioeconomica_editar")
+    private Boolean socioEconomicaEditar = false;
+    @Column(name = "socioeconomica_eliminar")
+    private Boolean socioEconomicaEliminar = false;
+
     public List<SimpleGrantedAuthority> getAuthorities() {
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
-        
+
         // Pacientes
-        if (Boolean.TRUE.equals(this.pacientes)) authorities.add(new SimpleGrantedAuthority("PERM_PACIENTES"));
-        if (Boolean.TRUE.equals(this.pacientesCrear)) authorities.add(new SimpleGrantedAuthority("PERM_PACIENTES_CREAR"));
-        if (Boolean.TRUE.equals(this.pacientesEditar)) authorities.add(new SimpleGrantedAuthority("PERM_PACIENTES_EDITAR"));
-        if (Boolean.TRUE.equals(this.pacientesEliminar)) authorities.add(new SimpleGrantedAuthority("PERM_PACIENTES_ELIMINAR"));
+        if (Boolean.TRUE.equals(this.pacientes))
+            authorities.add(new SimpleGrantedAuthority("PERM_PACIENTES"));
+        if (Boolean.TRUE.equals(this.pacientesCrear))
+            authorities.add(new SimpleGrantedAuthority("PERM_PACIENTES_CREAR"));
+        if (Boolean.TRUE.equals(this.pacientesEditar))
+            authorities.add(new SimpleGrantedAuthority("PERM_PACIENTES_EDITAR"));
+        if (Boolean.TRUE.equals(this.pacientesEliminar))
+            authorities.add(new SimpleGrantedAuthority("PERM_PACIENTES_ELIMINAR"));
 
         // Citas
-        if (Boolean.TRUE.equals(this.citas)) authorities.add(new SimpleGrantedAuthority("PERM_CITAS"));
-        if (Boolean.TRUE.equals(this.citasCrear)) authorities.add(new SimpleGrantedAuthority("PERM_CITAS_CREAR"));
-        if (Boolean.TRUE.equals(this.citasEditar)) authorities.add(new SimpleGrantedAuthority("PERM_CITAS_EDITAR"));
-        if (Boolean.TRUE.equals(this.citasEliminar)) authorities.add(new SimpleGrantedAuthority("PERM_CITAS_ELIMINAR"));
+        if (Boolean.TRUE.equals(this.citas))
+            authorities.add(new SimpleGrantedAuthority("PERM_CITAS"));
+        if (Boolean.TRUE.equals(this.citasCrear))
+            authorities.add(new SimpleGrantedAuthority("PERM_CITAS_CREAR"));
+        if (Boolean.TRUE.equals(this.citasEditar))
+            authorities.add(new SimpleGrantedAuthority("PERM_CITAS_EDITAR"));
+        if (Boolean.TRUE.equals(this.citasEliminar))
+            authorities.add(new SimpleGrantedAuthority("PERM_CITAS_ELIMINAR"));
 
         // Pasantes
-        if (Boolean.TRUE.equals(this.pasantes)) authorities.add(new SimpleGrantedAuthority("PERM_PASANTES"));
-        if (Boolean.TRUE.equals(this.pasantesCrear)) authorities.add(new SimpleGrantedAuthority("PERM_PASANTES_CREAR"));
-        if (Boolean.TRUE.equals(this.pasantesEditar)) authorities.add(new SimpleGrantedAuthority("PERM_PASANTES_EDITAR"));
-        if (Boolean.TRUE.equals(this.pasantesEliminar)) authorities.add(new SimpleGrantedAuthority("PERM_PASANTES_ELIMINAR"));
+        if (Boolean.TRUE.equals(this.pasantes))
+            authorities.add(new SimpleGrantedAuthority("PERM_PASANTES"));
+        if (Boolean.TRUE.equals(this.pasantesCrear))
+            authorities.add(new SimpleGrantedAuthority("PERM_PASANTES_CREAR"));
+        if (Boolean.TRUE.equals(this.pasantesEditar))
+            authorities.add(new SimpleGrantedAuthority("PERM_PASANTES_EDITAR"));
+        if (Boolean.TRUE.equals(this.pasantesEliminar))
+            authorities.add(new SimpleGrantedAuthority("PERM_PASANTES_ELIMINAR"));
 
         // Sedes
-        if (Boolean.TRUE.equals(this.sedes)) authorities.add(new SimpleGrantedAuthority("PERM_SEDES"));
-        if (Boolean.TRUE.equals(this.sedesCrear)) authorities.add(new SimpleGrantedAuthority("PERM_SEDES_CREAR"));
-        if (Boolean.TRUE.equals(this.sedesEditar)) authorities.add(new SimpleGrantedAuthority("PERM_SEDES_EDITAR"));
-        if (Boolean.TRUE.equals(this.sedesEliminar)) authorities.add(new SimpleGrantedAuthority("PERM_SEDES_ELIMINAR"));
+        if (Boolean.TRUE.equals(this.sedes))
+            authorities.add(new SimpleGrantedAuthority("PERM_SEDES"));
+        if (Boolean.TRUE.equals(this.sedesCrear))
+            authorities.add(new SimpleGrantedAuthority("PERM_SEDES_CREAR"));
+        if (Boolean.TRUE.equals(this.sedesEditar))
+            authorities.add(new SimpleGrantedAuthority("PERM_SEDES_EDITAR"));
+        if (Boolean.TRUE.equals(this.sedesEliminar))
+            authorities.add(new SimpleGrantedAuthority("PERM_SEDES_ELIMINAR"));
 
         // Especialistas
-        if (Boolean.TRUE.equals(this.especialistas)) authorities.add(new SimpleGrantedAuthority("PERM_ESPECIALISTAS"));
-        if (Boolean.TRUE.equals(this.especialistasCrear)) authorities.add(new SimpleGrantedAuthority("PERM_ESPECIALISTAS_CREAR"));
-        if (Boolean.TRUE.equals(this.especialistasEditar)) authorities.add(new SimpleGrantedAuthority("PERM_ESPECIALISTAS_EDITAR"));
-        if (Boolean.TRUE.equals(this.especialistasEliminar)) authorities.add(new SimpleGrantedAuthority("PERM_ESPECIALISTAS_ELIMINAR"));
+        if (Boolean.TRUE.equals(this.especialistas))
+            authorities.add(new SimpleGrantedAuthority("PERM_ESPECIALISTAS"));
+        if (Boolean.TRUE.equals(this.especialistasCrear))
+            authorities.add(new SimpleGrantedAuthority("PERM_ESPECIALISTAS_CREAR"));
+        if (Boolean.TRUE.equals(this.especialistasEditar))
+            authorities.add(new SimpleGrantedAuthority("PERM_ESPECIALISTAS_EDITAR"));
+        if (Boolean.TRUE.equals(this.especialistasEliminar))
+            authorities.add(new SimpleGrantedAuthority("PERM_ESPECIALISTAS_ELIMINAR"));
 
         // Especialidades
-        if (Boolean.TRUE.equals(this.especialidades)) authorities.add(new SimpleGrantedAuthority("PERM_ESPECIALIDADES"));
-        if (Boolean.TRUE.equals(this.especialidadesCrear)) authorities.add(new SimpleGrantedAuthority("PERM_ESPECIALIDADES_CREAR"));
-        if (Boolean.TRUE.equals(this.especialidadesEditar)) authorities.add(new SimpleGrantedAuthority("PERM_ESPECIALIDADES_EDITAR"));
-        if (Boolean.TRUE.equals(this.especialidadesEliminar)) authorities.add(new SimpleGrantedAuthority("PERM_ESPECIALIDADES_ELIMINAR"));
+        if (Boolean.TRUE.equals(this.especialidades))
+            authorities.add(new SimpleGrantedAuthority("PERM_ESPECIALIDADES"));
+        if (Boolean.TRUE.equals(this.especialidadesCrear))
+            authorities.add(new SimpleGrantedAuthority("PERM_ESPECIALIDADES_CREAR"));
+        if (Boolean.TRUE.equals(this.especialidadesEditar))
+            authorities.add(new SimpleGrantedAuthority("PERM_ESPECIALIDADES_EDITAR"));
+        if (Boolean.TRUE.equals(this.especialidadesEliminar))
+            authorities.add(new SimpleGrantedAuthority("PERM_ESPECIALIDADES_ELIMINAR"));
 
         // Asignaciones
-        if (Boolean.TRUE.equals(this.asignaciones)) authorities.add(new SimpleGrantedAuthority("PERM_ASIGNACIONES"));
-        if (Boolean.TRUE.equals(this.asignacionesCrear)) authorities.add(new SimpleGrantedAuthority("PERM_ASIGNACIONES_CREAR"));
-        if (Boolean.TRUE.equals(this.asignacionesEditar)) authorities.add(new SimpleGrantedAuthority("PERM_ASIGNACIONES_EDITAR"));
-        if (Boolean.TRUE.equals(this.asignacionesEliminar)) authorities.add(new SimpleGrantedAuthority("PERM_ASIGNACIONES_ELIMINAR"));
+        if (Boolean.TRUE.equals(this.asignaciones))
+            authorities.add(new SimpleGrantedAuthority("PERM_ASIGNACIONES"));
+        if (Boolean.TRUE.equals(this.asignacionesCrear))
+            authorities.add(new SimpleGrantedAuthority("PERM_ASIGNACIONES_CREAR"));
+        if (Boolean.TRUE.equals(this.asignacionesEditar))
+            authorities.add(new SimpleGrantedAuthority("PERM_ASIGNACIONES_EDITAR"));
+        if (Boolean.TRUE.equals(this.asignacionesEliminar))
+            authorities.add(new SimpleGrantedAuthority("PERM_ASIGNACIONES_ELIMINAR"));
 
         // Recursos
-        if (Boolean.TRUE.equals(this.recursos)) authorities.add(new SimpleGrantedAuthority("PERM_RECURSOS"));
-        if (Boolean.TRUE.equals(this.recursosCrear)) authorities.add(new SimpleGrantedAuthority("PERM_RECURSOS_CREAR"));
-        if (Boolean.TRUE.equals(this.recursosEditar)) authorities.add(new SimpleGrantedAuthority("PERM_RECURSOS_EDITAR"));
-        if (Boolean.TRUE.equals(this.recursosEliminar)) authorities.add(new SimpleGrantedAuthority("PERM_RECURSOS_ELIMINAR"));
+        if (Boolean.TRUE.equals(this.recursos))
+            authorities.add(new SimpleGrantedAuthority("PERM_RECURSOS"));
+        if (Boolean.TRUE.equals(this.recursosCrear))
+            authorities.add(new SimpleGrantedAuthority("PERM_RECURSOS_CREAR"));
+        if (Boolean.TRUE.equals(this.recursosEditar))
+            authorities.add(new SimpleGrantedAuthority("PERM_RECURSOS_EDITAR"));
+        if (Boolean.TRUE.equals(this.recursosEliminar))
+            authorities.add(new SimpleGrantedAuthority("PERM_RECURSOS_ELIMINAR"));
 
         // Instituciones
-        if (Boolean.TRUE.equals(this.institucionesEducativas)) authorities.add(new SimpleGrantedAuthority("PERM_INSTITUCIONES_EDUCATIVAS"));
-        if (Boolean.TRUE.equals(this.institucionesEducativasCrear)) authorities.add(new SimpleGrantedAuthority("PERM_INSTITUCIONES_EDUCATIVAS_CREAR"));
-        if (Boolean.TRUE.equals(this.institucionesEducativasEditar)) authorities.add(new SimpleGrantedAuthority("PERM_INSTITUCIONES_EDUCATIVAS_EDITAR"));
-        if (Boolean.TRUE.equals(this.institucionesEducativasEliminar)) authorities.add(new SimpleGrantedAuthority("PERM_INSTITUCIONES_EDUCATIVAS_ELIMINAR"));
+        if (Boolean.TRUE.equals(this.institucionesEducativas))
+            authorities.add(new SimpleGrantedAuthority("PERM_INSTITUCIONES_EDUCATIVAS"));
+        if (Boolean.TRUE.equals(this.institucionesEducativasCrear))
+            authorities.add(new SimpleGrantedAuthority("PERM_INSTITUCIONES_EDUCATIVAS_CREAR"));
+        if (Boolean.TRUE.equals(this.institucionesEducativasEditar))
+            authorities.add(new SimpleGrantedAuthority("PERM_INSTITUCIONES_EDUCATIVAS_EDITAR"));
+        if (Boolean.TRUE.equals(this.institucionesEducativasEliminar))
+            authorities.add(new SimpleGrantedAuthority("PERM_INSTITUCIONES_EDUCATIVAS_ELIMINAR"));
 
         // Historia Clinica
-        if (Boolean.TRUE.equals(this.historiaClinica)) authorities.add(new SimpleGrantedAuthority("PERM_HISTORIA_CLINICA"));
-        if (Boolean.TRUE.equals(this.historiaClinicaCrear)) authorities.add(new SimpleGrantedAuthority("PERM_HISTORIA_CLINICA_CREAR"));
-        if (Boolean.TRUE.equals(this.historiaClinicaEditar)) authorities.add(new SimpleGrantedAuthority("PERM_HISTORIA_CLINICA_EDITAR"));
-        if (Boolean.TRUE.equals(this.historiaClinicaEliminar)) authorities.add(new SimpleGrantedAuthority("PERM_HISTORIA_CLINICA_ELIMINAR"));
+        if (Boolean.TRUE.equals(this.historiaClinica))
+            authorities.add(new SimpleGrantedAuthority("PERM_HISTORIA_CLINICA"));
+        if (Boolean.TRUE.equals(this.historiaClinicaCrear))
+            authorities.add(new SimpleGrantedAuthority("PERM_HISTORIA_CLINICA_CREAR"));
+        if (Boolean.TRUE.equals(this.historiaClinicaEditar))
+            authorities.add(new SimpleGrantedAuthority("PERM_HISTORIA_CLINICA_EDITAR"));
+        if (Boolean.TRUE.equals(this.historiaClinicaEliminar))
+            authorities.add(new SimpleGrantedAuthority("PERM_HISTORIA_CLINICA_ELIMINAR"));
 
         // Fonoaudiologia
-        if (Boolean.TRUE.equals(this.fonoAudiologia)) authorities.add(new SimpleGrantedAuthority("PERM_FONOAUDIOLOGIA"));
-        if (Boolean.TRUE.equals(this.fonoAudiologiaCrear)) authorities.add(new SimpleGrantedAuthority("PERM_FONOAUDIOLOGIA_CREAR"));
-        if (Boolean.TRUE.equals(this.fonoAudiologiaEditar)) authorities.add(new SimpleGrantedAuthority("PERM_FONOAUDIOLOGIA_EDITAR"));
-        if (Boolean.TRUE.equals(this.fonoAudiologiaEliminar)) authorities.add(new SimpleGrantedAuthority("PERM_FONOAUDIOLOGIA_ELIMINAR"));
+        if (Boolean.TRUE.equals(this.fonoAudiologia))
+            authorities.add(new SimpleGrantedAuthority("PERM_FONOAUDIOLOGIA"));
+        if (Boolean.TRUE.equals(this.fonoAudiologiaCrear))
+            authorities.add(new SimpleGrantedAuthority("PERM_FONOAUDIOLOGIA_CREAR"));
+        if (Boolean.TRUE.equals(this.fonoAudiologiaEditar))
+            authorities.add(new SimpleGrantedAuthority("PERM_FONOAUDIOLOGIA_EDITAR"));
+        if (Boolean.TRUE.equals(this.fonoAudiologiaEliminar))
+            authorities.add(new SimpleGrantedAuthority("PERM_FONOAUDIOLOGIA_ELIMINAR"));
 
         // Psicologia Clinica
-        if (Boolean.TRUE.equals(this.psicologiaClinica)) authorities.add(new SimpleGrantedAuthority("PERM_PSICOLOGIA_CLINICA"));
-        if (Boolean.TRUE.equals(this.psicologiaClinicaCrear)) authorities.add(new SimpleGrantedAuthority("PERM_PSICOLOGIA_CLINICA_CREAR"));
-        if (Boolean.TRUE.equals(this.psicologiaClinicaEditar)) authorities.add(new SimpleGrantedAuthority("PERM_PSICOLOGIA_CLINICA_EDITAR"));
-        if (Boolean.TRUE.equals(this.psicologiaClinicaEliminar)) authorities.add(new SimpleGrantedAuthority("PERM_PSICOLOGIA_CLINICA_ELIMINAR"));
+        if (Boolean.TRUE.equals(this.psicologiaClinica))
+            authorities.add(new SimpleGrantedAuthority("PERM_PSICOLOGIA_CLINICA"));
+        if (Boolean.TRUE.equals(this.psicologiaClinicaCrear))
+            authorities.add(new SimpleGrantedAuthority("PERM_PSICOLOGIA_CLINICA_CREAR"));
+        if (Boolean.TRUE.equals(this.psicologiaClinicaEditar))
+            authorities.add(new SimpleGrantedAuthority("PERM_PSICOLOGIA_CLINICA_EDITAR"));
+        if (Boolean.TRUE.equals(this.psicologiaClinicaEliminar))
+            authorities.add(new SimpleGrantedAuthority("PERM_PSICOLOGIA_CLINICA_ELIMINAR"));
 
         // Psicologia Educativa
-        if (Boolean.TRUE.equals(this.psicologiaEducativa)) authorities.add(new SimpleGrantedAuthority("PERM_PSICOLOGIA_EDUCATIVA"));
-        if (Boolean.TRUE.equals(this.psicologiaEducativaCrear)) authorities.add(new SimpleGrantedAuthority("PERM_PSICOLOGIA_EDUCATIVA_CREAR"));
-        if (Boolean.TRUE.equals(this.psicologiaEducativaEditar)) authorities.add(new SimpleGrantedAuthority("PERM_PSICOLOGIA_EDUCATIVA_EDITAR"));
-        if (Boolean.TRUE.equals(this.psicologiaEducativaEliminar)) authorities.add(new SimpleGrantedAuthority("PERM_PSICOLOGIA_EDUCATIVA_ELIMINAR"));
+        if (Boolean.TRUE.equals(this.psicologiaEducativa))
+            authorities.add(new SimpleGrantedAuthority("PERM_PSICOLOGIA_EDUCATIVA"));
+        if (Boolean.TRUE.equals(this.psicologiaEducativaCrear))
+            authorities.add(new SimpleGrantedAuthority("PERM_PSICOLOGIA_EDUCATIVA_CREAR"));
+        if (Boolean.TRUE.equals(this.psicologiaEducativaEditar))
+            authorities.add(new SimpleGrantedAuthority("PERM_PSICOLOGIA_EDUCATIVA_EDITAR"));
+        if (Boolean.TRUE.equals(this.psicologiaEducativaEliminar))
+            authorities.add(new SimpleGrantedAuthority("PERM_PSICOLOGIA_EDUCATIVA_ELIMINAR"));
 
+        // Socioeconomica
+        if (Boolean.TRUE.equals(this.socioEconomica))
+            authorities.add(new SimpleGrantedAuthority("PERM_SOCIOECONOMICA"));
+        if (Boolean.TRUE.equals(this.socioEconomicaCrear))
+            authorities.add(new SimpleGrantedAuthority("PERM_SOCIOECONOMICA_CREAR"));
+        if (Boolean.TRUE.equals(this.socioEconomicaEditar))
+            authorities.add(new SimpleGrantedAuthority("PERM_SOCIOECONOMICA_EDITAR"));
+        if (Boolean.TRUE.equals(this.socioEconomicaEliminar))
+            authorities.add(new SimpleGrantedAuthority("PERM_SOCIOECONOMICA_ELIMINAR"));
         return authorities;
     }
 
     public void updateFrom(Permisos other) {
-        if (other == null) return;
-        
+        if (other == null)
+            return;
+
         this.pacientes = other.pacientes;
         this.pacientesCrear = other.pacientesCrear;
         this.pacientesEditar = other.pacientesEditar;
@@ -290,5 +361,11 @@ public class Permisos {
         this.citasCrear = other.citasCrear;
         this.citasEditar = other.citasEditar;
         this.citasEliminar = other.citasEliminar;
+
+        this.socioEconomica = other.socioEconomica;
+        this.socioEconomicaCrear = other.socioEconomicaCrear;
+        this.socioEconomicaEditar = other.socioEconomicaEditar;
+        this.socioEconomicaEliminar = other.socioEconomicaEliminar;
+
     }
 }

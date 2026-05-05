@@ -38,6 +38,8 @@ const EditarHistoriaClinica = lazy(() => import("../pages/Fichas/HistoriaClinica
 //const EditarSocioEconomico = lazy(() => import("../pages/Fichas/SocioEconomico/EditarSocioEconomico"));
 const NuevaSeguimientoSocial = lazy(() => import("../pages/Fichas/SeguimientoSocial/NuevaSeguimientoSocial"));
 const EditarSeguimientoSocial = lazy(() => import("../pages/Fichas/SeguimientoSocial/EditarSeguimientoSocial"));
+//const NuevoSocioEconomico = lazy(() => import("../pages/Fichas/SocioEconomico/NuevaSocioEconomico"));
+//const EditarSocioEconomico = lazy(() => import("../pages/Fichas/SocioEconomico/EditarSocioEconomico"));
 
 const protectedRoute = (permission: string, element: ReactNode, children?: RouteObject[]): RouteObject => ({
   element: <PermissionRoute requiredPermission={permission} />,
