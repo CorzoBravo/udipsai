@@ -26,4 +26,10 @@ public class FichaSocioFamiliar {
     private String instruccion;
     private String ocupacion;
     private Double ingresoMensual;
+    private Boolean problemasSalud;
+    private String descripcionProblemasSalud;
+    private Boolean enfermedadCatastrofica;
+    private String descripcionEnfermedadCatastrofica;
+    private Boolean discapacidad;
+    private String descripcionDiscapacidad;
 }

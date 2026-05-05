@@ -17,12 +17,21 @@ public class SituacionSalud {
     @Column(name = "ayudas_tecnicas_texto", columnDefinition = "TEXT")
     private String ayudasTecnicas;
 
-    @Column(name = "salud_familiar_problemas", columnDefinition = "TEXT")
-    private String problemasSaludFamiliares;
+    @Column(name = "problemas_salud_familiar")
+    private Boolean problemasSaludFamiliar;
 
-    @Column(name = "salud_familiar_catastrofica", columnDefinition = "TEXT")
-    private String enfermedadesCatastroficas;
+    @Column(name = "descrip_problemas_salud_familiar")
+    private String descripProblemasSaludFamiliar;
 
-    @Column(name = "salud_familiar_discapacidad", columnDefinition = "TEXT")
-    private String discapacidadFamiliares;
+    @Column(name = "enfermedad_catastrofica")
+    private Boolean enfermedadCatastrofica;
+
+    @Column(name = "descrip_enfermedad_catastrofica")
+    private String descripEnfermedadCatastrofica;
+
+    @Column(name = "discapacidad")
+    private Boolean discapacidad;
+
+    @Column(name = "descrip_discapacidad")
+    private String descripDiscapacidad;
 }
