@@ -126,6 +126,7 @@ public class FichaSocioeconomicaService {
                 familiar.setInstruccion(fDto.getInstruccion());
                 familiar.setOcupacion(fDto.getOcupacion());
                 familiar.setIngresoMensual(fDto.getIngresoMensual());
+
                 familiar.setProblemasSaludFamiliar(fDto.isProblemas_salud());
                 familiar.setDescripProblemasSaludFamiliar(
                     fDto.getDescripProblemasSaludFamiliar());
@@ -181,17 +182,19 @@ public class FichaSocioeconomicaService {
                 fDto.setInstruccion(f.getInstruccion());
                 fDto.setOcupacion(f.getOcupacion());
                 fDto.setIngresoMensual(f.getIngresoMensual());
-                fDto.setProblemas_salud(f.getProblemasSaludFamiliar());
+
+                fDto.setProblemas_salud(
+                    Boolean.TRUE.equals(f.getProblemasSaludFamiliar()));
                 fDto.setDescripProblemasSaludFamiliar(
                         f.getDescripProblemasSaludFamiliar());
 
                 fDto.setEnfermedad_catastrofica(
-                        f.getEnfermedadCatastrofica());
-
+                        Boolean.TRUE.equals(f.getEnfermedadCatastrofica()));
                 fDto.setDescripEnfermedadCatastrofica(
                         f.getDescripEnfermedadCatastrofica());
 
-                fDto.setDiscapacidad(f.getDiscapacidad());
+                fDto.setDiscapacidad(
+                    Boolean.TRUE.equals(f.getDiscapacidad()));
                 fDto.setDescripDiscapacidad(
                         f.getDescripDiscapacidad());
                 return fDto;
