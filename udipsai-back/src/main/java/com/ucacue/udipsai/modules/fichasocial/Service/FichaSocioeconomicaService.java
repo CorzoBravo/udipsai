@@ -126,16 +126,16 @@ public class FichaSocioeconomicaService {
                 familiar.setInstruccion(fDto.getInstruccion());
                 familiar.setOcupacion(fDto.getOcupacion());
                 familiar.setIngresoMensual(fDto.getIngresoMensual());
-                familiar.setProblemasSalud(fDto.isProblemas_salud());
-                familiar.setDescripcionProblemasSalud(
+                familiar.setProblemasSaludFamiliar(fDto.isProblemas_salud());
+                familiar.setDescripProblemasSaludFamiliar(
                     fDto.getDescripProblemasSaludFamiliar());
 
                 familiar.setEnfermedadCatastrofica(fDto.isEnfermedad_catastrofica());
-                familiar.setDescripcionEnfermedadCatastrofica(
+                familiar.setDescripEnfermedadCatastrofica(
                         fDto.getDescripEnfermedadCatastrofica());
 
                 familiar.setDiscapacidad(fDto.isDiscapacidad());
-                familiar.setDescripcionDiscapacidad(
+                familiar.setDescripDiscapacidad(
                         fDto.getDescripDiscapacidad());
 
                 familiar.setFicha(ficha);
@@ -181,19 +181,19 @@ public class FichaSocioeconomicaService {
                 fDto.setInstruccion(f.getInstruccion());
                 fDto.setOcupacion(f.getOcupacion());
                 fDto.setIngresoMensual(f.getIngresoMensual());
-                fDto.setProblemas_salud(f.getProblemasSalud());
+                fDto.setProblemas_salud(f.getProblemasSaludFamiliar());
                 fDto.setDescripProblemasSaludFamiliar(
-                        f.getDescripcionProblemasSalud());
+                        f.getDescripProblemasSaludFamiliar());
 
                 fDto.setEnfermedad_catastrofica(
                         f.getEnfermedadCatastrofica());
 
                 fDto.setDescripEnfermedadCatastrofica(
-                        f.getDescripcionEnfermedadCatastrofica());
+                        f.getDescripEnfermedadCatastrofica());
 
                 fDto.setDiscapacidad(f.getDiscapacidad());
                 fDto.setDescripDiscapacidad(
-                        f.getDescripcionDiscapacidad());
+                        f.getDescripDiscapacidad());
                 return fDto;
             }).collect(Collectors.toList()));
         }

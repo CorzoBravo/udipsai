@@ -26,10 +26,21 @@ public class FichaSocioFamiliar {
     private String instruccion;
     private String ocupacion;
     private Double ingresoMensual;
-    private Boolean problemasSalud;
-    private String descripcionProblemasSalud;
+    @Column(name = "problemas_salud_familiar")
+    private Boolean problemasSaludFamiliar;
+
+    @Column(name = "descrip_problemas_salud_familiar")
+    private String descripProblemasSaludFamiliar;
+
+    @Column(name = "enfermedad_catastrofica")
     private Boolean enfermedadCatastrofica;
-    private String descripcionEnfermedadCatastrofica;
+
+    @Column(name = "descrip_enfermedad_catastrofica")
+    private String descripEnfermedadCatastrofica;
+
+    @Column(name = "discapacidad")
     private Boolean discapacidad;
-    private String descripcionDiscapacidad;
+
+    @Column(name = "descrip_discapacidad")
+    private String descripDiscapacidad;
 }
