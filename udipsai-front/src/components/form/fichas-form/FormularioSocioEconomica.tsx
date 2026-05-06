@@ -456,7 +456,10 @@ export default function FormularioFichaSocioeconomica() {
               data.situacionEconomica?.capacidadGastoEvaluacion || "",
           },
         };
-        setFormData(loadedData);
+        setFormData((prev) => ({
+          ...loadedData,
+          especialista: prev.especialista,
+        }));
 
         const hasInformacionPaciente = !isSectionEmpty(
           data.paciente,
