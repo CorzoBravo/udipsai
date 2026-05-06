@@ -1,14 +1,13 @@
 import { useState, useEffect } from "react";
 import ComponentCard from "../../common/ComponentCard";
 import Button from "../../ui/button/Button";
-import Switch from "../switch/Switch";
 
 import { useNavigate, useParams, useSearchParams } from "react-router";
 import { toast } from "react-toastify";
 import { MessageSquare, User } from "lucide-react";
-import { pacientesService } from "../../../services/pacientes";
+import { pacientesService, especialistasService, pasantesService } from "../../../services";
 import PatientSelector from "../../common/PatientSelector";
-
+import { useAuth } from "../../../context/AuthContext.tsx";
 
 import { fichasService } from "../../../services/fichas";
 
@@ -19,27 +18,23 @@ import RelacionFamiliar from "./sections/SocioEconomica/RelacionFamiliar";
 import CondicionesViviendaForm from "./sections/SocioEconomica/CondicionesViviendaForm";
 import ConformacionFamiliar from "./sections/SocioEconomica/ConformacionFamiliarForm";
 import SaludForm from "./sections/SocioEconomica/SaludForm";
+import SituacionEconomicaForm from "./sections/SocioEconomica/SituacionEconomicaForm";
 
 
 
 interface FamiliarSalud {
   problema?: boolean;
   enfermedad?: string;
-
   catastrofica?: boolean;
   enfermedadCatastrofica?: string;
-
   discapacidad?: boolean;
-  tipoDiscapacidad?: string;
-  porcentaje?: number;
-  carnet?: string;
+  descripDiscapacidad?: string;
 }
 
 export interface FichaSocioeconomicaState {
   id?: number;
   activo: boolean;
   fechaElaboracion: string;
-
 
   paciente: {
     id: number;
@@ -48,13 +43,13 @@ export interface FichaSocioeconomicaState {
     lugarNacimiento: string;
     edad: number;
     cedula: string;
-
   };
 
   especialista: {
     id: number;
     nombresApellidos: string;
   };
+
   familiares: {
     relacion: string;
     nombresApellidos: string;
@@ -63,12 +58,10 @@ export interface FichaSocioeconomicaState {
     instruccion: string;
     ocupacion: string;
     ingresoMensual: number;
-
     salud?: FamiliarSalud;
   }[];
 
   riesgosFamiliares: {
-    //Agregar los campos de tabaquismo, alcoholismo, drogadiccion, violencia intrafamiliar, problemas sociales, vulnerabilidades, migroExterior, lugarMigracion, tiempoMigracion, afectacionFamiliar
     tabaquismo: boolean;
     alcoholismo: boolean;
     drogadiccion: boolean;
@@ -114,7 +107,7 @@ export interface FichaSocioeconomicaState {
     numeroDormitorios: number;
     numeroCamas: number;
     numeroSanitarios: number;
-    tipoSanitario: string; // Agregar DTO
+    tipoSanitario: string;
     procedenciaAgua: string;
     detalleElectricidad: string;
   };
@@ -124,6 +117,7 @@ export interface FichaSocioeconomicaState {
     saludEstudiante: string;
     ayudasTecnicas: string;
   };
+
   situacionEconomica: {
     totalIngresos: number;
     totalEgresos: number;
@@ -133,10 +127,6 @@ export interface FichaSocioeconomicaState {
   };
 
   desgloseEconomico: {
-    ingresoPadre: number;
-    ingresoMadre: number;
-    ingresoFamiliares: number;
-    ingresoOtros: number;
     egresoAlimentacion: number;
     egresoArriendo: number;
     egresoServiciosBasicos: number;
@@ -150,10 +140,14 @@ export interface FichaSocioeconomicaState {
   recomendaciones: string;
 }
 
+const getFechaActual = (): string => {
+  const today = new Date();
+  return today.toISOString();
+};
+
 export const initialFichaSocioeconomicaState: FichaSocioeconomicaState = {
   activo: true,
-  fechaElaboracion: "",
-
+  fechaElaboracion: getFechaActual(), // ✅ Fecha actual del sistema
   paciente: {
     id: 0,
     nombresApellidos: "",
@@ -227,10 +221,6 @@ export const initialFichaSocioeconomicaState: FichaSocioeconomicaState = {
     actividadesTiempoLibre: "",
   },
   desgloseEconomico: {
-    ingresoPadre: 0,
-    ingresoMadre: 0,
-    ingresoFamiliares: 0,
-    ingresoOtros: 0,
     egresoAlimentacion: 0,
     egresoArriendo: 0,
     egresoServiciosBasicos: 0,
@@ -242,16 +232,87 @@ export const initialFichaSocioeconomicaState: FichaSocioeconomicaState = {
   conclusiones: "",
   recomendaciones: "",
 };
+const buildRequest = (data: FichaSocioeconomicaState) => {
+  return {
+    pacienteId: data.paciente.id,
+    especialistaId: data.especialista.id,
+    fechaElaboracion: data.fechaElaboracion,
+
+    riesgosSociales: {
+      tabaquismo: data.riesgosFamiliares.tabaquismo,
+      alcoholismo: data.riesgosFamiliares.alcoholismo,
+      drogadiccion: data.riesgosFamiliares.drogadiccion,
+      violenciaIntrafamiliar: data.riesgosFamiliares.violenciaIntrafamiliar,
+      problemasSociales: data.riesgosFamiliares.problemasSociales,
+      vulnerabilidades: data.riesgosFamiliares.vulnerabilidades,
+      migroExterior: data.riesgosFamiliares.migroExterior,
+      lugarMigracion: data.riesgosFamiliares.lugarMigracion,
+      tiempoMigracion: data.riesgosFamiliares.tiempoMigracion,
+      afectacionFamiliar: data.riesgosFamiliares.afectacionFamiliar,
+    },
+
+    vulnerabilidad: {
+      movilidadHumana: data.vulnerabilidadesDetalle.movilidadHumana,
+      enfermedadCatastrofica: data.vulnerabilidadesDetalle.enfermedadCatastrofica,
+      embarazoAdolescente: data.vulnerabilidadesDetalle.embarazoAdolescente,
+      abusoSexual: data.vulnerabilidadesDetalle.abusoSexual,
+      agresionFisica: data.vulnerabilidadesDetalle.agresionFisica,
+      agresionPsicologica: data.vulnerabilidadesDetalle.agresionPsicologica,
+      lugarAgresion: data.vulnerabilidadesDetalle.lugarAgresion,
+    },
+
+    dinamicaFamiliar: data.dinamicaFamiliar,
+    vivienda: data.vivienda,
+    salud: data.salud,
+
+    situacionEconomica: {
+      totalIngresos: data.situacionEconomica.totalIngresos,
+      totalEgresos: data.situacionEconomica.totalEgresos,
+      condicionEconomica: data.situacionEconomica.condicionEconomica,
+      capacidadGastoEvaluacion: data.situacionEconomica.capacidadGastoEvaluacion,
+    },
+
+    desgloseEconomico: data.desgloseEconomico,
+
+    conclusiones: data.conclusiones,
+    recomendaciones: data.recomendaciones,
+    responsable: data.especialista.nombresApellidos,
+
+    familiares: data.familiares.map((f) => ({
+      relacion: f.relacion,
+      nombresApellidos: f.nombresApellidos,
+      edad: f.edad,
+      estadoCivil: f.estadocivil,
+      instruccion: f.instruccion,
+      ocupacion: f.ocupacion,
+      ingresoMensual: f.ingresoMensual,
+
+      problemas_salud: f.salud?.problema || false,
+      descripProblemasSaludFamiliar: f.salud?.enfermedad || "",
+
+      enfermedad_catastrofica: f.salud?.catastrofica || false,
+      descripEnfermedadCatastrofica: f.salud?.enfermedadCatastrofica || "",
+
+      discapacidad: f.salud?.discapacidad || false,
+      descripDiscapacidad: f.salud?.descripDiscapacidad || "",
+    })),
+  };
+};
 
 export default function FormularioFichaSocioeconomica() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
+
+  // ✅ OBTENER EL USUARIO AUTENTICADO
+  const { userIdentity, userRole } = useAuth();
 
   const [formData, setFormData] = useState<FichaSocioeconomicaState>(
     initialFichaSocioeconomicaState
   );
 
   const [loading, setLoading] = useState(false);
+  const [especialistaLoading, setEspecialistaLoading] = useState(true); // ✅ Loading para especialista
   const [verInformacionPaciente, setVerInformacionPaciente] = useState(false);
   const [verConformacionFamiliar, setVerConformacionFamiliar] = useState(false);
   const [verRiesgosFamiliares, setVerRiesgosFamiliares] = useState(false);
@@ -260,17 +321,67 @@ export default function FormularioFichaSocioeconomica() {
   const [verVivienda, setVerVivienda] = useState(false);
   const [verSalud, setVerSalud] = useState(false);
   const [verSituacionEconomica, setVerSituacionEconomica] = useState(false);
+  const [verConclusiones, setVerConclusiones] = useState(false);
 
   const [selectedPatient, setSelectedPatient] = useState<{
+    id: number;
     nombresApellidos: string;
     cedula: string;
   } | null>(null);
   const [showSelector, setShowSelector] = useState(false);
 
   const isEdit = !!id;
-  const [searchParams] = useSearchParams();
 
+  // ✅ EFECTO PARA OBTENER EL ESPECIALISTA/PASANTE DESDE LA API
+  useEffect(() => {
+    const loadEspecialista = async () => {
+      if (!userIdentity || !userRole) {
+        setEspecialistaLoading(false);
+        return;
+      }
 
+      try {
+        setEspecialistaLoading(true);
+        let especialistaData = null;
+
+        // Determinar si es especialista o pasante según el rol
+        if (userRole === "ROLE_ESPECIALISTA") {
+          const result = await especialistasService.filtrar({ search: userIdentity });
+          especialistaData = result?.content?.[0];
+          console.log("ESPECIALISTA DATA:", especialistaData);
+        } else if (userRole === "ROLE_PASANTE") {
+          const result = await pasantesService.filtrar({ search: userIdentity });
+          especialistaData = result?.content?.[0];
+        }
+
+        if (especialistaData?.id) {
+          setFormData((prev) => {
+            console.log("SET ESPECIALISTA:", especialistaData);
+
+            return {
+              ...prev,
+              especialista: {
+                id: especialistaData.id,
+                nombresApellidos: especialistaData.nombresApellidos,
+              },
+            };
+          });
+        } else {
+          console.warn("No se encontró especialista/pasante para:", userIdentity);
+          toast.warn("No se pudo cargar la información del especialista. Intente recargar.");
+        }
+      } catch (error) {
+        console.error("Error al cargar especialista:", error);
+        toast.error("Error al cargar la información del especialista.");
+      } finally {
+        setEspecialistaLoading(false);
+      }
+    };
+
+    loadEspecialista();
+  }, [userIdentity, userRole]);
+
+  // ✅ EFECTO PARA CARGAR LA FICHA SI ES EDICIÓN
   useEffect(() => {
     const pacienteIdParam = searchParams.get("pacienteId");
     if (isEdit && id) {
@@ -281,7 +392,6 @@ export default function FormularioFichaSocioeconomica() {
       setShowSelector(true);
     }
   }, [id, isEdit, searchParams]);
-
   const loadPacienteFromUrl = async (id: string) => {
     try {
       setLoading(true);
@@ -319,21 +429,69 @@ export default function FormularioFichaSocioeconomica() {
     try {
       setLoading(true);
       const data = await fichasService.obtenerSocioEconomico(fichaiId);
+      const mappedFamiliares = data.familiares.map((f: any) => ({
+        ...f,
+        salud: {
+          problema: f.problemas_salud || false,
+          enfermedad: f.descripProblemasSaludFamiliar || "",
+
+          catastrofica: f.enfermedad_catastrofica || false,
+          enfermedadCatastrofica: f.descripEnfermedadCatastrofica || "",
+
+          discapacidad: f.discapacidad || false,
+          descripDiscapacidad: f.descripDiscapacidad || "",
+        }
+      }));
+
       if (data) {
         const loadedData = {
           ...data,
           paciente: data.paciente,
+          riesgosFamiliares: data.riesgosSociales,
+          vulnerabilidadesDetalle: data.vulnerabilidad,
+          familiares: mappedFamiliares,
+          situacionEconomica: {
+            ...data.situacionEconomica,
+            capacidadGastoEvaluacion:
+              data.situacionEconomica?.capacidadGastoEvaluacion || "",
+          },
         };
         setFormData(loadedData);
-        // Colocar los campos del formulario
-        const hasInformacionPaciente = !isSectionEmpty(data.paciente, initialFichaSocioeconomicaState.paciente);
-        const hasConformacionFamiliar = data.familiares && data.familiares.length > 0;
-        const hasRiesgosFamiliares = !isSectionEmpty(data.riesgosFamiliares, initialFichaSocioeconomicaState.riesgosFamiliares);
-        const hasVulnerabilidades = !isSectionEmpty(data.vulnerabilidadesDetalle, initialFichaSocioeconomicaState.vulnerabilidadesDetalle);
-        const hasDinamicaFamiliar = !isSectionEmpty(data.dinamicaFamiliar, initialFichaSocioeconomicaState.dinamicaFamiliar);
-        const hasVivienda = !isSectionEmpty(data.vivienda, initialFichaSocioeconomicaState.vivienda);
-        const hasSalud = !isSectionEmpty(data.salud, initialFichaSocioeconomicaState.salud);
-        const hasSituacionEconomica = !isSectionEmpty(data.situacionEconomica, initialFichaSocioeconomicaState.situacionEconomica);
+
+        const hasInformacionPaciente = !isSectionEmpty(
+          data.paciente,
+          initialFichaSocioeconomicaState.paciente
+        );
+        const hasConformacionFamiliar =
+          data.familiares && data.familiares.length > 0;
+        const hasRiesgosFamiliares = !isSectionEmpty(
+          data.riesgosFamiliares,
+          initialFichaSocioeconomicaState.riesgosFamiliares
+        );
+        const hasVulnerabilidades = !isSectionEmpty(
+          data.vulnerabilidadesDetalle,
+          initialFichaSocioeconomicaState.vulnerabilidadesDetalle
+        );
+        const hasDinamicaFamiliar = !isSectionEmpty(
+          data.dinamicaFamiliar,
+          initialFichaSocioeconomicaState.dinamicaFamiliar
+        );
+        const hasVivienda = !isSectionEmpty(
+          data.vivienda,
+          initialFichaSocioeconomicaState.vivienda
+        );
+        const hasSalud = !isSectionEmpty(
+          data.salud,
+          initialFichaSocioeconomicaState.salud
+        );
+        const hasSituacionEconomica = !isSectionEmpty(
+          data.situacionEconomica,
+          initialFichaSocioeconomicaState.situacionEconomica
+        );
+        const hasConclusiones = !isSectionEmpty(
+          data.conclusiones,
+          initialFichaSocioeconomicaState.conclusiones
+        );
 
         if (hasInformacionPaciente) setVerInformacionPaciente(true);
         if (hasConformacionFamiliar) setVerConformacionFamiliar(true);
@@ -343,13 +501,19 @@ export default function FormularioFichaSocioeconomica() {
         if (hasVivienda) setVerVivienda(true);
         if (hasSalud) setVerSalud(true);
         if (hasSituacionEconomica) setVerSituacionEconomica(true);
+        if (hasConclusiones) setVerConclusiones(true);
 
         if (data.paciente) {
           try {
-            const paciente = await pacientesService.obtenerPorId(data.paciente.id);
+            const paciente = await pacientesService.obtenerPorId(
+              data.paciente.id
+            );
             setSelectedPatient(paciente);
           } catch (pError) {
-            console.warn("No se pudo cargar el paciente asociado a la ficha:", pError);
+            console.warn(
+              "No se pudo cargar el paciente asociado a la ficha:",
+              pError
+            );
           }
         }
       } else {
@@ -365,7 +529,6 @@ export default function FormularioFichaSocioeconomica() {
     }
   };
 
-  // Manejar cambios en objetos anidados
   const handleNestedChange = (
     section: keyof FichaSocioeconomicaState,
     field: string,
@@ -380,23 +543,43 @@ export default function FormularioFichaSocioeconomica() {
     }));
   };
 
-  // Guardar (crear o actualizar)
   const handleSubmit = async () => {
-    if (!formData.paciente.id) {
-      toast.error("Debe seleccionar un paciente");
+    if (!formData.paciente?.id || formData.paciente.id <= 0) {
+      toast.error("Debe seleccionar un paciente válido");
+      return;
+    }
+
+    if (!formData.especialista?.id || formData.especialista.id <= 0) {
+      toast.error("No se pudo obtener el especialista válido");
+      return;
+    }
+
+    // ✅ VALIDAR QUE EL ESPECIALISTA ESTÉ ASIGNADO
+    if (!formData.especialista.id) {
+      toast.error(
+        "No se pudo obtener el especialista. Intente recargar la página."
+      );
+      return;
+    }
+
+    if (!formData.fechaElaboracion) {
+      toast.error("Debe establecer la fecha de elaboración");
       return;
     }
 
     try {
+
       setLoading(true);
       if (isEdit && formData.id) {
-        await fichasService.actualizarSocioEconomico(formData.id, formData);
+        const request = buildRequest(formData);
+        await fichasService.actualizarSocioEconomico(formData.id, request);
         toast.success("Ficha actualizada exitosamente");
       } else if (isEdit && !formData.id) {
         toast.error("No se encontró la ficha");
         return;
       } else {
-        await fichasService.crearSocioEconomico(formData);
+        const request = buildRequest(formData);
+        await fichasService.crearSocioEconomico(request);
         toast.success("Ficha creada exitosamente");
       }
       navigate("/fichas?tab=socioeconomica");
@@ -405,7 +588,9 @@ export default function FormularioFichaSocioeconomica() {
         toast.error("Este paciente ya tiene una ficha activa.");
       } else {
         toast.error(
-          isEdit ? "Error al actualizar la ficha" : "Error al crear la ficha"
+          isEdit
+            ? "Error al actualizar la ficha"
+            : "Error al crear la ficha"
         );
       }
       console.error("Error saving ficha:", error);
@@ -424,25 +609,13 @@ export default function FormularioFichaSocioeconomica() {
     }));
     setSelectedPatient(patient);
     setShowSelector(false);
-  }
+  };
 
-  if (loading && isEdit) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
-        <div className="w-12 h-12 border-4 border-red-200 border-t-red-600 rounded-full animate-spin"></div>
-        <p className="text-slate-500 font-medium animate-pulse text-lg">
-          Cargando ficha...
-        </p>
-      </div>
-    );
-  }
 
   if (showSelector) {
     return (
       <div className="space-y-6">
-        <PatientSelector
-          onSelect={handlePatientSelect}
-        />
+        <PatientSelector onSelect={handlePatientSelect} />
       </div>
     );
   }
@@ -642,7 +815,10 @@ export default function FormularioFichaSocioeconomica() {
               bodyDisabled={!verRiesgosFamiliares}
             >
               <RiesgosFamiliaresForm
-                data={formData.riesgosFamiliares}
+                data={
+                  formData.riesgosFamiliares ||
+                  initialFichaSocioeconomicaState.riesgosFamiliares
+                }
                 onChange={(field, value) =>
                   handleNestedChange("riesgosFamiliares", field, value)
                 }
@@ -844,9 +1020,7 @@ export default function FormularioFichaSocioeconomica() {
                       catastrofica: false,
                       enfermedadCatastrofica: "",
                       discapacidad: false,
-                      tipoDiscapacidad: "",
-                      porcentaje: 0,
-                      carnet: "",
+                      descripDiscapacidad: "",
                     };
                   }
 
@@ -900,9 +1074,105 @@ export default function FormularioFichaSocioeconomica() {
               bodyDisabled={!verSituacionEconomica}
             >
               {/* Aquí iría el formulario de situación económica, similar a RiesgosFamiliaresForm */}
-              <p className="text-gray-500 dark:text-gray-400">
-                Formulario de Situación Económica (en construcción)
+              <SituacionEconomicaForm
+                data={formData.situacionEconomica}
+                desglose={formData.desgloseEconomico}
+                familiares={formData.familiares}
+                onChangeDesglose={(field, value) => {
+                  setFormData((prev) => ({
+                    ...prev,
+                    desgloseEconomico: {
+                      ...prev.desgloseEconomico,
+                      [field]: value,
+                    },
+                  }));
+                }}
+                onChange={(field, value) => {
+                  setFormData((prev) => ({
+                    ...prev,
+                    situacionEconomica: {
+                      ...prev.situacionEconomica,
+                      [field]: value,
+                    },
+                  }));
+                }}
+              />
+            </ComponentCard>
+          </div>
+
+        )}
+        <div
+          onClick={() => setVerConclusiones(!verConclusiones)}
+          className={`cursor-pointer group relative overflow-hidden p-6 rounded-3xl border-2 transition-all duration-500 ${verConclusiones
+            ? "border-brand-100 bg-brand-50/20 dark:border-gray-600 dark:bg-gray-800 scale-[1.02]"
+            : "border-gray-100 bg-white dark:border-gray-800 dark:bg-white/[0.03] dark:hover:border-gray-600"
+            }`}
+        >
+          <div className="flex items-center gap-5">
+            <div
+              className={`p-4 rounded-2xl transition-all duration-500 ${verConclusiones
+                ? "bg-brand-400 text-white rotate-12 dark:bg-gray-500"
+                : "bg-brand-50 text-brand-500 dark:bg-gray-800"
+                }`}
+            >
+              <MessageSquare size={24} />
+            </div>
+            <div>
+              <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100">
+                Conclusiones y Recomendaciones
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Análisis final del caso
               </p>
+            </div>
+          </div>
+        </div>
+        {verConclusiones && (
+          <div className="mt-6 space-y-6 animate-in slide-in-from-bottom-4 duration-500">
+            <ComponentCard
+              title="Conclusiones y Recomendaciones"
+              onHeaderClick={() => setVerConclusiones(!verConclusiones)}
+              bodyDisabled={!verConclusiones}
+            >
+              <div className="space-y-6">
+
+                {/* CONCLUSIONES */}
+                <div>
+                  <label className="block text-sm mb-2 text-gray-600 dark:text-gray-300">
+                    Conclusiones
+                  </label>
+                  <textarea
+                    className="w-full px-4 py-2 rounded-lg bg-gray-50 dark:bg-gray-800"
+                    rows={4}
+                    value={formData.conclusiones}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        conclusiones: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+
+                {/* RECOMENDACIONES */}
+                <div>
+                  <label className="block text-sm mb-2 text-gray-600 dark:text-gray-300">
+                    Recomendaciones
+                  </label>
+                  <textarea
+                    className="w-full px-4 py-2 rounded-lg bg-gray-50 dark:bg-gray-800"
+                    rows={4}
+                    value={formData.recomendaciones}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        recomendaciones: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+
+              </div>
             </ComponentCard>
           </div>
         )}

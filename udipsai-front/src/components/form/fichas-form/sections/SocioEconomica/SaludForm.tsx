@@ -15,9 +15,7 @@ interface FamiliarSalud {
     enfermedadCatastrofica?: string;
 
     discapacidad?: boolean;
-    tipoDiscapacidad?: string;
-    porcentaje?: number;
-    carnet?: string;
+    descripDiscapacidad?: string;
 }
 
 interface Familiar {
@@ -317,39 +315,52 @@ const SaludForm: React.FC<SaludFormProps> = ({
                                     />
 
                                     {fam.salud?.discapacidad && (
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
+                                        <div className="mt-2">
 
                                             <Input
-                                                placeholder="Tipo"
-                                                value={fam.salud?.tipoDiscapacidad || ""}
-                                                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                                                    onChangeFamiliar(
-                                                        index,
-                                                        "tipoDiscapacidad",
-                                                        e.target.value
-                                                    )
-                                                }
+                                                placeholder="Tipo discapacidad"
+                                                value={fam.salud?.descripDiscapacidad?.split("|")[0]?.trim() || ""}
+                                                onChange={(e: any) => {
+                                                    const actual = fam.salud?.descripDiscapacidad || "";
+                                                    const parts = actual.split("|");
+
+                                                    const porcentaje = parts[1] || "";
+                                                    const carnet = parts[2] || "";
+
+                                                    const nueva = `${e.target.value} | ${porcentaje} | ${carnet}`;
+                                                    onChangeFamiliar(index, "descripDiscapacidad", nueva);
+                                                }}
                                             />
 
                                             <Input
                                                 type="number"
                                                 placeholder="Porcentaje"
-                                                value={fam.salud?.porcentaje ?? ""}
-                                                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                                                    onChangeFamiliar(
-                                                        index,
-                                                        "porcentaje",
-                                                        Number(e.target.value)
-                                                    )
-                                                }
+                                                value={fam.salud?.descripDiscapacidad?.split("|")[1]?.replace("%", "").trim() || ""}
+                                                onChange={(e: any) => {
+                                                    const actual = fam.salud?.descripDiscapacidad || "";
+                                                    const parts = actual.split("|");
+
+                                                    const tipo = parts[0] || "";
+                                                    const carnet = parts[2] || "";
+
+                                                    const nueva = `${tipo} | ${e.target.value}% | ${carnet}`;
+                                                    onChangeFamiliar(index, "descripDiscapacidad", nueva);
+                                                }}
                                             />
 
                                             <Input
-                                                placeholder="N° Carné"
-                                                value={fam.salud?.carnet || ""}
-                                                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                                                    onChangeFamiliar(index, "carnet", e.target.value)
-                                                }
+                                                placeholder="N° Carnet"
+                                                value={fam.salud?.descripDiscapacidad?.split("|")[2]?.replace("Carnet:", "").trim() || ""}
+                                                onChange={(e: any) => {
+                                                    const actual = fam.salud?.descripDiscapacidad || "";
+                                                    const parts = actual.split("|");
+
+                                                    const tipo = parts[0] || "";
+                                                    const porcentaje = parts[1] || "";
+
+                                                    const nueva = `${tipo} | ${porcentaje} | Carnet: ${e.target.value}`;
+                                                    onChangeFamiliar(index, "descripDiscapacidad", nueva);
+                                                }}
                                             />
 
                                         </div>
