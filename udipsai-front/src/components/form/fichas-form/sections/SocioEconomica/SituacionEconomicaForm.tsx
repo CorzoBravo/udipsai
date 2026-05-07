@@ -6,6 +6,7 @@ interface SituacionEconomicaFormProps {
         totalEgresos: number;
         condicionEconomica: string;
         capacidadGastoEvaluacion: string;
+        actividadesTiempoLibre: string;
     };
 
     desglose: {
@@ -55,10 +56,219 @@ const SituacionEconomicaForm: React.FC<SituacionEconomicaFormProps> = ({
         );
     };
     const totalEgresos = calcularTotalEgresos(desglose);
-
     return (
         <div className="space-y-6">
+            <div className="space-y-3">
+                <h3 className="text-md font-semibold text-gray-700 dark:text-gray-200">
+                    Uso de tiempo libre
+                </h3>
 
+                {(() => {
+
+                    // =========================
+                    // RECUPERAR DATOS
+                    // =========================
+                    let actividadesSeleccionadas: string[] = [];
+
+                    try {
+                        actividadesSeleccionadas = data.actividadesTiempoLibre
+                            ? JSON.parse(data.actividadesTiempoLibre)
+                            : [];
+                    } catch {
+                        actividadesSeleccionadas = [];
+                    }
+
+                    // =========================
+                    // ACTIVIDADES NORMALES
+                    // =========================
+                    const actividadesBase = [
+                        "Deporte",
+                        "Música",
+                        "TV",
+                        "Internet",
+                        "Paseos familiares",
+                        "Amigos/as",
+                    ];
+
+                    // =========================
+                    // TOGGLE NORMAL
+                    // =========================
+                    const toggleActividad = (value: string) => {
+                        let nuevas = [...actividadesSeleccionadas];
+
+                        if (nuevas.includes(value)) {
+                            nuevas = nuevas.filter((a) => a !== value);
+                        } else {
+                            nuevas.push(value);
+                        }
+
+                        onChange(
+                            "actividadesTiempoLibre",
+                            JSON.stringify(nuevas)
+                        );
+                    };
+
+                    // =========================
+                    // TOGGLE ESPECIAL
+                    // =========================
+                    const toggleEspecial = (
+                        prefijo: string,
+                        checked: boolean
+                    ) => {
+
+                        let nuevas = actividadesSeleccionadas.filter(
+                            (a) => !a.startsWith(prefijo)
+                        );
+
+                        if (checked) {
+                            nuevas.push(`${prefijo}`);
+                        }
+
+                        onChange(
+                            "actividadesTiempoLibre",
+                            JSON.stringify(nuevas)
+                        );
+                    };
+
+                    // =========================
+                    // ACTUALIZAR TEXTO
+                    // =========================
+                    const actualizarTextoEspecial = (
+                        prefijo: string,
+                        valor: string
+                    ) => {
+
+                        let nuevas = actividadesSeleccionadas.filter(
+                            (a) => !a.startsWith(prefijo)
+                        );
+
+                        nuevas.push(`${prefijo}${valor}`);
+
+                        onChange(
+                            "actividadesTiempoLibre",
+                            JSON.stringify(nuevas)
+                        );
+                    };
+
+                    return (
+                        <div className="space-y-4">
+
+                            {/* CHECKBOXES */}
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+
+                                {actividadesBase.map((item) => (
+                                    <label
+                                        key={item}
+                                        className="flex items-center gap-2"
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            checked={actividadesSeleccionadas.includes(item)}
+                                            onChange={() => toggleActividad(item)}
+                                        />
+
+                                        {item}
+                                    </label>
+                                ))}
+
+                                {/* Trabajo infantil */}
+                                <label className="flex items-center gap-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={actividadesSeleccionadas.some((a) =>
+                                            a.startsWith("Trabajo infantil:")
+                                        )}
+                                        onChange={(e) =>
+                                            toggleEspecial(
+                                                "Trabajo infantil:",
+                                                e.target.checked
+                                            )
+                                        }
+                                    />
+
+                                    Trabajo infantil
+                                </label>
+
+                                {/* Otros */}
+                                <label className="flex items-center gap-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={actividadesSeleccionadas.some((a) =>
+                                            a.startsWith("Otros:")
+                                        )}
+                                        onChange={(e) =>
+                                            toggleEspecial(
+                                                "Otros:",
+                                                e.target.checked
+                                            )
+                                        }
+                                    />
+
+                                    Otros
+                                </label>
+                            </div>
+
+                            {/* INPUT TRABAJO INFANTIL */}
+                            {actividadesSeleccionadas.some((a) =>
+                                a.startsWith("Trabajo infantil:")
+                            ) && (
+                                    <div>
+                                        <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            Especifique trabajo infantil
+                                        </label>
+
+                                        <input
+                                            type="text"
+                                            value={
+                                                actividadesSeleccionadas
+                                                    .find((a) =>
+                                                        a.startsWith("Trabajo infantil:")
+                                                    )
+                                                    ?.replace("Trabajo infantil:", "") || ""
+                                            }
+                                            onChange={(e) =>
+                                                actualizarTextoEspecial(
+                                                    "Trabajo infantil:",
+                                                    e.target.value
+                                                )
+                                            }
+                                            className="w-full rounded-lg border border-gray-300 px-3 py-2 dark:bg-gray-900 dark:border-gray-700"
+                                        />
+                                    </div>
+                                )}
+
+                            {/* INPUT OTROS */}
+                            {actividadesSeleccionadas.some((a) =>
+                                a.startsWith("Otros:")
+                            ) && (
+                                    <div>
+                                        <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            Especifique otros
+                                        </label>
+
+                                        <input
+                                            type="text"
+                                            value={
+                                                actividadesSeleccionadas
+                                                    .find((a) =>
+                                                        a.startsWith("Otros:")
+                                                    )
+                                                    ?.replace("Otros:", "") || ""
+                                            }
+                                            onChange={(e) =>
+                                                actualizarTextoEspecial(
+                                                    "Otros:",
+                                                    e.target.value
+                                                )
+                                            }
+                                            className="w-full rounded-lg border border-gray-300 px-3 py-2 dark:bg-gray-900 dark:border-gray-700"
+                                        />
+                                    </div>
+                                )}
+                        </div>
+                    );
+                })()}
+            </div>
             {/* ================= INGRESOS ================= */}
             <div className="space-y-3">
                 <h3 className="text-md font-semibold text-gray-700 dark:text-gray-200">

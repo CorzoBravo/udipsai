@@ -9,6 +9,7 @@ import {
   Brain,
   Ear,
   Eye,
+  Home,
 } from "lucide-react";
 
 import {
@@ -135,7 +136,7 @@ export default function FichasUnificadasTable() {
     {
       key: "socioeconomico",
       label: "Socioeconómico",
-      icon: Ear,
+      icon: Home,
       fetch: fichasService.listarSocioEconomico,
       delete: fichasService.eliminarSocioEconomico,
       editPath: "/fichas/socioeconomico/editar",

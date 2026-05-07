@@ -43,6 +43,14 @@ export interface FichaSocioeconomicaState {
     lugarNacimiento: string;
     edad: number;
     cedula: string;
+    numeroTelefono?: string;
+    numeroCelular?: string;
+    institucionEducativa?: { nombre: string; };
+    domicilio?: string;
+    portadorCarnet?: boolean;
+    tipoDiscapacidad?: string;
+    porcentajeDiscapacidad?: number;
+    numCarne?: string;
   };
 
   especialista: {
@@ -146,6 +154,7 @@ const getFechaActual = (): string => {
 };
 
 export const initialFichaSocioeconomicaState: FichaSocioeconomicaState = {
+  // TODO: Datos faltantes paciente : email, instruccion, ocupacion,tipo hogar, tiempo libre
   activo: true,
   fechaElaboracion: getFechaActual(), // ✅ Fecha actual del sistema
   paciente: {
@@ -155,6 +164,14 @@ export const initialFichaSocioeconomicaState: FichaSocioeconomicaState = {
     lugarNacimiento: "",
     edad: 0,
     cedula: "",
+    numeroTelefono: "",
+    numeroCelular: "",
+    institucionEducativa: { nombre: "" },
+    domicilio: "",
+    portadorCarnet: false,
+    tipoDiscapacidad: "",
+    porcentajeDiscapacidad: 0,
+    numCarne: "",
   },
   especialista: {
     id: 0,
@@ -270,6 +287,7 @@ const buildRequest = (data: FichaSocioeconomicaState) => {
       totalEgresos: data.situacionEconomica.totalEgresos,
       condicionEconomica: data.situacionEconomica.condicionEconomica,
       capacidadGastoEvaluacion: data.situacionEconomica.capacidadGastoEvaluacion,
+      actividadesTiempoLibre: data.situacionEconomica.actividadesTiempoLibre,
     },
 
     desgloseEconomico: data.desgloseEconomico,
