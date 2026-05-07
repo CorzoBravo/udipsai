@@ -117,4 +117,28 @@ public class SeguimientoSocialFichaService {
         
         return dto;
     }
+    @Transactional
+    public SeguimientoSocialFichaDTO actualizar(Integer id, SeguimientoSocialFichaRequest request) {
+        SeguimientoSocialFicha seguimiento = seguimientoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Seguimiento no encontrado con ID: " + id));
+
+        // Actualizamos los campos desde el request
+        seguimiento.setAreaAcompanamiento(request.getAreaAcompanamiento());
+        seguimiento.setFecha(request.getFecha());
+        seguimiento.setNombreVisitador(request.getNombreVisitador());
+        seguimiento.setApellidoVisitador(request.getApellidoVisitador());
+        seguimiento.setDireccionVisita(request.getDireccionVisita());
+        seguimiento.setObjetivo(request.getObjetivo());
+        seguimiento.setParticipantes(request.getParticipantes());
+        seguimiento.setActividades(request.getActividades());
+        seguimiento.setObservaciones(request.getObservaciones());
+        seguimiento.setLugarFirma(request.getLugarFirma());
+        seguimiento.setNombreRepresentante(request.getNombreRepresentante());
+        seguimiento.setRolEscuela(request.getRolEscuela());
+        seguimiento.setNombrePersonalEscuela(request.getNombrePersonalEscuela());
+        seguimiento.setEspecificarOtro(request.getEspecificarOtro());
+
+        seguimiento = seguimientoRepository.save(seguimiento);
+        return mapToDTO(seguimiento);
+    }
 }

@@ -396,7 +396,8 @@ export const fichasService = {
 
   actualizarSeguimientoSocial: async (id: number | string, data: any) => {
     try {
-      const response = await api.put(`/seguimientos-sociales/${id}`, data);
+      
+      const response = await api.put(`/seguimientos-sociales/${id}`, data); 
       return response.data;
     } catch (error) {
       console.error("Error al actualizar seguimiento social:", error);

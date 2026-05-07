@@ -45,4 +45,9 @@ public class SeguimientoSocialFichaController {
     public ResponseEntity<SeguimientoSocialFichaDTO> obtenerPorId(@PathVariable Integer id) {
         return ResponseEntity.ok(seguimientoService.obtenerPorId(id));
     }
+    @PutMapping("/{id}")
+public ResponseEntity<SeguimientoSocialFichaDTO> actualizar(@PathVariable Integer id, @RequestBody SeguimientoSocialFichaRequest request) {
+    return ResponseEntity.ok(seguimientoService.actualizar(id, request));
+}
+
 }
