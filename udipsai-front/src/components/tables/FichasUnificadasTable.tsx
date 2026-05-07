@@ -275,6 +275,9 @@ export default function FichasUnificadasTable() {
         case "psicologia_clinica":
           await fichasService.exportarExcelPsicologiaClinica();
           break;
+        case "socioeconomico":
+          await fichasService.exportarExcelSocioEconomico();
+          break;
         default:
           toast.warn("Exportación no disponible para esta pestaña");
           return;
