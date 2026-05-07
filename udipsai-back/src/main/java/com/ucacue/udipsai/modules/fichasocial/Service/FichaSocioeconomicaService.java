@@ -10,6 +10,7 @@ import com.ucacue.udipsai.modules.paciente.domain.Paciente;
 import com.ucacue.udipsai.modules.paciente.dto.PacienteFichaDTO;
 import com.ucacue.udipsai.modules.paciente.repository.PacienteRepository;
 import com.ucacue.udipsai.modules.especialistas.domain.Especialista;
+import com.ucacue.udipsai.modules.especialistas.dto.EspecialistaDTO;
 import com.ucacue.udipsai.modules.especialistas.repository.EspecialistaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -129,7 +130,7 @@ public class FichaSocioeconomicaService {
 
                 familiar.setProblemasSaludFamiliar(fDto.getProblemas_salud());
                 familiar.setDescripProblemasSaludFamiliar(
-                    fDto.getDescripProblemasSaludFamiliar());
+                        fDto.getDescripProblemasSaludFamiliar());
 
                 familiar.setEnfermedadCatastrofica(fDto.getEnfermedad_catastrofica());
                 familiar.setDescripEnfermedadCatastrofica(
@@ -159,7 +160,13 @@ public class FichaSocioeconomicaService {
                     ficha.getPaciente().getCedula()));
 
         }
-
+        if (ficha.getEspecialista() != null) {
+            EspecialistaDTO espDto = new EspecialistaDTO();
+            espDto.setId(ficha.getEspecialista().getId());
+            espDto.setNombresApellidos(ficha.getEspecialista().getNombresApellidos());
+            dto.setEspecialista(espDto);
+        }
+        
         dto.setRiesgosSociales(ficha.getRiesgosSociales());
         dto.setVulnerabilidad(ficha.getVulnerabilidad());
         dto.setDinamicaFamiliar(ficha.getDinamicaFamiliar());
@@ -184,7 +191,7 @@ public class FichaSocioeconomicaService {
                 fDto.setIngresoMensual(f.getIngresoMensual());
 
                 fDto.setProblemas_salud(
-                    Boolean.TRUE.equals(f.getProblemasSaludFamiliar()));
+                        Boolean.TRUE.equals(f.getProblemasSaludFamiliar()));
                 fDto.setDescripProblemasSaludFamiliar(
                         f.getDescripProblemasSaludFamiliar());
 
@@ -194,7 +201,7 @@ public class FichaSocioeconomicaService {
                         f.getDescripEnfermedadCatastrofica());
 
                 fDto.setDiscapacidad(
-                    Boolean.TRUE.equals(f.getDiscapacidad()));
+                        Boolean.TRUE.equals(f.getDiscapacidad()));
                 fDto.setDescripDiscapacidad(
                         f.getDescripDiscapacidad());
                 return fDto;
