@@ -61,22 +61,22 @@
     <table>
         <tr>
             <td class="label">Paciente</td>
-            <td th:text="${i.paciente.nombresApellidos}"></td>
+            <td th:text="${i.paciente?.nombresApellidos ?: 'N/A'}"></td>
         </tr>
 
         <tr>
             <td class="label">Cédula</td>
-            <td th:text="${i.paciente.cedula}"></td>
+            <td th:text="${i.paciente?.cedula ?: 'N/A'}"></td>
         </tr>
 
         <tr>
             <td class="label">Número de ficha</td>
-            <td th:text="${i.numFicha}"></td>
+            <td th:text="${i.numFicha ?: 'N/A'}"></td>
         </tr>
 
         <tr>
             <td class="label">Fecha</td>
-            <td th:text="${i.fechaElaboracion}"></td>
+            <td th:text="${i.fechaElaboracion ?: 'N/A'}"></td>
         </tr>
     </table>
 </div>
@@ -101,12 +101,12 @@
 
         <tbody>
         <tr th:each="f : ${i.familiares}">
-            <td th:text="${f.nombres}"></td>
-            <td th:text="${f.parentesco}"></td>
-            <td th:text="${f.edad}"></td>
-            <td th:text="${f.estadoCivil}"></td>
-            <td th:text="${f.ocupacion}"></td>
-            <td th:text="${f.ingresos}"></td>
+            <td th:text="${f.nombres ?: 'N/A'}"></td>
+            <td th:text="${f.parentesco ?: 'N/A'}"></td>
+            <td th:text="${f.edad ?: 'N/A'}"></td>
+            <td th:text="${f.estadoCivil ?: 'N/A'}"></td>
+            <td th:text="${f.ocupacion ?: 'N/A'}"></td>
+            <td th:text="${f.ingresos ?: 'N/A'}"></td>
         </tr>
         </tbody>
     </table>
@@ -115,57 +115,57 @@
 <!-- SECCIONES DEL INFORME -->
 <div class="section">
     <div class="section-title">Dinámica Familiar</div>
-    <p th:text="${i.descripcionDinamicaFamiliar}"></p>
+    <p th:text="${i.descripcionDinamicaFamiliar ?: 'N/A'}"></p>
 </div>
 
 <div class="section">
     <div class="section-title">Situación Económica</div>
-    <p th:text="${i.situacionEconomica}"></p>
+    <p th:text="${i.situacionEconomica ?: 'N/A'}"></p>
 </div>
 
 <div class="section">
     <div class="section-title">Situación Habitabilidad</div>
-    <p th:text="${i.situacionHabitabilidad}"></p>
+    <p th:text="${i.situacionHabitabilidad ?: 'N/A'}"></p>
 </div>
 
 <div class="section">
     <div class="section-title">Situación Laboral</div>
-    <p th:text="${i.situacionLaboral}"></p>
+    <p th:text="${i.situacionLaboral ?: 'N/A'}"></p>
 </div>
 
 <div class="section">
     <div class="section-title">Situación Entorno</div>
-    <p th:text="${i.situacionEntorno}"></p>
+    <p th:text="${i.situacionEntorno ?: 'N/A'}"></p>
 </div>
 
 <div class="section">
     <div class="section-title">Situación Educativo Cultural</div>
-    <p th:text="${i.situacionEducativoCultural}"></p>
+    <p th:text="${i.situacionEducativoCultural ?: 'N/A'}"></p>
 </div>
 
 <div class="section">
     <div class="section-title">Situación Salud</div>
-    <p th:text="${i.situacionSalud}"></p>
+    <p th:text="${i.situacionSalud ?: 'N/A'}"></p>
 </div>
 
 <div class="section">
     <div class="section-title">Situación Legal</div>
-    <p th:text="${i.situacionLegal}"></p>
+    <p th:text="${i.situacionLegal ?: 'N/A'}"></p>
 </div>
 
 <div class="section">
     <div class="section-title">Valoración Profesional</div>
-    <p th:text="${i.valoracionProfesional}"></p>
+    <p th:text="${i.valoracionProfesional ?: 'N/A'}"></p>
 </div>
 
 <div class="section">
     <div class="section-title">Recomendaciones</div>
-    <p th:text="${i.recomendaciones}"></p>
+    <p th:text="${i.recomendaciones ?: 'N/A'}"></p>
 </div>
 
 <div class="section">
     <div class="section-title">Elaborado por</div>
-    <p th:text="${i.elaboradoPor}"></p>
+    <p th:text="${i.elaboradoPor ?: 'N/A'}"></p>
 </div>
 
 </body>
