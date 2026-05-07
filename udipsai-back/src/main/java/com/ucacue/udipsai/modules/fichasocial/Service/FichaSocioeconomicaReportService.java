@@ -112,7 +112,7 @@ public class FichaSocioeconomicaReportService {
         });
     }
 
-    public byte[] exportarPdfDetalle(Integer pacienteId) throws Exception {
+    public byte[] exportarPdf(Integer pacienteId) throws Exception {
         FichaSocioeconomicaDTO ficha = fichaService.obtenerFichaActivaPorPacienteId(pacienteId);
 
         if (ficha == null) {
