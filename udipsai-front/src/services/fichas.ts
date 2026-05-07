@@ -362,7 +362,7 @@ export const fichasService = {
   },
   exportarExcelSocioEconomico: async (pacienteId?: number | string) => {
     try {
-      const response = await api.get("/socioeconomico/reporte/excel", {
+      const response = await api.get("/fichas-socioeconomicas/reporte/excel", {
         params: { pacienteId },
         responseType: "blob",
       });
@@ -370,25 +370,30 @@ export const fichasService = {
       const link = document.createElement("a");
       link.href = url;
       const filename = pacienteId
-        ? `psicologia_clinica_${pacienteId}.xlsx`
-        : "fichas_psicologia_clinica.xlsx";
+        ? `ficha_socioeconomica_${pacienteId}.xlsx`
+        : "fichas_socioeconomicas.xlsx";
       link.setAttribute("download", filename);
       document.body.appendChild(link);
       link.click();
       link.remove();
     } catch (error) {
-      console.error("Error al exportar Excel Psicología Clínica:", error);
+      console.error("Error al exportar Excel Socioeconómico:", error);
       throw error;
     }
   },
-  exportarPdfSocioEconomico: async (id: number | string) => {
+  exportarPdfSocioEconomico: async (pacienteId: number) => {
     try {
-      const response = await api.get(`/socioeconomico/${id}/reporte/pdf`, {
-        responseType: "blob",
-      });
+      const response = await api.get(
+        "/fichas-socioeconomicas/reporte/pdf",
+        {
+          params: { pacienteId },
+          responseType: "blob",
+        }
+      );
+
       return response.data;
     } catch (error) {
-      console.error("Error al exportar PDF de pasante:", error);
+      console.error("Error al exportar PDF Socioeconómico:", error);
       throw error;
     }
   },

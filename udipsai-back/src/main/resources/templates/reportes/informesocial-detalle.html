@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <style>
+        body {
+            font-family: Arial;
+            margin: 20px;
+        }
+
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #FA3340;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            color: #FA3340;
+        }
+
+        .section {
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            background: #f4f4f4;
+            padding: 10px;
+            font-weight: bold;
+            border-left: 4px solid #FA3340;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        td, th {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+
+        .label {
+            font-weight: bold;
+            width: 30%;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>UDIPSAI</h1>
+    <h2>INFORME SOCIAL</h2>
+</div>
+
+<!-- DATOS GENERALES -->
+<div class="section">
+    <div class="section-title">
+        Datos Generales
+    </div>
+
+    <table>
+        <tr>
+            <td class="label">Paciente</td>
+            <td th:text="${i.paciente.nombresApellidos}"></td>
+        </tr>
+
+        <tr>
+            <td class="label">Cédula</td>
+            <td th:text="${i.paciente.cedula}"></td>
+        </tr>
+
+        <tr>
+            <td class="label">Número de ficha</td>
+            <td th:text="${i.numFicha}"></td>
+        </tr>
+
+        <tr>
+            <td class="label">Fecha</td>
+            <td th:text="${i.fechaElaboracion}"></td>
+        </tr>
+    </table>
+</div>
+
+<!-- FAMILIARES -->
+<div class="section">
+    <div class="section-title">
+        Grupo Familiar
+    </div>
+
+    <table>
+        <thead>
+        <tr>
+            <th>Nombres</th>
+            <th>Parentesco</th>
+            <th>Edad</th>
+            <th>Estado Civil</th>
+            <th>Ocupación</th>
+            <th>Ingresos</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        <tr th:each="f : ${i.familiares}">
+            <td th:text="${f.nombres}"></td>
+            <td th:text="${f.parentesco}"></td>
+            <td th:text="${f.edad}"></td>
+            <td th:text="${f.estadoCivil}"></td>
+            <td th:text="${f.ocupacion}"></td>
+            <td th:text="${f.ingresos}"></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- SECCIONES DEL INFORME -->
+<div class="section">
+    <div class="section-title">Dinámica Familiar</div>
+    <p th:text="${i.descripcionDinamicaFamiliar}"></p>
+</div>
+
+<div class="section">
+    <div class="section-title">Situación Económica</div>
+    <p th:text="${i.situacionEconomica}"></p>
+</div>
+
+<div class="section">
+    <div class="section-title">Situación Habitabilidad</div>
+    <p th:text="${i.situacionHabitabilidad}"></p>
+</div>
+
+<div class="section">
+    <div class="section-title">Situación Laboral</div>
+    <p th:text="${i.situacionLaboral}"></p>
+</div>
+
+<div class="section">
+    <div class="section-title">Situación Entorno</div>
+    <p th:text="${i.situacionEntorno}"></p>
+</div>
+
+<div class="section">
+    <div class="section-title">Situación Educativo Cultural</div>
+    <p th:text="${i.situacionEducativoCultural}"></p>
+</div>
+
+<div class="section">
+    <div class="section-title">Situación Salud</div>
+    <p th:text="${i.situacionSalud}"></p>
+</div>
+
+<div class="section">
+    <div class="section-title">Situación Legal</div>
+    <p th:text="${i.situacionLegal}"></p>
+</div>
+
+<div class="section">
+    <div class="section-title">Valoración Profesional</div>
+    <p th:text="${i.valoracionProfesional}"></p>
+</div>
+
+<div class="section">
+    <div class="section-title">Recomendaciones</div>
+    <p th:text="${i.recomendaciones}"></p>
+</div>
+
+<div class="section">
+    <div class="section-title">Elaborado por</div>
+    <p th:text="${i.elaboradoPor}"></p>
+</div>
+
+</body>
+</html>

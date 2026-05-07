@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <style>
+        body { font-family: Arial; font-size: 12px; color: #333; }
+        .header { text-align: center; border-bottom: 2px solid #FA3340;
+                  margin-bottom: 20px; padding-bottom: 10px; }
+        .header h1 { color: #FA3340; }
+        .section { margin-top: 20px; }
+        .section-title { background: #f5f5f5; padding: 8px;
+                         font-weight: bold; border-left: 4px solid #FA3340; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        table, th, td { border: 1px solid #ddd; }
+        th, td { padding: 6px; }
+        .label { font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>UDIPSAI</h1>
+    <h2>FICHA SOCIOECONÓMICA</h2>
+</div>
+
+<!-- 1. DATOS DE IDENTIFICACIÓN -->
+<div class="section">
+    <div class="section-title">1. Datos de Identificación</div>
+    <p><span class="label">Paciente:</span>
+        <span th:text="${f.paciente?.nombresApellidos ?: 'N/A'}"></span>
+    </p>
+    <p><span class="label">Cédula:</span>
+        <span th:text="${f.paciente?.cedula ?: 'N/A'}"></span>
+    </p>
+    <p><span class="label">Fecha elaboración:</span>
+        <span th:text="${f.fechaElaboracion ?: 'N/A'}"></span>
+    </p>
+</div>
+
+<!-- 2. CONFORMACIÓN FAMILIAR -->
+<div class="section">
+    <div class="section-title">2. Conformación Familiar</div>
+    <table>
+        <thead>
+        <tr>
+            <th>Relación</th><th>Nombres</th><th>Edad</th>
+            <th>Estado Civil</th><th>Instrucción</th>
+            <th>Ocupación</th><th>Ingreso</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="fam : ${f.familiares}">
+            <td th:text="${fam.relacion ?: '-'}"></td>
+            <td th:text="${fam.nombresApellidos ?: '-'}"></td>
+            <td th:text="${fam.edad ?: '-'}"></td>
+            <td th:text="${fam.estadoCivil ?: '-'}"></td>
+            <td th:text="${fam.instruccion ?: '-'}"></td>
+            <td th:text="${fam.ocupacion ?: '-'}"></td>
+            <td th:text="${fam.ingresoMensual ?: '-'}"></td>
+        </tr>
+        <tr th:if="${#lists.isEmpty(f.familiares)}">
+            <td colspan="7" style="text-align:center">Sin familiares registrados</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- 3. PROBLEMAS SOCIALES -->
+<div class="section">
+    <div class="section-title">3. Problemas Sociales</div>
+    <p th:text="${f.riesgosSociales?.problemasSociales ?: 'N/A'}"></p>
+    <p th:if="${f.riesgosSociales?.migroExterior}">
+        <strong>Migración:</strong>
+        <span th:text="${f.riesgosSociales.lugarMigracion ?: 'N/A'}"></span>
+        — <span th:text="${f.riesgosSociales.tiempoMigracion ?: 'N/A'}"></span>
+    </p>
+</div>
+
+<!-- 4. VULNERABILIDAD -->
+<div class="section">
+    <div class="section-title">4. Situación de Vulnerabilidad</div>
+    <p><strong>Movilidad humana:</strong>
+        <span th:text="${f.vulnerabilidad?.movilidadHumana ? 'Sí' : 'No'}"></span>
+    </p>
+    <p><strong>Enfermedad catastrófica:</strong>
+        <span th:text="${f.vulnerabilidad?.enfermedadCatastrofica ? 'Sí' : 'No'}"></span>
+    </p>
+    <p><strong>Embarazo adolescente:</strong>
+        <span th:text="${f.vulnerabilidad?.embarazoAdolescente ? 'Sí' : 'No'}"></span>
+    </p>
+    <p><strong>Abuso sexual:</strong>
+        <span th:text="${f.vulnerabilidad?.abusoSexual ? 'Sí' : 'No'}"></span>
+    </p>
+    <p><strong>Agresión física:</strong>
+        <span th:text="${f.vulnerabilidad?.agresionFisica ? 'Sí' : 'No'}"></span>
+    </p>
+    <p><strong>Agresión psicológica:</strong>
+        <span th:text="${f.vulnerabilidad?.agresionPsicologica ? 'Sí' : 'No'}"></span>
+    </p>
+    <p th:if="${f.vulnerabilidad?.lugarAgresion}">
+        <strong>Lugar agresión:</strong>
+        <span th:text="${f.vulnerabilidad.lugarAgresion}"></span>
+    </p>
+</div>
+
+<!-- 5. RELACIONES FAMILIARES -->
+<div class="section">
+    <div class="section-title">5. Relaciones Familiares</div>
+    <p><strong>Comunicación familiar:</strong>
+        <span th:text="${f.dinamicaFamiliar?.comunicacionFamiliar ?: 'N/A'}"></span>
+    </p>
+    <p><strong>Tipo hogar:</strong>
+        <span th:text="${f.dinamicaFamiliar?.tipoHogar ?: 'N/A'}"></span>
+    </p>
+    <p><strong>Relación padres-hijos:</strong>
+        <span th:text="${f.dinamicaFamiliar?.relacionPadresHijos ?: 'N/A'}"></span>
+    </p>
+    <p><strong>Relación entre hermanos:</strong>
+        <span th:text="${f.dinamicaFamiliar?.relacionHermanos ?: 'N/A'}"></span>
+    </p>
+</div>
+
+<!-- 6. VIVIENDA -->
+<div class="section">
+    <div class="section-title">6. Vivienda y Habitabilidad</div>
+    <p><strong>Tipo tenencia:</strong>
+        <span th:text="${f.vivienda?.tipoTenencia ?: 'N/A'}"></span>
+    </p>
+    <p><strong>Material paredes:</strong>
+        <span th:text="${f.vivienda?.materialParedes ?: 'N/A'}"></span>
+    </p>
+    <p><strong>Material piso:</strong>
+        <span th:text="${f.vivienda?.materialPiso ?: 'N/A'}"></span>
+    </p>
+    <p><strong>Material techo:</strong>
+        <span th:text="${f.vivienda?.materialTecho ?: 'N/A'}"></span>
+    </p>
+    <p><strong>Cuartos / Dormitorios / Camas:</strong>
+        <span th:text="${f.vivienda?.numeroCuartos ?: 0}"></span> /
+        <span th:text="${f.vivienda?.numeroDormitorios ?: 0}"></span> /
+        <span th:text="${f.vivienda?.numeroCamas ?: 0}"></span>
+    </p>
+    <p><strong>Agua:</strong>
+        <span th:text="${f.vivienda?.procedenciaAgua ?: 'N/A'}"></span>
+    </p>
+    <p><strong>Electricidad:</strong>
+        <span th:text="${f.vivienda?.detalleElectricidad ?: 'N/A'}"></span>
+    </p>
+</div>
+
+<!-- 7. SALUD -->
+<div class="section">
+    <div class="section-title">7. Situación de Salud</div>
+    <p><strong>Lugar atención médica:</strong>
+        <span th:text="${f.salud?.lugarAtencionMedica ?: 'N/A'}"></span>
+    </p>
+    <p><strong>Problemas estudiante:</strong>
+        <span th:text="${f.salud?.saludEstudiante ?: 'N/A'}"></span>
+    </p>
+    <p><strong>Ayudas técnicas:</strong>
+        <span th:text="${f.salud?.ayudasTecnicas ?: 'N/A'}"></span>
+    </p>
+</div>
+
+<!-- SALUD DE FAMILIARES -->
+<div class="section">
+    <div class="section-title">Salud de Familiares</div>
+    <table>
+        <thead>
+        <tr>
+            <th>Familiar</th>
+            <th>Problemas Salud</th>
+            <th>Enfermedad Catastrófica</th>
+            <th>Discapacidad</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="fam : ${f.familiares}">
+            <td th:text="${fam.nombresApellidos ?: '-'}"></td>
+            <td>
+                <span th:text="${fam.problemas_salud != null and fam.problemas_salud ? 
+                    (fam.descripProblemasSaludFamiliar ?: 'Sí') : 'NO'}"></span>
+            </td>
+            <td>
+                <span th:text="${fam.enfermedad_catastrofica != null and fam.enfermedad_catastrofica ?
+                    (fam.descripEnfermedadCatastrofica ?: 'Sí') : 'NO'}"></span>
+            </td>
+            <td>
+                <span th:text="${fam.discapacidad != null and fam.discapacidad ?
+                    (fam.descripDiscapacidad ?: 'Sí') : 'NO'}"></span>
+            </td>
+        </tr>
+        <tr th:if="${#lists.isEmpty(f.familiares)}">
+            <td colspan="4" style="text-align:center">Sin familiares registrados</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- 8. ECONOMÍA -->
+<div class="section">
+    <div class="section-title">8. Situación Económica</div>
+    <p><strong>Total ingresos:</strong>
+        <span th:text="${f.situacionEconomica?.totalIngresos ?: '0.0'}"></span>
+    </p>
+    <p><strong>Total egresos:</strong>
+        <span th:text="${f.situacionEconomica?.totalEgresos ?: '0.0'}"></span>
+    </p>
+    <p><strong>Condición:</strong>
+        <span th:text="${f.situacionEconomica?.condicionEconomica ?: 'N/A'}"></span>
+    </p>
+</div>
+
+<!-- 9. CONCLUSIONES -->
+<div class="section">
+    <div class="section-title">9. Conclusiones</div>
+    <p th:text="${f.conclusiones ?: 'N/A'}"></p>
+</div>
+
+<!-- 10. RECOMENDACIONES -->
+<div class="section">
+    <div class="section-title">10. Recomendaciones</div>
+    <p th:text="${f.recomendaciones ?: 'N/A'}"></p>
+</div>
+
+<div style="margin-top:50px">
+    <strong>Responsable:</strong>
+    <span th:text="${f.responsable ?: 'N/A'}"></span>
+</div>
+
+</body>
+</html>
