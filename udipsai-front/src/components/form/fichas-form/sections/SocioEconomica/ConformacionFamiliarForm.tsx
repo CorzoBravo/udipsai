@@ -1,4 +1,5 @@
 import React from "react";
+import { Plus, Trash2, ChevronDown, ChevronUp, User } from "lucide-react";
 
 interface Familiar {
   relacion: string;
@@ -17,131 +18,263 @@ interface ConformacionFamiliarProps {
     field: keyof Familiar,
     value: string | number
   ) => void;
+  onAdd: () => void;
+  onRemove: (index: number) => void;
 }
 
 const ConformacionFamiliar: React.FC<ConformacionFamiliarProps> = ({
   data,
   onChange,
+  onAdd,
+  onRemove,
 }) => {
+  const [openIndex, setOpenIndex] = React.useState<number | null>(0);
+  const relaciones = ["Padre", "Madre", "Hermano", "Hermana", "Abuelo", "Abuela", "Tío", "Tía", "Otro"];
+
   return (
-    <div className="p-4 bg-white shadow-sm">
-      <h2 className="text-lg font-bold mb-2 uppercase text-black">
-        2. CONFORMACIÓN FAMILIAR
-      </h2>
+    <div className="space-y-4">
 
-      <div className="overflow-x-auto">
-        <table className="min-w-full border-2 border-black border-collapse">
-          <thead>
-            <tr className="text-[10px] font-bold uppercase bg-gray-50">
-              <th className="border-2 border-black p-1 w-8 text-center">N°</th>
-              <th className="border-2 border-black p-1">RELACIÓN</th>
-              <th className="border-2 border-black p-1">
-                NOMBRES Y APELLIDOS
-              </th>
-              <th className="border-2 border-black p-1 w-12 text-center">
-                EDAD
-              </th>
-              <th className="border-2 border-black p-1">EST. CIVIL</th>
-              <th className="border-2 border-black p-1">INSTRUCCIÓN</th>
-              <th className="border-2 border-black p-1">OCUPACIÓN</th>
-              <th className="border-2 border-black p-1 text-center">
-                INGRESO MENSUAL
-              </th>
-            </tr>
-          </thead>
+      {/* 🔹 HEADER */}
+      <div className="flex justify-between items-center">
+        <div className="flex items-center gap-5">
+          <div className="p-3 rounded-xl bg-brand-50 text-brand-500 dark:bg-gray-800 dark:text-gray-300">
+            <User size={20} />
+          </div>
 
-          <tbody>
-            {data.map((familiar, index) => (
-              <tr key={index} className="h-8">
-                <td className="border-2 border-black text-center text-xs font-bold bg-gray-100">
-                  {index + 1}
-                </td>
+          <h2 className="text-lg font-bold uppercase text-gray-800 dark:text-gray-100">
+            2. CONFORMACIÓN FAMILIAR
+          </h2>
+        </div>
 
-                <td className="border-2 border-black p-0">
-                  <input
-                    className="w-full p-1 text-xs"
-                    value={familiar.relacion || ""}
-                    onChange={(e) =>
-                      onChange(index, "relacion", e.target.value)
-                    }
-                  />
-                </td>
-
-                <td className="border-2 border-black p-0">
-                  <input
-                    className="w-full p-1 text-xs"
-                    value={familiar.nombresApellidos || ""}
-                    onChange={(e) =>
-                      onChange(index, "nombresApellidos", e.target.value)
-                    }
-                  />
-                </td>
-
-                <td className="border-2 border-black p-0">
-                  <input
-                    type="number"
-                    className="w-full p-1 text-xs text-center"
-                    value={familiar.edad ?? ""}
-                    onChange={(e) =>
-                      onChange(
-                        index,
-                        "edad",
-                        e.target.value === "" ? 0 : Number(e.target.value)
-                      )
-                    }
-                  />
-                </td>
-
-                <td className="border-2 border-black p-0">
-                  <input
-                    className="w-full p-1 text-xs text-center"
-                    value={familiar.estadocivil || ""}
-                    onChange={(e) =>
-                      onChange(index, "estadocivil", e.target.value)
-                    }
-                  />
-                </td>
-
-                <td className="border-2 border-black p-0">
-                  <input
-                    className="w-full p-1 text-xs"
-                    value={familiar.instruccion || ""}
-                    onChange={(e) =>
-                      onChange(index, "instruccion", e.target.value)
-                    }
-                  />
-                </td>
-
-                <td className="border-2 border-black p-0">
-                  <input
-                    className="w-full p-1 text-xs"
-                    value={familiar.ocupacion || ""}
-                    onChange={(e) =>
-                      onChange(index, "ocupacion", e.target.value)
-                    }
-                  />
-                </td>
-
-                <td className="border-2 border-black p-0">
-                  <input
-                    type="number"
-                    className="w-full p-1 text-xs text-right"
-                    placeholder="$"
-                    value={familiar.ingresoMensual ?? ""}
-                    onChange={(e) =>
-                      onChange(
-                        index,
-                        "ingresoMensual",
-                        e.target.value === "" ? 0 : Number(e.target.value)
-                      )
-                    }
-                  />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <button
+          onClick={onAdd}
+          className="flex items-center gap-2 bg-brand-400 text-white px-4 py-2 rounded-xl hover:bg-brand-500 transition-all"
+        >
+          <Plus size={18} />
+          Agregar
+        </button>
       </div>
+
+      {/* 🔹 LISTA */}
+      {data.map((familiar, index) => {
+        const isOpen = openIndex === index;
+
+        return (
+          <div key={index} className="space-y-2">
+
+            {/* 🔹 HEADER ACORDEÓN */}
+            <div
+              onClick={() => setOpenIndex(isOpen ? null : index)}
+              className={`flex justify-between items-center p-4 cursor-pointer rounded-2xl border-2 transition-all duration-500
+              ${isOpen
+                  ? "border-brand-100 bg-brand-50/20 dark:border-gray-600 dark:bg-gray-800 scale-[1.01]"
+                  : "border-gray-100 bg-white dark:border-gray-800 dark:bg-white/[0.03] hover:border-gray-300"
+                }`}
+            >
+              <div className="flex items-center gap-4">
+                <div
+                  className={`p-2 rounded-lg transition-all ${isOpen
+                    ? "bg-brand-400 text-white rotate-12"
+                    : "bg-brand-50 text-brand-500 dark:bg-gray-800 dark:text-gray-300"
+                    }`}
+                >
+                  <User size={16} />
+                </div>
+
+                <h3 className="font-semibold text-gray-800 dark:text-gray-100">
+                  Familiar #{index + 1}
+                </h3>
+              </div>
+
+              <div className="flex items-center gap-4">
+                {isOpen ? (
+                  <ChevronUp size={18} className="text-gray-500" />
+                ) : (
+                  <ChevronDown size={18} className="text-gray-500" />
+                )}
+
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onRemove(index);
+                  }}
+                  className="flex items-center gap-1 text-red-500 text-sm hover:underline"
+                >
+                  <Trash2 size={16} />
+                  Eliminar
+                </button>
+              </div>
+            </div>
+
+            {/* 🔹 BODY */}
+            {isOpen && (
+              <div className="p-4 rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 space-y-4 animate-in slide-in-from-top-2">
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                  {/* RELACIÓN */}
+                  <div className="flex flex-col">
+                    <label className="text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">
+                      RELACIÓN
+                    </label>
+
+                    <select
+                      value={
+                        familiar.relacion === ""
+                          ? ""
+                          : relaciones.includes(familiar.relacion)
+                            ? familiar.relacion
+                            : "Otro"
+                      }
+                      onChange={(e) => {
+                        const value = e.target.value;
+
+                        if (value === "Otro") {
+                          onChange(index, "relacion", "Otro");
+                        } else {
+                          onChange(index, "relacion", value);
+                        }
+                      }}
+                      className="border p-2 rounded w-full text-sm text-gray-700 
+             dark:text-gray-200 dark:bg-gray-800
+             focus:outline-none focus:ring-2 focus:ring-brand-400"
+                    >
+                      <option value="">Seleccione</option>
+                      {relaciones.map((rel) => (
+                        <option key={rel} value={rel}>
+                          {rel}
+                        </option>
+                      ))}
+                    </select>
+
+                    {/* INPUT SI ES OTRO */}
+                    {familiar.relacion !== "" &&
+                      (familiar.relacion === "Otro" ||
+                        !relaciones.includes(familiar.relacion)) && (
+                        <input
+                          placeholder="Especifique relación"
+                          value={
+                            familiar.relacion === "Otro" ? "" : familiar.relacion
+                          }
+                          onChange={(e) =>
+                            onChange(index, "relacion", e.target.value)
+                          }
+                          className="border p-2 rounded mt-2"
+                        />
+                      )}
+                  </div>
+
+                  {/* NOMBRES */}
+                  <div className="flex flex-col">
+                    <label className="text-xs font-semibold text-gray-500 mb-1">
+                      NOMBRES Y APELLIDOS
+                    </label>
+                    <input
+                      placeholder="Nombre completo"
+                      value={familiar.nombresApellidos || ""}
+                      onChange={(e) =>
+                        onChange(index, "nombresApellidos", e.target.value)
+                      }
+                      className="border p-2 rounded"
+                    />
+                  </div>
+
+                  {/* EDAD */}
+                  <div className="flex flex-col">
+                    <label className="text-xs font-semibold text-gray-500 mb-1">
+                      EDAD
+                    </label>
+                    <input
+                      type="number"
+                      value={familiar.edad ?? ""}
+                      onChange={(e) =>
+                        onChange(
+                          index,
+                          "edad",
+                          e.target.value === "" ? 0 : Number(e.target.value)
+                        )
+                      }
+                      className="border p-2 rounded"
+                    />
+                  </div>
+
+                  {/* ESTADO CIVIL */}
+                  <div className="flex flex-col">
+                    <label className="text-xs font-semibold text-gray-500 mb-1">
+                      EST. CIVIL
+                    </label>
+                    <input
+                      placeholder="Soltero, Casado..."
+                      value={familiar.estadocivil || ""}
+                      onChange={(e) =>
+                        onChange(index, "estadocivil", e.target.value)
+                      }
+                      className="border p-2 rounded"
+                    />
+                  </div>
+
+                  {/* INSTRUCCIÓN */}
+                  <div className="flex flex-col">
+                    <label className="text-xs font-semibold text-gray-500 mb-1">
+                      INSTRUCCIÓN
+                    </label>
+                    <input
+                      placeholder="Primaria, Secundaria..."
+                      value={familiar.instruccion || ""}
+                      onChange={(e) =>
+                        onChange(index, "instruccion", e.target.value)
+                      }
+                      className="border p-2 rounded"
+                    />
+                  </div>
+
+                  {/* OCUPACIÓN */}
+                  <div className="flex flex-col">
+                    <label className="text-xs font-semibold text-gray-500 mb-1">
+                      OCUPACIÓN
+                    </label>
+                    <input
+                      placeholder="Trabajo actual"
+                      value={familiar.ocupacion || ""}
+                      onChange={(e) =>
+                        onChange(index, "ocupacion", e.target.value)
+                      }
+                      className="border p-2 rounded"
+                    />
+                  </div>
+
+                  {/* INGRESO MENSUAL */}
+                  <div className="flex flex-col md:col-span-2">
+                    <label className="text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">
+                      INGRESO MENSUAL
+                    </label>
+
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      placeholder="0.00"
+                      value={familiar.ingresoMensual ?? ""}
+                      onChange={(e) =>
+                        onChange(
+                          index,
+                          "ingresoMensual",
+                          e.target.value === "" ? 0 : parseFloat(e.target.value)
+                        )
+                      }
+                      className="border p-2 rounded w-full 
+               text-sm text-gray-700 
+               dark:text-gray-200 dark:bg-gray-800
+               focus:outline-none focus:ring-2 focus:ring-brand-400"
+                    />
+                  </div>
+
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 };

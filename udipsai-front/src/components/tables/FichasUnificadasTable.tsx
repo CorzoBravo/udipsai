@@ -10,7 +10,6 @@ import {
   Ear,
   Eye,
   ClipboardList,
-  ClipboardCheck
 } from "lucide-react";
 
 import {
@@ -141,7 +140,6 @@ export default function FichasUnificadasTable() {
     {
       key: "socioeconomico",
       label: "Socioeconómico",
-      icon: ClipboardCheck,
       icon: Ear,
       fetch: fichasService.listarSocioEconomico,
       delete: fichasService.eliminarSocioEconomico,
@@ -292,10 +290,18 @@ export default function FichasUnificadasTable() {
     try {
       toast.info("Generando reporte Excel...");
       switch (activeTabKey) {
-        case "fonoaudiologia": await fichasService.exportarExcelFonoaudiologia(); break;
-        case "historia_clinica": await fichasService.exportarExcelHistoriaClinica(); break;
-        case "psicologia_educativa": await fichasService.exportarExcelPsicologiaEducativa(); break;
-        case "psicologia_clinica": await fichasService.exportarExcelPsicologiaClinica(); break;
+        case "fonoaudiologia":
+          await fichasService.exportarExcelFonoaudiologia();
+          break;
+        case "historia_clinica":
+          await fichasService.exportarExcelHistoriaClinica();
+          break;
+        case "psicologia_educativa":
+          await fichasService.exportarExcelPsicologiaEducativa();
+          break;
+        case "psicologia_clinica":
+          await fichasService.exportarExcelPsicologiaClinica();
+          break;
         default:
           toast.warn("Exportación no disponible para esta pestaña");
           return;
@@ -462,7 +468,7 @@ export default function FichasUnificadasTable() {
             <SocioEconomicoViewModal isOpen={viewSocioModalOpen} onClose={() => setViewSocioModalOpen(false)} pacienteId={selectedPacienteId} />
             
             
-            <SeguimientoSocialViewModal isOpen={viewSeguimientoModalOpen} onClose={() => setViewSeguimientoModalOpen(false)} pacienteId={selectedPacienteId} />
+            <SeguimientoSocialViewModal isOpen={viewSeguimientoModalOpen} onClose={() => setViewSeguimientoModalOpen(false)} pacienteId={selectedPacienteId} modo={"ver"} />
           </>
         )}
       </div>
