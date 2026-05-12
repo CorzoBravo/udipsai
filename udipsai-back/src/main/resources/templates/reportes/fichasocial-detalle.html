@@ -67,10 +67,18 @@
 <div class="section">
     <div class="section-title">3. Problemas Sociales</div>
     <p th:text="${f.riesgosSociales?.problemasSociales ?: 'N/A'}"></p>
+    <p th:if="${f.riesgosSociales?.vulnerabilidades}">
+        <strong>Vulnerabilidades:</strong>
+        <span th:text="${f.riesgosSociales.vulnerabilidades}"></span>
+    </p>
     <p th:if="${f.riesgosSociales?.migroExterior}">
         <strong>Migración:</strong>
         <span th:text="${f.riesgosSociales.lugarMigracion ?: 'N/A'}"></span>
         — <span th:text="${f.riesgosSociales.tiempoMigracion ?: 'N/A'}"></span>
+    </p>
+    <p th:if="${f.riesgosSociales?.afectacionFamiliar}">
+        <strong>Afectación familiar migración:</strong>
+        <span th:text="${f.riesgosSociales.afectacionFamiliar}"></span>
     </p>
 </div>
 
@@ -116,6 +124,15 @@
     <p><strong>Relación entre hermanos:</strong>
         <span th:text="${f.dinamicaFamiliar?.relacionHermanos ?: 'N/A'}"></span>
     </p>
+    <p><strong>Resolución conflictos:</strong>
+        <span th:text="${f.dinamicaFamiliar?.resolucionConflictos ?: 'N/A'}"></span>
+    </p>
+    <p><strong>Quiénes incumplen reglas:</strong>
+        <span th:text="${f.dinamicaFamiliar?.quienesIncumplenReglas ?: 'N/A'}"></span>
+    </p>
+    <p><strong>Actividades compartidas:</strong>
+        <span th:text="${f.dinamicaFamiliar?.actividadesCompartidas ?: 'N/A'}"></span>
+    </p>
 </div>
 
 
@@ -133,10 +150,11 @@
     <p><strong>Material techo:</strong>
         <span th:text="${f.vivienda?.materialTecho ?: 'N/A'}"></span>
     </p>
-    <p><strong>Cuartos / Dormitorios / Camas:</strong>
+    <p><strong>Cuartos / Dormitorios / Camas / Sanitarios:</strong>
         <span th:text="${f.vivienda?.numeroCuartos ?: 0}"></span> /
         <span th:text="${f.vivienda?.numeroDormitorios ?: 0}"></span> /
-        <span th:text="${f.vivienda?.numeroCamas ?: 0}"></span>
+        <span th:text="${f.vivienda?.numeroCamas ?: 0}"></span> /
+        <span th:text="${f.vivienda?.numeroSanitarios ?: 0}"></span>
     </p>
     <p><strong>Agua:</strong>
         <span th:text="${f.vivienda?.procedenciaAgua ?: 'N/A'}"></span>
@@ -208,17 +226,29 @@
     </p>
 </div>
 
+<div class="section">
+    <div class="section-title">9. Uso Tiempo Libre</div>
+    <p><strong>Actividades tiempo libre:</strong>
+        <span th:text="${f.situacionEconomica?.actividadesTiempoLibre ?: 'N/A'}"></span>
+    </p>
+</div>
 
 <div class="section">
-    <div class="section-title">9. Conclusiones</div>
+    <div class="section-title">10. Conclusiones</div>
     <p th:text="${f.conclusiones ?: 'N/A'}"></p>
 </div>
 
 
 <div class="section">
-    <div class="section-title">10. Recomendaciones</div>
+    <div class="section-title">11. Recomendaciones</div>
     <p th:text="${f.recomendaciones ?: 'N/A'}"></p>
 </div>
+
+<div class="section">
+    <div class="section-title">12. SEGÚN SU SITUACIÓN ECONÓMICA HASTA CUANTO PODRÍA GASTAR EN UNA EVALUACIÓN PSICOPEDAGÓGICA:</div>
+    <p th:text="${f.situacionEconomica?.capacidadGastoEvaluacion ?: 'N/A'}"></p>
+</div>
+
 
 <div style="margin-top:50px">
     <strong>Responsable:</strong>
