@@ -26,6 +26,7 @@ public class FichaSocioFamiliar {
     private String instruccion;
     private String ocupacion;
     private Double ingresoMensual;
+    
     @Column(name = "problemas_salud_familiar")
     private Boolean problemasSaludFamiliar;
 
