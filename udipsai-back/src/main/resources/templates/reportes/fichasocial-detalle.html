@@ -19,11 +19,10 @@
 <body>
 
 <div class="header">
-    <h1>UDIPSAI</h1>
+    <img src="images/logo/logo.png" alt="UDIPSAI Logo" style="height: 70px; margin-bottom: 8px;"/>
     <h2>FICHA SOCIOECONÓMICA</h2>
 </div>
 
-<!-- 1. DATOS DE IDENTIFICACIÓN -->
 <div class="section">
     <div class="section-title">1. Datos de Identificación</div>
     <p><span class="label">Paciente:</span>
@@ -37,7 +36,7 @@
     </p>
 </div>
 
-<!-- 2. CONFORMACIÓN FAMILIAR -->
+
 <div class="section">
     <div class="section-title">2. Conformación Familiar</div>
     <table>
@@ -65,7 +64,6 @@
     </table>
 </div>
 
-<!-- 3. PROBLEMAS SOCIALES -->
 <div class="section">
     <div class="section-title">3. Problemas Sociales</div>
     <p th:text="${f.riesgosSociales?.problemasSociales ?: 'N/A'}"></p>
@@ -76,7 +74,7 @@
     </p>
 </div>
 
-<!-- 4. VULNERABILIDAD -->
+
 <div class="section">
     <div class="section-title">4. Situación de Vulnerabilidad</div>
     <p><strong>Movilidad humana:</strong>
@@ -103,7 +101,7 @@
     </p>
 </div>
 
-<!-- 5. RELACIONES FAMILIARES -->
+
 <div class="section">
     <div class="section-title">5. Relaciones Familiares</div>
     <p><strong>Comunicación familiar:</strong>
@@ -120,7 +118,7 @@
     </p>
 </div>
 
-<!-- 6. VIVIENDA -->
+
 <div class="section">
     <div class="section-title">6. Vivienda y Habitabilidad</div>
     <p><strong>Tipo tenencia:</strong>
@@ -148,7 +146,7 @@
     </p>
 </div>
 
-<!-- 7. SALUD -->
+
 <div class="section">
     <div class="section-title">7. Situación de Salud</div>
     <p><strong>Lugar atención médica:</strong>
@@ -162,7 +160,7 @@
     </p>
 </div>
 
-<!-- SALUD DE FAMILIARES -->
+
 <div class="section">
     <div class="section-title">Salud de Familiares</div>
     <table>
@@ -197,7 +195,6 @@
     </table>
 </div>
 
-<!-- 8. ECONOMÍA -->
 <div class="section">
     <div class="section-title">8. Situación Económica</div>
     <p><strong>Total ingresos:</strong>
@@ -211,13 +208,13 @@
     </p>
 </div>
 
-<!-- 9. CONCLUSIONES -->
+
 <div class="section">
     <div class="section-title">9. Conclusiones</div>
     <p th:text="${f.conclusiones ?: 'N/A'}"></p>
 </div>
 
-<!-- 10. RECOMENDACIONES -->
+
 <div class="section">
     <div class="section-title">10. Recomendaciones</div>
     <p th:text="${f.recomendaciones ?: 'N/A'}"></p>
