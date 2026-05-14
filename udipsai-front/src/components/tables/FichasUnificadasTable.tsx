@@ -10,7 +10,7 @@ import {
   Ear,
   Eye,
   Home,
-  ClipboardList
+  ClipboardList,
 } from "lucide-react";
 
 import {
