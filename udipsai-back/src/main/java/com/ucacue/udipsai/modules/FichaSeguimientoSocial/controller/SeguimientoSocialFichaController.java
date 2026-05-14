@@ -1,12 +1,13 @@
-package com.ucacue.udipsai.modules.fichasocial.controller;
+package com.ucacue.udipsai.modules.FichaSeguimientoSocial.controller;
 
-import com.ucacue.udipsai.modules.fichasocial.Service.SeguimientoSocialFichaService;
-import com.ucacue.udipsai.modules.fichasocial.dto.SeguimientoSocialFichaDTO;
-import com.ucacue.udipsai.modules.fichasocial.dto.SeguimientoSocialFichaRequest;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.ucacue.udipsai.modules.FichaSeguimientoSocial.Services.SeguimientoSocialFichaService;
+import com.ucacue.udipsai.modules.FichaSeguimientoSocial.dto.SeguimientoSocialFichaDTO;
+import com.ucacue.udipsai.modules.FichaSeguimientoSocial.dto.SeguimientoSocialFichaRequest;
 
 import java.util.List;
 

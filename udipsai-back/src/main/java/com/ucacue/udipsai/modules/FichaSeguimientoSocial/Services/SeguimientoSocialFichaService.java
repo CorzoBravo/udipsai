@@ -1,15 +1,14 @@
-package com.ucacue.udipsai.modules.fichasocial.Service;
+package com.ucacue.udipsai.modules.FichaSeguimientoSocial.Services;
 
-import com.ucacue.udipsai.modules.fichasocial.domain.SeguimientoSocialFicha;
-import com.ucacue.udipsai.modules.fichasocial.dto.SeguimientoSocialFichaDTO;
-import com.ucacue.udipsai.modules.fichasocial.dto.SeguimientoSocialFichaRequest;
-import com.ucacue.udipsai.modules.fichasocial.repository.SeguimientoSocialFichaRepository;
+import com.ucacue.udipsai.modules.FichaSeguimientoSocial.domain.SeguimientoSocialFicha;
+import com.ucacue.udipsai.modules.FichaSeguimientoSocial.dto.SeguimientoSocialFichaDTO;
+import com.ucacue.udipsai.modules.FichaSeguimientoSocial.dto.SeguimientoSocialFichaRequest;
+import com.ucacue.udipsai.modules.FichaSeguimientoSocial.repository.SeguimientoSocialFichaRepository;
 import com.ucacue.udipsai.modules.paciente.domain.Paciente;
 import com.ucacue.udipsai.modules.paciente.repository.PacienteRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.List;
 import java.util.stream.Collectors;
 

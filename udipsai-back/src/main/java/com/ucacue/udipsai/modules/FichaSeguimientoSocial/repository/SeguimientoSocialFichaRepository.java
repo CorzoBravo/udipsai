@@ -1,7 +1,7 @@
-package com.ucacue.udipsai.modules.fichasocial.repository;
+package com.ucacue.udipsai.modules.FichaSeguimientoSocial.repository;
 
 
-import com.ucacue.udipsai.modules.fichasocial.domain.SeguimientoSocialFicha;
+import com.ucacue.udipsai.modules.FichaSeguimientoSocial.domain.SeguimientoSocialFicha;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

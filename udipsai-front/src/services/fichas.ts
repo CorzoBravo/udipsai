@@ -397,7 +397,6 @@ export const fichasService = {
       throw error;
     }
   },
-
   // Seguimiento Social
   listarSeguimientoSocial: async () => {
     try {

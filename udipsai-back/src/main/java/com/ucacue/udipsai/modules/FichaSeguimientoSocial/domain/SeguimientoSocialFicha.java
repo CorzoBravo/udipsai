@@ -1,4 +1,4 @@
-package com.ucacue.udipsai.modules.fichasocial.domain;
+package com.ucacue.udipsai.modules.FichaSeguimientoSocial.domain;
 
 import com.ucacue.udipsai.modules.paciente.domain.Paciente;
 import jakarta.persistence.*;

@@ -291,6 +291,7 @@ export default function FichasUnificadasTable() {
     try {
       toast.info("Generando reporte Excel...");
       switch (activeTabKey) {
+<<<<<<< HEAD
         case "fonoaudiologia":
           await fichasService.exportarExcelFonoaudiologia();
           break;
@@ -303,6 +304,13 @@ export default function FichasUnificadasTable() {
         case "psicologia_clinica":
           await fichasService.exportarExcelPsicologiaClinica();
           break;
+=======
+        case "fonoaudiologia": await fichasService.exportarExcelFonoaudiologia(); break;
+        case "historia_clinica": await fichasService.exportarExcelHistoriaClinica(); break;
+        case "psicologia_educativa": await fichasService.exportarExcelPsicologiaEducativa(); break;
+        case "psicologia_clinica": await fichasService.exportarExcelPsicologiaClinica(); break;
+        case "socioeconomico":await fichasService.exportarExcelSocioEconomico();break;
+>>>>>>> Ficha-Seguimiento-Social
         default:
           toast.warn("Exportación no disponible para esta pestaña");
           return;
@@ -467,8 +475,11 @@ export default function FichasUnificadasTable() {
             <PsicologiaClinicaViewModal isOpen={viewClinicaModalOpen} onClose={() => setViewClinicaModalOpen(false)} pacienteId={selectedPacienteId} />
             <FonoaudiologiaViewModal isOpen={viewFonoModalOpen} onClose={() => setViewFonoModalOpen(false)} pacienteId={selectedPacienteId} />
             <SocioEconomicoViewModal isOpen={viewSocioModalOpen} onClose={() => setViewSocioModalOpen(false)} pacienteId={selectedPacienteId} />
+<<<<<<< HEAD
             
             
+=======
+>>>>>>> Ficha-Seguimiento-Social
             <SeguimientoSocialViewModal isOpen={viewSeguimientoModalOpen} onClose={() => setViewSeguimientoModalOpen(false)} pacienteId={selectedPacienteId} modo={"ver"} />
           </>
         )}
