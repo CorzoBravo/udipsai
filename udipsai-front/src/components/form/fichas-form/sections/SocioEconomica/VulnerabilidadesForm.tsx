@@ -2,6 +2,7 @@ import React from "react";
 import Label from "../../../Label";
 import Input from "../../../input/InputField";
 import Switch from "../../../switch/Switch";
+import { toast } from "react-toastify";
 
 interface VulnerabilidadesFormProps {
     data: {
@@ -14,9 +15,19 @@ interface VulnerabilidadesFormProps {
         lugarAgresion: string;
     };
     onChange: (field: string, value: any) => void;
+    onValidate?: (isValid: boolean, errors: string[]) => void;
 }
 
-const VulnerabilidadesForm: React.FC<VulnerabilidadesFormProps> = ({ data, onChange }) => {
+const validateVulnerabilidades = (data: VulnerabilidadesFormProps["data"]): string[] => {
+    const errors: string[] = [];
+    if (!data.movilidadHumana && !data.enfermedadCatastrofica && !data.embarazoAdolescente &&
+        !data.abusoSexual && !data.agresionFisica && !data.agresionPsicologica) {
+        errors.push("Debe seleccionar al menos una vulnerabilidad");
+    }
+    return errors;
+};
+
+const VulnerabilidadesForm: React.FC<VulnerabilidadesFormProps> = ({ data, onChange, onValidate }) => {
 
     const optionsVulnerabilidades = [
         { value: "movilidadHumana", label: "Movilidad humana" },
