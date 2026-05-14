@@ -129,10 +129,10 @@ export const privateRouteObjects: RouteObject[] = [
       // Socioeconómico
       { path: "socioeconomico/nuevo", ...protectedRoute("PERM_SOCIOECONOMICA_CREAR", <NuevaSocioEconomico />) },
       { path: "socioeconomico/editar/:id", ...protectedRoute("PERM_SOCIOECONOMICA_EDITAR", <EditarSocioEconomico />) },
-     // Dentro de la sección de Fichas Unificadas
-      { path: "seguimiento-social/nuevo/:pacienteId", ...protectedRoute("PERM_PACIENTES_CREAR", <NuevaSeguimientoSocial />) },
+     // Seguimiento Social
+      { path: "seguimiento-social/nuevo", ...protectedRoute("PERM_PACIENTES_CREAR", <NuevaSeguimientoSocial />) },
       { path: "seguimiento-social/editar/:id", ...protectedRoute("PERM_PACIENTES_EDITAR", <EditarSeguimientoSocial />) },
- ]
+    ]
   },
 
   // Recursos
