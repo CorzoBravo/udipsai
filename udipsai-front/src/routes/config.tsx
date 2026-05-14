@@ -36,6 +36,8 @@ const NuevaHistoriaClinica = lazy(() => import("../pages/Fichas/HistoriaClinica/
 const EditarHistoriaClinica = lazy(() => import("../pages/Fichas/HistoriaClinica/EditarHistoriaClinica"));
 const NuevaSocioEconomico = lazy(() => import("../pages/Fichas/SocioEconomico/NuevaSocioEconomico"));
 const EditarSocioEconomico = lazy(() => import("../pages/Fichas/SocioEconomico/EditarSocioEconomico"));
+const NuevaInformeSocial = lazy(() => import("../pages/Fichas/InformeSocial/NuevaInformeSocial"));
+const EditarInformeSocial = lazy(() => import("../pages/Fichas/InformeSocial/EditarInformeSocial"));
 
 const protectedRoute = (permission: string, element: ReactNode, children?: RouteObject[]): RouteObject => ({
   element: <PermissionRoute requiredPermission={permission} />,
@@ -126,6 +128,11 @@ export const privateRouteObjects: RouteObject[] = [
       // Socioeconómico
       { path: "socioeconomico/nuevo", ...protectedRoute("PERM_SOCIOECONOMICA_CREAR", <NuevaSocioEconomico />) },
       { path: "socioeconomico/editar/:id", ...protectedRoute("PERM_SOCIOECONOMICA_EDITAR", <EditarSocioEconomico />) },
+
+      // Informe Social
+      { path: "informe-social/nuevo", ...protectedRoute("PERM_INFORME_SOCIAL_CREAR", <NuevaInformeSocial />) },
+      { path: "informe-social/editar/:id", ...protectedRoute("PERM_INFORME_SOCIAL_EDITAR", <EditarInformeSocial />) },
+      
     ]
   },
 

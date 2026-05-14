@@ -32,7 +32,7 @@ import { PsicologiaClinicaViewModal } from "../modals/PsicologiaClinicaViewModal
 
 import { FonoaudiologiaViewModal } from "../modals/FonoaudiologiaViewModal";
 import { SocioEconomicoViewModal } from "../modals/SocioEconomicoViewModal";
-
+import {InformeSocialViewModal} from "../modals/InformeSocialViewModal";
 
 import { useAuth } from "../../context/AuthContext";
 import { fichasService } from "../../services/fichas";
@@ -55,7 +55,8 @@ type TabKey =
   | "psicologia_educativa"
   | "psicologia_clinica"
   | "fonoaudiologia"
-  | "socioeconomico";
+  | "socioeconomico"
+  | "informe_social";
 
 interface TabConfig {
   key: TabKey;
@@ -146,6 +147,20 @@ export default function FichasUnificadasTable() {
       permDelete: "PERM_SOCIOECONOMICA_ELIMINAR",
       permRead: "PERM_SOCIOECONOMICA",
       title: "Socioeconómico",
+    },
+    {
+      key: "informe_social",
+      label: "Informe Social",
+      icon: FileText,
+      fetch: fichasService.listarInformeSocial,
+      delete: fichasService.eliminarInformeSocial,
+      editPath: "/fichas/informe-social/editar",
+      createPath: "/fichas/informe-social/nuevo",
+      permEdit: "PERM_INFORME_SOCIAL_EDITAR",
+      permCreate: "PERM_INFORME_SOCIAL_CREAR",
+      permDelete: "PERM_INFORME_SOCIAL_ELIMINAR",
+      permRead: "PERM_INFORME_SOCIAL",
+      title: "Informe Social",
     }
   ];
 
@@ -170,7 +185,7 @@ export default function FichasUnificadasTable() {
   const [viewClinicaModalOpen, setViewClinicaModalOpen] = useState(false);
   const [viewFonoModalOpen, setViewFonoModalOpen] = useState(false);
   const [viewSocioModalOpen, setViewSocioModalOpen] = useState(false);
-
+  const [viewInformeModalOpen, setViewInformeModalOpen] = useState(false);
   const activeTab = tabs.find((t) => t.key === activeTabKey) || tabs[0];
 
   const handleTabChange = (key: TabKey) => {
@@ -243,6 +258,9 @@ export default function FichasUnificadasTable() {
       case "socioeconomico":
         setViewSocioModalOpen(true);
         break;
+      case "informe_social":
+        setViewInformeModalOpen(true);
+        break;
     }
   };
 
@@ -278,6 +296,9 @@ export default function FichasUnificadasTable() {
         case "socioeconomico":
           await fichasService.exportarExcelSocioEconomico();
           break;
+          case "informe_social":
+            await fichasService.exportartExcelInformeSocial();
+            break;
         default:
           toast.warn("Exportación no disponible para esta pestaña");
           return;
@@ -430,6 +451,11 @@ export default function FichasUnificadasTable() {
             <SocioEconomicoViewModal
               isOpen={viewSocioModalOpen}
               onClose={() => setViewSocioModalOpen(false)}
+              pacienteId={selectedPacienteId}
+            />
+            <InformeSocialViewModal
+              isOpen={viewInformeModalOpen}
+              onClose={() => setViewInformeModalOpen(false)}
               pacienteId={selectedPacienteId}
             />
           </>

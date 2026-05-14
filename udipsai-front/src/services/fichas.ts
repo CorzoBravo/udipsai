@@ -273,6 +273,32 @@ export const fichasService = {
     const res = await api.delete(`/fichas-socioeconomicas/socioeconomicas/${id}`);
     return res.data;
   },
+
+  listarInformeSocial: async () => {
+    const res = await api.get("/informes-sociales");
+    return res.data;
+  },
+
+
+  obtenerInformeSocial: async (id: number | string) => {
+    const res = await api.get(`/informes-sociales/${id}`);
+    return res.data;
+  },
+
+  crearInformeSocial: async (data: any) => {
+    const res = await api.post("/informes-sociales/crear", data);
+    return res.data;
+  },
+  
+  actualizarInformeSocial: async (id: number | string, data: any) => {
+    const res = await api.put(`/informes-sociales/${id}`, data);
+    return res.data;
+  },
+  
+  eliminarInformeSocial: async (id: number | string) => {
+    const res = await api.delete(`/informes-sociales/${id}`);
+    return res.data;
+  },
   exportarExcelFonoaudiologia: async (pacienteId?: number | string) => {
     try {
       const response = await api.get("/fonoaudiologia/export/excel", {
@@ -397,6 +423,43 @@ export const fichasService = {
       throw error;
     }
   },
+
+  exportartExcelInformeSocial: async (pacienteId?: number | string) => {
+    try {
+      const response = await api.get("/informes-sociales/reporte/excel", {
+        params: { pacienteId },
+        responseType: "blob",
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      const filename = pacienteId
+        ? `informe_social_${pacienteId}.xlsx`
+        : "informes_sociales.xlsx";
+      link.setAttribute("download", filename);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error("Error al exportar Excel Informe Social:", error);
+      throw error;
+    }
+  },
+
+  exportarPdfInformeSocial: async (pacienteId: number) => {
+    try {
+      const response = await api.get("/informes-sociales/reporte/pdf", {
+        params: { pacienteId },
+        responseType: "blob",
+      });
+
+      return response.data;
+    } catch (error) {
+      console.error("Error al exportar PDF Informe Social:", error);
+      throw error;
+    }
+  },
+  
 };
 
 
