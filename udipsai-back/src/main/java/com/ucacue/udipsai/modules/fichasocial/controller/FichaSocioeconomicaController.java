@@ -6,6 +6,7 @@ import com.ucacue.udipsai.modules.fichasocial.Service.FichaSocioeconomicaService
 import com.ucacue.udipsai.modules.fichasocial.Service.FichaSocioeconomicaReportService;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -33,7 +34,7 @@ public class FichaSocioeconomicaController {
     private FichaSocioeconomicaReportService reportService;
 
     @GetMapping
-    @PreAuthorize("hasAuthority('PERM_SOCIOECONOMICA')") // Permiso específico para listar fichas socioeconómicas
+    @PreAuthorize("hasAuthority('PERM_SOCIOECONOMICA')")
     public ResponseEntity<List<FichaSocioeconomicaDTO>> listar() {
         return ResponseEntity.ok(fichaService.listarFichas());
     }
@@ -45,20 +46,15 @@ public class FichaSocioeconomicaController {
         return (dto != null) ? ResponseEntity.ok(dto) : ResponseEntity.notFound().build();
     }
 
-    @PostMapping("/crearFicha") // Endpoint que usaste en Postman (image_711328.png)
-    @PreAuthorize("hasAuthority('PERM_SOCIOECONOMICA_CREAR') and @asignacionSecurity.checkPasanteAcceso(#request.pacienteId)") // Permiso
-                                                                                                                               // específico
-                                                                                                                               // para
-                                                                                                                               // crear
-                                                                                                                               // fichas
-                                                                                                                               // socioeconómicas
+    @PostMapping("/crearFicha")
+    @PreAuthorize("hasAuthority('PERM_SOCIOECONOMICA_CREAR') and @asignacionSecurity.checkPasanteAcceso(#request.pacienteId)")
 
     public ResponseEntity<FichaSocioeconomicaDTO> crear(@RequestBody FichaSocioeconomicaRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(fichaService.crearFicha(request));
     }
 
     @PutMapping("/socioeconomicas/{id}")
-    @PreAuthorize("hasAuthority('PERM_SOCIOECONOMICA_EDITAR')") // Permiso específico para editar fichas socioeconómicas
+    @PreAuthorize("hasAuthority('PERM_SOCIOECONOMICA_EDITAR')")
 
     public ResponseEntity<FichaSocioeconomicaDTO> actualizar(@PathVariable Integer id,
             @RequestBody FichaSocioeconomicaRequest request) {
@@ -88,5 +84,23 @@ public class FichaSocioeconomicaController {
                         MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
 
                 .body(new InputStreamResource(in));
+    }
+
+    @GetMapping("/reporte/pdf")
+    @PreAuthorize("hasAuthority('PERM_SOCIOECONOMICA')")
+    public ResponseEntity<Resource> descargarPdf(
+            @RequestParam Integer pacienteId) throws Exception {
+
+        byte[] pdf = reportService.exportarPdf(pacienteId);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(
+                "Content-Disposition",
+                "attachment; filename=ficha_socioeconomica.pdf");
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(new ByteArrayResource(pdf));
     }
 }

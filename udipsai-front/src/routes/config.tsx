@@ -34,12 +34,11 @@ const EditarPsicologiaEducativa = lazy(() => import("../pages/Fichas/PsicologiaE
 const WaisEvaluacion = lazy(() => import("../pages/Fichas/Wais/Wais"));
 const NuevaHistoriaClinica = lazy(() => import("../pages/Fichas/HistoriaClinica/NuevaHistoriaClinica"));
 const EditarHistoriaClinica = lazy(() => import("../pages/Fichas/HistoriaClinica/EditarHistoriaClinica"));
-//const NuevoSocioEconomico = lazy(() => import("../pages/Fichas/SocioEconomico/NuevoSocioEconomico"));
-//const EditarSocioEconomico = lazy(() => import("../pages/Fichas/SocioEconomico/EditarSocioEconomico"));
+const NuevoSocioEconomico = lazy(() => import("../pages/Fichas/SocioEconomico/NuevaSocioEconomico"));
+const EditarSocioEconomico = lazy(() => import("../pages/Fichas/SocioEconomico/EditarSocioEconomico"));
 const NuevaSeguimientoSocial = lazy(() => import("../pages/Fichas/SeguimientoSocial/NuevaSeguimientoSocial"));
 const EditarSeguimientoSocial = lazy(() => import("../pages/Fichas/SeguimientoSocial/EditarSeguimientoSocial"));
-//const NuevoSocioEconomico = lazy(() => import("../pages/Fichas/SocioEconomico/NuevaSocioEconomico"));
-//const EditarSocioEconomico = lazy(() => import("../pages/Fichas/SocioEconomico/EditarSocioEconomico"));
+
 
 const protectedRoute = (permission: string, element: ReactNode, children?: RouteObject[]): RouteObject => ({
   element: <PermissionRoute requiredPermission={permission} />,
@@ -128,8 +127,8 @@ export const privateRouteObjects: RouteObject[] = [
       { path: "psicologia-educativa/editar/:id", ...protectedRoute("PERM_PSICOLOGIA_EDUCATIVA_EDITAR", <EditarPsicologiaEducativa />) },
 
       // Socioeconómico
-     { path: "seguimiento-social/nuevo", ...protectedRoute("PERM_PACIENTES_CREAR", <NuevaSeguimientoSocial />) },
-     { path: "seguimiento-social/editar/:id", ...protectedRoute("PERM_PACIENTES_EDITAR", <EditarSeguimientoSocial />) },
+     { path: "socioeconomico/nuevo", ...protectedRoute("PERM_PACIENTES_CREAR", <NuevoSocioEconomico />) },
+     { path: "socioeconomico/editar/:id", ...protectedRoute("PERM_PACIENTES_EDITAR", <EditarSocioEconomico />) },
      // Dentro de la sección de Fichas Unificadas
       { path: "seguimiento-social/nuevo/:pacienteId", ...protectedRoute("PERM_PACIENTES_CREAR", <NuevaSeguimientoSocial />) },
       { path: "seguimiento-social/editar/:id", ...protectedRoute("PERM_PACIENTES_EDITAR", <EditarSeguimientoSocial />) },

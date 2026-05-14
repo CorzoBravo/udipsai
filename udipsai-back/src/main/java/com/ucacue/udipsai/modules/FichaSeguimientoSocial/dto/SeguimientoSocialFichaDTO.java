@@ -1,4 +1,4 @@
-package com.ucacue.udipsai.modules.fichasocial.dto;
+package com.ucacue.udipsai.modules.FichaSeguimientoSocial.dto;
 
 import lombok.Data;
 

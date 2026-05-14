@@ -9,8 +9,8 @@ import {
   Brain,
   Ear,
   Eye,
-  ClipboardList,
-  ClipboardCheck
+  Home,
+  ClipboardList
 } from "lucide-react";
 
 import {
@@ -141,8 +141,7 @@ export default function FichasUnificadasTable() {
     {
       key: "socioeconomico",
       label: "Socioeconómico",
-      icon: ClipboardCheck,
-      icon: Ear,
+      icon: Home,
       fetch: fichasService.listarSocioEconomico,
       delete: fichasService.eliminarSocioEconomico,
       editPath: "/fichas/socioeconomico/editar",
@@ -296,6 +295,7 @@ export default function FichasUnificadasTable() {
         case "historia_clinica": await fichasService.exportarExcelHistoriaClinica(); break;
         case "psicologia_educativa": await fichasService.exportarExcelPsicologiaEducativa(); break;
         case "psicologia_clinica": await fichasService.exportarExcelPsicologiaClinica(); break;
+        case "socioeconomico":await fichasService.exportarExcelSocioEconomico();break;
         default:
           toast.warn("Exportación no disponible para esta pestaña");
           return;
@@ -460,9 +460,7 @@ export default function FichasUnificadasTable() {
             <PsicologiaClinicaViewModal isOpen={viewClinicaModalOpen} onClose={() => setViewClinicaModalOpen(false)} pacienteId={selectedPacienteId} />
             <FonoaudiologiaViewModal isOpen={viewFonoModalOpen} onClose={() => setViewFonoModalOpen(false)} pacienteId={selectedPacienteId} />
             <SocioEconomicoViewModal isOpen={viewSocioModalOpen} onClose={() => setViewSocioModalOpen(false)} pacienteId={selectedPacienteId} />
-            
-            
-            <SeguimientoSocialViewModal isOpen={viewSeguimientoModalOpen} onClose={() => setViewSeguimientoModalOpen(false)} pacienteId={selectedPacienteId} />
+            <SeguimientoSocialViewModal isOpen={viewSeguimientoModalOpen} onClose={() => setViewSeguimientoModalOpen(false)} pacienteId={selectedPacienteId} modo={"ver"} />
           </>
         )}
       </div>

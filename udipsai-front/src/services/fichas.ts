@@ -248,7 +248,31 @@ export const fichasService = {
       throw error;
     }
   },
+  // Socioeconómico
+  listarSocioEconomico: async () => {
+    const res = await api.get("/fichas-socioeconomicas");
+    return res.data;
+  },
 
+  obtenerSocioEconomico: async (id: number | string) => {
+    const res = await api.get(`/fichas-socioeconomicas/paciente/${id}`);
+    return res.data;
+  },
+
+  crearSocioEconomico: async (data: any) => {
+    const res = await api.post("/fichas-socioeconomicas/crearFicha", data);
+    return res.data;
+  },
+
+  actualizarSocioEconomico: async (id: number | string, data: any) => {
+    const res = await api.put(`/fichas-socioeconomicas/socioeconomicas/${id}`, data);
+    return res.data;
+  },
+
+  eliminarSocioEconomico: async (id: number | string) => {
+    const res = await api.delete(`/fichas-socioeconomicas/socioeconomicas/${id}`);
+    return res.data;
+  },
   exportarExcelFonoaudiologia: async (pacienteId?: number | string) => {
     try {
       const response = await api.get("/fonoaudiologia/export/excel", {
@@ -336,33 +360,43 @@ export const fichasService = {
       throw error;
     }
   },
-
-  // Socioeconómico
-  listarSocioEconomico: async () => {
-    const res = await api.get("/fichas-socioeconomicas");
-    return res.data;
+  exportarExcelSocioEconomico: async (pacienteId?: number | string) => {
+    try {
+      const response = await api.get("/fichas-socioeconomicas/reporte/excel", {
+        params: { pacienteId },
+        responseType: "blob",
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      const filename = pacienteId
+        ? `ficha_socioeconomica_${pacienteId}.xlsx`
+        : "fichas_socioeconomicas.xlsx";
+      link.setAttribute("download", filename);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error("Error al exportar Excel Socioeconómico:", error);
+      throw error;
+    }
   },
+  exportarPdfSocioEconomico: async (pacienteId: number) => {
+    try {
+      const response = await api.get(
+        "/fichas-socioeconomicas/reporte/pdf",
+        {
+          params: { pacienteId },
+          responseType: "blob",
+        }
+      );
 
-  obtenerSocioEconomico: async (id: number | string) => {
-    const res = await api.get(`/fichas-socioeconomicas/paciente/${id}`);
-    return res.data;
+      return response.data;
+    } catch (error) {
+      console.error("Error al exportar PDF Socioeconómico:", error);
+      throw error;
+    }
   },
-
-  crearSocioEconomico: async (data: any) => {
-    const res = await api.post("/fichas-socioeconomicas/crearFicha", data);
-    return res.data;
-  },
-
-  actualizarSocioEconomico: async (id: number | string, data: any) => {
-    const res = await api.put(`/fichas-socioeconomicas/socioeconomicas/${id}`, data);
-    return res.data;
-  },
-
-  eliminarSocioEconomico: async (id: number | string) => {
-    const res = await api.delete(`/fichas-socioeconomicas/socioeconomicas/${id}`);
-    return res.data;
-  },
-
   // Seguimiento Social
   listarSeguimientoSocial: async () => {
     try {

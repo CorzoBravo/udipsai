@@ -50,7 +50,7 @@ docker-compose up -d
 1. **Backend**:
    ```bash
    cd udipsai-back
-   ./mvnw spring-boot:run
+  ./mvnw spring-boot:run 
    ```
 2. **Frontend**:
    ```bash
