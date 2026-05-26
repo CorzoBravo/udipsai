@@ -430,13 +430,13 @@ export default function PacientesAccionesTable() {
         <PatientDetailsModal
           isOpen={isDetailsModalOpen}
           onClose={closeDetailsModal}
-          paciente={selectedPaciente}
+          paciente={selectedPaciente as any}
         />
 
         <PatientFichasModal
           isOpen={isFichasModalOpen}
           onClose={closeFichasModal}
-          paciente={selectedPaciente}
+          paciente={selectedPaciente as any}
         />
       </div>
       <Pagination

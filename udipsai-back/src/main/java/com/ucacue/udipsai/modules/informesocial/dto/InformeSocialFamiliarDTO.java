@@ -12,4 +12,7 @@ public class InformeSocialFamiliarDTO {
     private Double ingresos;
     private String instruccion;
     private String ocupacion;
+    private String cedula;
+    private String telefono;
+    private String correo;
 }

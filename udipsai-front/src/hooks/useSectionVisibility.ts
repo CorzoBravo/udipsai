@@ -7,7 +7,7 @@ interface SectionState {
 }
 
 interface UseSectionVisibilityReturn {
-  sections: Record<string, SectionState>;
+  sections: Record<string, boolean>;
   getSectionState: (key: string) => SectionState;
   openSection: (key: string) => void;
   closeSection: (key: string) => void;

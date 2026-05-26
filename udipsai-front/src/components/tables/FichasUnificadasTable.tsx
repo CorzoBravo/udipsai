@@ -34,7 +34,7 @@ import { PsicologiaClinicaViewModal } from "../modals/PsicologiaClinicaViewModal
 import { FonoaudiologiaViewModal } from "../modals/FonoaudiologiaViewModal";
 import { SocioEconomicoViewModal } from "../modals/SocioEconomicoViewModal";
 import { SeguimientoSocialViewModal } from "../modals/SeguimientoSocialViewModal";
-
+import { InformeSocialViewModal } from "../modals/InformeSocialViewModal";
 
 import { useAuth } from "../../context/AuthContext";
 import { fichasService } from "../../services/fichas";
@@ -59,7 +59,8 @@ type TabKey =
   | "psicologia_clinica"
   | "fonoaudiologia"
   | "socioeconomico"
-  | "seguimiento_social";
+  | "seguimiento_social"
+  | "informe_social";
 
 interface TabConfig {
   key: TabKey;
@@ -165,6 +166,20 @@ export default function FichasUnificadasTable() {
       permDelete: "PERM_PACIENTES_ELIMINAR",
       permRead: "PERM_PACIENTES",
       title: "Seguimiento Social",
+    },
+    {
+      key: "informe_social",
+      label: "Informe Social",
+      icon: FileText,
+      fetch: fichasService.listarInformeSocial,
+      delete: fichasService.eliminarInformeSocial,
+      editPath: "/fichas/informe-social/editar",
+      createPath: "/fichas/informe-social/nuevo",
+      permEdit: "PERM_INFORME_SOCIAL_EDITAR",
+      permCreate: "PERM_INFORME_SOCIAL_CREAR",
+      permDelete: "PERM_INFORME_SOCIAL_ELIMINAR",
+      permRead: "PERM_INFORME_SOCIAL",
+      title: "Informe Social",
     }
   ];
 
@@ -183,7 +198,7 @@ export default function FichasUnificadasTable() {
   const [viewFonoModalOpen, setViewFonoModalOpen] = useState(false);
   const [viewSocioModalOpen, setViewSocioModalOpen] = useState(false);
   const [viewSeguimientoModalOpen, setViewSeguimientoModalOpen] = useState(false);
-
+  const [viewInformeModalOpen, setViewInformeModalOpen] = useState(false);
   const activeTab = tabs.find((t) => t.key === activeTabKey) || tabs[0];
 
   // 👇 BANDERA PARA SABER SI ESTAMOS EN SEGUIMIENTO SOCIAL 👇
@@ -246,12 +261,27 @@ export default function FichasUnificadasTable() {
     setSelectedPacienteId(pacienteId);
     // Este Switch sigue abriendo el modal correcto según la pestaña
     switch (activeTabKey) {
-      case "historia_clinica": setViewHistoriaModalOpen(true); break;
-      case "psicologia_educativa": setViewEduModalOpen(true); break;
-      case "psicologia_clinica": setViewClinicaModalOpen(true); break;
-      case "fonoaudiologia": setViewFonoModalOpen(true); break;
-      case "socioeconomico": setViewSocioModalOpen(true); break;
-      case "seguimiento_social": setViewSeguimientoModalOpen(true); break;
+      case "historia_clinica":
+        setViewHistoriaModalOpen(true);
+        break;
+      case "psicologia_educativa":
+        setViewEduModalOpen(true);
+        break;
+      case "psicologia_clinica":
+        setViewClinicaModalOpen(true);
+        break;
+      case "fonoaudiologia":
+        setViewFonoModalOpen(true);
+        break;
+      case "socioeconomico":
+        setViewSocioModalOpen(true);
+        break;
+      case "seguimiento_social":
+        setViewSeguimientoModalOpen(true);
+        break;
+      case "informe_social":
+        setViewInformeModalOpen(true);
+        break;
     }
   };
 
@@ -291,12 +321,27 @@ export default function FichasUnificadasTable() {
     try {
       toast.info("Generando reporte Excel...");
       switch (activeTabKey) {
-        case "fonoaudiologia": await fichasService.exportarExcelFonoaudiologia(); break;
-        case "historia_clinica": await fichasService.exportarExcelHistoriaClinica(); break;
-        case "psicologia_educativa": await fichasService.exportarExcelPsicologiaEducativa(); break;
-        case "psicologia_clinica": await fichasService.exportarExcelPsicologiaClinica(); break;
-        case "socioeconomico": await fichasService.exportarExcelSocioEconomico(); break;
-        case "seguimiento_social": await fichasService.exportarExcelSeguimientoSocial(); break;
+        case "fonoaudiologia":
+          await fichasService.exportarExcelFonoaudiologia();
+          break;
+        case "historia_clinica":
+          await fichasService.exportarExcelHistoriaClinica();
+          break;
+        case "psicologia_educativa":
+          await fichasService.exportarExcelPsicologiaEducativa();
+          break;
+        case "psicologia_clinica":
+          await fichasService.exportarExcelPsicologiaClinica();
+          break;
+        case "socioeconomico":
+          await fichasService.exportarExcelSocioEconomico();
+          break;
+        case "seguimiento_social":
+          await fichasService.exportarExcelSeguimientoSocial();
+          break;
+        case "informe_social":
+          await fichasService.exportartExcelInformeSocial();
+          break;
         default:
           toast.warn("Exportación no disponible para esta pestaña");
           return;
@@ -455,14 +500,42 @@ export default function FichasUnificadasTable() {
 
         {selectedPacienteId && (
           <>
-            <HistoriaClinicaViewModal isOpen={viewHistoriaModalOpen} onClose={() => setViewHistoriaModalOpen(false)} pacienteId={selectedPacienteId} />
-            <PsicologiaEducativaViewModal isOpen={viewEduModalOpen} onClose={() => setViewEduModalOpen(false)} pacienteId={selectedPacienteId} />
-            <PsicologiaClinicaViewModal isOpen={viewClinicaModalOpen} onClose={() => setViewClinicaModalOpen(false)} pacienteId={selectedPacienteId} />
-            <FonoaudiologiaViewModal isOpen={viewFonoModalOpen} onClose={() => setViewFonoModalOpen(false)} pacienteId={selectedPacienteId} />
-            <SocioEconomicoViewModal isOpen={viewSocioModalOpen} onClose={() => setViewSocioModalOpen(false)} pacienteId={selectedPacienteId} />
-
-
-            <SeguimientoSocialViewModal isOpen={viewSeguimientoModalOpen} onClose={() => setViewSeguimientoModalOpen(false)} pacienteId={selectedPacienteId} modo={"ver"} />
+            <HistoriaClinicaViewModal
+              isOpen={viewHistoriaModalOpen}
+              onClose={() => setViewHistoriaModalOpen(false)}
+              pacienteId={selectedPacienteId}
+            />
+            <PsicologiaEducativaViewModal
+              isOpen={viewEduModalOpen}
+              onClose={() => setViewEduModalOpen(false)}
+              pacienteId={selectedPacienteId}
+            />
+            <PsicologiaClinicaViewModal
+              isOpen={viewClinicaModalOpen}
+              onClose={() => setViewClinicaModalOpen(false)}
+              pacienteId={selectedPacienteId}
+            />
+            <FonoaudiologiaViewModal
+              isOpen={viewFonoModalOpen}
+              onClose={() => setViewFonoModalOpen(false)}
+              pacienteId={selectedPacienteId}
+            />
+            <SocioEconomicoViewModal
+              isOpen={viewSocioModalOpen}
+              onClose={() => setViewSocioModalOpen(false)}
+              pacienteId={selectedPacienteId}
+            />
+            <SeguimientoSocialViewModal
+              isOpen={viewSeguimientoModalOpen}
+              onClose={() => setViewSeguimientoModalOpen(false)}
+              pacienteId={selectedPacienteId}
+              modo={"ver"}
+            />
+            <InformeSocialViewModal
+              isOpen={viewInformeModalOpen}
+              onClose={() => setViewInformeModalOpen(false)}
+              pacienteId={selectedPacienteId}
+            />
           </>
         )}
       </div>

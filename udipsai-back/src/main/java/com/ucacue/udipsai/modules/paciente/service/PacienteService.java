@@ -295,7 +295,9 @@ public class PacienteService {
         paciente.setPerteneceInclusion(request.getPerteneceInclusion());
         paciente.setTieneDiscapacidad(request.getTieneDiscapacidad());
         paciente.setPortadorCarnet(request.getPortadorCarnet());
-        paciente.setNumCarne(request.getNumCarne());
+        paciente.setEstadoCivil(request.getEstadoCivil());
+        paciente.setNacionalidad(request.getNacionalidad());
+        paciente.setSexo(request.getSexo());
         paciente.setPerteneceAProyecto(request.getPerteneceAProyecto());
         paciente.setDiagnostico(request.getDiagnostico());
         paciente.setMotivoConsulta(request.getMotivoConsulta());
@@ -344,7 +346,9 @@ public class PacienteService {
                 .perteneceInclusion(paciente.getPerteneceInclusion())
                 .tieneDiscapacidad(paciente.getTieneDiscapacidad())
                 .portadorCarnet(paciente.getPortadorCarnet())
-                .numCarne(paciente.getNumCarne())
+                .estadoCivil(paciente.getEstadoCivil())
+                .nacionalidad(paciente.getNacionalidad())
+                .sexo(paciente.getSexo())
                 .perteneceAProyecto(paciente.getPerteneceAProyecto())
                 .diagnostico(paciente.getDiagnostico())
                 .motivoConsulta(paciente.getMotivoConsulta())

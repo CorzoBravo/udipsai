@@ -20,8 +20,19 @@ public class InformeSocialDTO {
     
     private String genogramaUrl;
     private String ecomapaUrl;
+    private String tipoFamilia;
+    private String tipoFamiliaEspecificar;
 
-   
+    private String pacienteEstadoCivil;
+    private String pacienteNacionalidad;
+    private String pacienteSexo;
+
+    private String informanteNombre;
+    private String informanteParentesco;
+    private String informanteCedula;
+    private String informanteTelefono;
+    private String informanteCorreo;
+
     private String descripcionDinamicaFamiliar;
     private String situacionEconomica;
     private String situacionHabitabilidad;

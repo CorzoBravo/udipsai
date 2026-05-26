@@ -3,6 +3,7 @@ import Label from "../../../Label";
 import Input from "../../../input/InputField";
 import Select from "../../../Select";
 import Switch from "../../../switch/Switch";
+import { toast } from "react-toastify";
 
 interface CondicionesViviendaFormProps {
     data: {
@@ -21,9 +22,48 @@ interface CondicionesViviendaFormProps {
         detalleElectricidad: string;
     };
     onChange: (field: string, value: any) => void;
+    onValidate?: (isValid: boolean, errors: string[]) => void;
 }
 
-const CondicionesViviendaForm: React.FC<CondicionesViviendaFormProps> = ({ data, onChange }) => {
+const validateCondicionesVivienda = (data: CondicionesViviendaFormProps["data"]): string[] => {
+  const errors: string[] = [];
+  if (!data.tipoTenencia || data.tipoTenencia.trim() === "") {
+    errors.push("Tipo de tenencia es requerido");
+  }
+  if (!data.materialParedes || data.materialParedes.trim() === "") {
+    errors.push("Material de paredes es requerido");
+  }
+  if (!data.materialPiso || data.materialPiso.trim() === "") {
+    errors.push("Material de piso es requerido");
+  }
+  if (!data.materialTecho || data.materialTecho.trim() === "") {
+    errors.push("Material de techo es requerido");
+  }
+  if (!data.numeroCuartos || data.numeroCuartos <= 0) {
+    errors.push("Número de cuartos es requerido");
+  }
+  if (!data.numeroDormitorios || data.numeroDormitorios <= 0) {
+    errors.push("Número de dormitorios es requerido");
+  }
+  if (!data.numeroCamas || data.numeroCamas <= 0) {
+    errors.push("Número de camas es requerido");
+  }
+  if (!data.numeroSanitarios || data.numeroSanitarios <= 0) {
+    errors.push("Número de sanitarios es requerido");
+  }
+  if (!data.tipoSanitario || data.tipoSanitario.trim() === "") {
+    errors.push("Tipo de sanitario es requerido");
+  }
+  if (!data.procedenciaAgua || data.procedenciaAgua.trim() === "") {
+    errors.push("Procedencia de agua es requerida");
+  }
+  if (!data.detalleElectricidad || data.detalleElectricidad.trim() === "") {
+    errors.push("Detalle de electricidad es requerido");
+  }
+  return errors;
+};
+
+const CondicionesViviendaForm: React.FC<CondicionesViviendaFormProps> = ({ data, onChange, onValidate }) => {
     const handleMultiChange = (field: string, value: string, checked: boolean) => {
         const actuales = getValues(field);
 

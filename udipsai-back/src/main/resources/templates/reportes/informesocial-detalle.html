@@ -1,37 +1,73 @@
-
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8"/>
     <style>
-        body { font-family: Arial; font-size: 12px; color: #333; margin: 20px; }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            font-size: 12px;
+            color: #333;
+        }
 
-        .header { text-align: center; border-bottom: 2px solid #FA3340;
-                  margin-bottom: 20px; padding-bottom: 10px; }
-        .header img { height: 70px; margin-bottom: 8px; }
-        .header h2 { margin: 0; color: #333; }
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #FA3340;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+        }
 
-        .section { margin-top: 20px; }
-        .section-title { background: #f5f5f5; padding: 8px;
-                         font-weight: bold; border-left: 4px solid #FA3340;
-                         margin-bottom: 8px; }
+        .header h1 {
+            color: #FA3340;
+            margin: 0;
+            font-size: 24px;
+        }
 
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        table, th, td { border: 1px solid #ddd; }
-        th { background: #f5f5f5; font-weight: bold; padding: 6px; text-align: left; }
-        td { padding: 6px; }
-        .label { font-weight: bold; width: 35%; background: #fafafa; }
+        .header h2 {
+            margin: 5px 0 0 0;
+            font-size: 16px;
+            color: #555;
+        }
 
-        .tipo-familia-row { display: flex; gap: 20px; padding: 8px 0; flex-wrap: wrap; }
-        .tipo-familia-item { display: flex; align-items: center; gap: 6px; }
-        .check-box { width: 14px; height: 14px; border: 1px solid #999;
-                     display: inline-block; text-align: center; line-height: 14px; font-size: 10px; }
+        .section-title {
+            background: #f4f4f4;
+            padding: 8px 10px;
+            font-weight: bold;
+            border-left: 4px solid #FA3340;
+            font-size: 13px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
 
-        .firma-section { margin-top: 60px; }
-        .firma-block { margin-top: 20px; }
-        .firma-line { border-top: 1px solid #333; width: 250px; margin-top: 40px; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+        }
 
-        p { margin: 6px 0; line-height: 1.6; }
+        td, th {
+            border: 1px solid #ddd;
+            padding: 6px 8px;
+            text-align: left;
+            vertical-align: middle;
+        }
+
+        th {
+            background-color: #f9f9f9;
+            font-weight: bold;
+        }
+
+        .label {
+            font-weight: bold;
+            background-color: #fcfcfc;
+            width: 25%;
+        }
+
+        p {
+            margin: 5px 0;
+            line-height: 1.4;
+            text-align: justify;
+        }
     </style>
 </head>
 <body>
@@ -41,202 +77,250 @@
     <h2>INFORME SOCIAL</h2>
 </div>
 
-
+<!-- HEADER TABLE -->
 <div class="section">
-    <div class="section-title">1. Datos Generales</div>
     <table>
         <tr>
-            <td class="label">Nombres y Apellidos</td>
-            <td th:text="${i.paciente?.nombresApellidos ?: 'N/A'}"></td>
+            <td class="label">NOMBRES Y APELLIDOS</td>
+            <td colspan="3" th:text="${p.nombresApellidos}"></td>
         </tr>
         <tr>
-            <td class="label">Lugar y Fecha de Nacimiento</td>
-            <td th:text="${i.paciente?.lugarFechaNacimiento ?: 'N/A'}"></td>
-            <td class="label">Edad</td>
-            <td th:text="${i.paciente?.edad ?: 'N/A'}"></td>
+            <td class="label">LUGAR Y FECHA DE NACIMIENTO</td>
+            <td th:text="${(p.lugarNacimiento != null ? p.lugarNacimiento : '') + (p.fechaNacimiento != null ? ' - ' + p.fechaNacimiento : '')}"></td>
+            <td class="label">EDAD</td>
+            <td th:text="${p.getEdad() + ' años'}"></td>
         </tr>
         <tr>
-            <td class="label">Cédula / Pasaporte</td>
-            <td th:text="${i.paciente?.cedula ?: 'N/A'}"></td>
-            <td class="label">Estado Civil</td>
-            <td th:text="${i.paciente?.estadoCivil ?: 'N/A'}"></td>
+            <td class="label">CÉDULA/PASAPORTE</td>
+            <td th:text="${p.cedula}"></td>
+            <td class="label">ESTADO CIVIL</td>
+            <td th:text="${p.estadoCivil != null ? p.estadoCivil : '—'}"></td>
         </tr>
         <tr>
-            <td class="label">Nacionalidad</td>
-            <td th:text="${i.paciente?.nacionalidad ?: 'N/A'}"></td>
-            <td class="label">Sexo</td>
-            <td th:text="${i.paciente?.sexo ?: 'N/A'}"></td>
+            <td class="label">NACIONALIDAD</td>
+            <td th:text="${p.nacionalidad != null ? p.nacionalidad : '—'}"></td>
+            <td class="label">SEXO</td>
+            <td th:text="${p.sexo != null ? p.sexo : '—'}"></td>
         </tr>
         <tr>
-            <td class="label">Tipo de Discapacidad</td>
-            <td th:text="${i.paciente?.tipoDiscapacidad ?: 'N/A'}"></td>
-            <td class="label">Porcentaje de Discapacidad</td>
-            <td th:text="${i.paciente?.porcentajeDiscapacidad ?: 'N/A'}"></td>
+            <td class="label">TIPO DE DISCAPACIDAD</td>
+            <td th:text="${p.tieneDiscapacidad ? p.tipoDiscapacidad : 'Ninguna'}"></td>
+            <td class="label">PORCENTAJE DE DISCAPACIDAD</td>
+            <td th:text="${p.tieneDiscapacidad && p.porcentajeDiscapacidad != null ? p.porcentajeDiscapacidad + '%' : '—'}"></td>
         </tr>
         <tr>
-            <td class="label">Institución Educativa</td>
-            <td colspan="3" th:text="${i.paciente?.institucionEducativa ?: 'N/A'}"></td>
+            <td class="label">INSTITUCIÓN EDUCATIVA</td>
+            <td colspan="3" th:text="${p.institucionEducativa != null ? p.institucionEducativa.nombre : '—'}"></td>
         </tr>
         <tr>
-            <td class="label">Nivel Educativo</td>
-            <td th:text="${i.paciente?.nivelEducativo ?: 'N/A'}"></td>
-            <td class="label">Año que Cursa</td>
-            <td th:text="${i.paciente?.anioCursa ?: 'N/A'}"></td>
+            <td class="label">NIVEL EDUCATIVO</td>
+            <td th:text="${p.nivelEducativo != null ? p.nivelEducativo : '—'}"></td>
+            <td class="label">AÑO QUE CURSA</td>
+            <td th:text="${p.anioEducacion != null ? p.anioEducacion : '—'}"></td>
         </tr>
         <tr>
-            <td class="label">Lugar de Residencia</td>
-            <td colspan="3" th:text="${i.paciente?.lugarResidencia ?: 'N/A'}"></td>
+            <td class="label">LUGAR DE RESIDENCIA</td>
+            <td colspan="3" th:text="${p.domicilio != null ? p.domicilio : '—'}"></td>
         </tr>
         <tr>
-            <td class="label">Persona que proporciona la información</td>
-            <td th:text="${i.paciente?.personaInformante ?: 'N/A'}"></td>
-            <td class="label">Parentesco</td>
-            <td th:text="${i.paciente?.parentescoInformante ?: 'N/A'}"></td>
+            <td class="label">PERSONA QUE PROPORCIONA LA INFORMACIÓN</td>
+            <td th:text="${i.informanteNombre != null ? i.informanteNombre : '—'}"></td>
+            <td class="label">PARENTESCO</td>
+            <td th:text="${i.informanteParentesco != null ? i.informanteParentesco : '—'}"></td>
         </tr>
         <tr>
-            <td class="label">Cédula / Pasaporte (informante)</td>
-            <td th:text="${i.paciente?.cedulaInformante ?: 'N/A'}"></td>
-            <td class="label">Teléfono</td>
-            <td th:text="${i.paciente?.telefonoInformante ?: 'N/A'}"></td>
+            <td class="label">CEDULA/PASAPORTE</td>
+            <td th:text="${i.informanteCedula != null ? i.informanteCedula : '—'}"></td>
+            <td class="label">TELÉFONO</td>
+            <td th:text="${i.informanteTelefono != null ? i.informanteTelefono : '—'}"></td>
         </tr>
         <tr>
-            <td class="label">Correo Electrónico</td>
-            <td colspan="3" th:text="${i.paciente?.correoInformante ?: 'N/A'}"></td>
+            <td class="label">CORREO ELECTRÓNICO</td>
+            <td colspan="3" th:text="${i.informanteCorreo != null ? i.informanteCorreo : '—'}"></td>
         </tr>
         <tr>
-            <td class="label">N° de Ficha</td>
-            <td th:text="${i.numFicha ?: 'N/A'}"></td>
-            <td class="label">Fecha de Elaboración</td>
-            <td th:text="${i.fechaElaboracion ?: 'N/A'}"></td>
+            <td class="label">N° DE FICHA</td>
+            <td colspan="3" th:text="${i.numFicha}"></td>
+        </tr>
+        <tr>
+            <td class="label">FECHA DE ELABORACIÓN DE INFORME</td>
+            <td colspan="3" th:text="${i.fechaElaboracion != null ? #dates.format(i.fechaElaboracion, 'dd/MM/yyyy') : '—'}"></td>
         </tr>
     </table>
 </div>
 
+<!-- 1. DATOS DE IDENTIFICACIÓN -->
 <div class="section">
-    <div class="section-title">2. Conformación Familiar</div>
+    <div class="section-title">1. DATOS DE IDENTIFICACIÓN:</div>
     <table>
         <thead>
         <tr>
-            <th>Nombres</th>
-            <th>Parentesco</th>
-            <th>Estado Civil</th>
-            <th>Edad</th>
-            <th>Ingresos</th>
-            <th>Instrucción</th>
-            <th>Ocupación</th>
+            <th>NOMBRES</th>
+            <th>PARENTESCO</th>
+            <th>ESTADO CIVIL</th>
+            <th>EDAD</th>
+            <th>INGRESOS</th>
+            <th>INSTRUCCIÓN</th>
+            <th>OCUPACIÓN</th>
+            <th>CÉDULA</th>
+            <th>TELÉFONO</th>
+            <th>CORREO</th>
         </tr>
         </thead>
         <tbody>
         <tr th:each="f : ${i.familiares}">
-            <td th:text="${f.nombres ?: '-'}"></td>
-            <td th:text="${f.parentesco ?: '-'}"></td>
-            <td th:text="${f.estadoCivil ?: '-'}"></td>
-            <td th:text="${f.edad ?: '-'}"></td>
-            <td th:text="${f.ingresos ?: '-'}"></td>
-            <td th:text="${f.instruccion ?: '-'}"></td>
-            <td th:text="${f.ocupacion ?: '-'}"></td>
+            <td th:text="${f.nombres}"></td>
+            <td th:text="${f.parentesco}"></td>
+            <td th:text="${f.estadoCivil}"></td>
+            <td th:text="${f.edad}"></td>
+            <td th:text="${f.ingresos != null ? '$' + f.ingresos : '—'}"></td>
+            <td th:text="${f.instruccion}"></td>
+            <td th:text="${f.ocupacion}"></td>
+            <td th:text="${f.cedula != null ? f.cedula : '—'}"></td>
+            <td th:text="${f.telefono != null ? f.telefono : '—'}"></td>
+            <td th:text="${f.correo != null ? f.correo : '—'}"></td>
         </tr>
         <tr th:if="${#lists.isEmpty(i.familiares)}">
-            <td colspan="7" style="text-align:center">Sin familiares registrados</td>
+            <td colspan="10" style="text-align: center;">No hay familiares registrados</td>
         </tr>
         </tbody>
     </table>
+</div>
 
-    <div style="margin-top: 10px;">
-        <strong>Tipo de Familia:</strong>
-        <div class="tipo-familia-row">
-            <div class="tipo-familia-item">
-                <span class="check-box" th:text="${i.tipoFamilia == 'Nuclear' ? '✓' : ''}"></span>
-                Nuclear
-            </div>
-            <div class="tipo-familia-item">
-                <span class="check-box" th:text="${i.tipoFamilia == 'Extensa' ? '✓' : ''}"></span>
-                Extensa
-            </div>
-            <div class="tipo-familia-item">
-                <span class="check-box" th:text="${i.tipoFamilia == 'Monoparental' ? '✓' : ''}"></span>
-                Monoparental
-            </div>
-            <div class="tipo-familia-item">
-                <span class="check-box" th:text="${i.tipoFamilia == 'Otro' ? '✓' : ''}"></span>
-                Otros:
-                <span th:text="${i.tipoFamiliaOtro ?: ''}"></span>
-            </div>
-        </div>
+<!-- 2. CONFORMACIÓN FAMILIAR -->
+<div class="section">
+    <div class="section-title">2. CONFORMACIÓN FAMILIAR</div>
+    <table>
+        <thead>
+        <tr>
+            <th colspan="8">TIPO DE FAMILIA</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td style="font-weight: bold; width: 18%;">Nuclear</td>
+            <td style="text-align: center; width: 7%; font-weight: bold;" th:text="${i.tipoFamilia == 'Nuclear' ? 'X' : ''}"></td>
+            <td style="font-weight: bold; width: 18%;">Extensa</td>
+            <td style="text-align: center; width: 7%; font-weight: bold;" th:text="${i.tipoFamilia == 'Extensa' ? 'X' : ''}"></td>
+            <td style="font-weight: bold; width: 18%;">Monoparental</td>
+            <td style="text-align: center; width: 7%; font-weight: bold;" th:text="${i.tipoFamilia == 'Monoparental' ? 'X' : ''}"></td>
+            <td style="font-weight: bold; width: 18%;">Otros (especificar)</td>
+            <td style="text-align: center; width: 7%; font-weight: bold;" th:text="${i.tipoFamilia == 'Otros' ? 'X' : ''}"></td>
+        </tr>
+        <tr th:if="${i.tipoFamilia == 'Otros' && i.tipoFamiliaEspecificar != null && !i.tipoFamiliaEspecificar.trim().isEmpty()}">
+            <td colspan="2" style="font-weight: bold;">Especificación:</td>
+            <td colspan="6" th:text="${i.tipoFamiliaEspecificar}"></td>
+        </tr>
+        </tbody>
+    </table>
+    
+    <div style="margin-top: 15px;">
+        <p style="font-weight: bold; margin-bottom: 5px;">DESCRIPCIÓN DE LA DINÁMICA FAMILIAR:</p>
+        <p th:text="${i.descripcionDinamicaFamiliar != null ? i.descripcionDinamicaFamiliar : '—'}"></p>
     </div>
 </div>
 
-
+<!-- 3. GENOGRAMA -->
 <div class="section">
-    <div class="section-title">3. Dinámica Familiar</div>
-    <p th:text="${i.descripcionDinamicaFamiliar ?: 'N/A'}"></p>
+    <div class="section-title">3. GENOGRAMA</div>
+    <div th:if="${genogramaUri != null}" style="text-align: center; margin-top: 10px; margin-bottom: 10px;">
+        <img th:src="${genogramaUri}" alt="Genograma" style="max-width: 90%; max-height: 350px; border: 1px solid #ddd; border-radius: 4px; padding: 5px;"/>
+    </div>
+    <div th:if="${genogramaIsPdf}" style="text-align: center; margin-top: 10px; margin-bottom: 10px;">
+        <p style="font-style: italic; color: #555;">El genograma se adjunta en formato PDF.</p>
+    </div>
+    <p th:if="${genogramaUri == null && genogramaIsPdf == null}">No se ha cargado genograma</p>
 </div>
 
-
+<!-- 4. SITUACIÓN ECONÓMICA -->
 <div class="section">
-    <div class="section-title">4. Situación Económica (ingresos / egresos / deudas)</div>
-    <p th:text="${i.situacionEconomica ?: 'N/A'}"></p>
+    <div class="section-title">4. SITUACIÓN ECONÓMICA</div>
+    <p th:text="${i.situacionEconomica != null ? i.situacionEconomica : '—'}"></p>
 </div>
 
+<!-- 5. SITUACIÓN DE HABITABILIDAD O VIVIENDA -->
 <div class="section">
-    <div class="section-title">5. Situación de Habitabilidad o Vivienda</div>
-    <p th:text="${i.situacionHabitabilidad ?: 'N/A'}"></p>
+    <div class="section-title">5. SITUACIÓN DE HABITABILIDAD O VIVIENDA</div>
+    <p th:text="${i.situacionHabitabilidad != null ? i.situacionHabitabilidad : '—'}"></p>
 </div>
 
-
+<!-- 6. SITUACIÓN LABORAL -->
 <div class="section">
-    <div class="section-title">6. Situación Laboral</div>
-    <p th:text="${i.situacionLaboral ?: 'N/A'}"></p>
+    <div class="section-title">6. SITUACIÓN LABORAL</div>
+    <p th:text="${i.situacionLaboral != null ? i.situacionLaboral : '—'}"></p>
 </div>
 
-
+<!-- 7. SITUACIÓN SOCIAL: RELACIÓN CON EL ENTORNO -->
 <div class="section">
-    <div class="section-title">7. Situación Social: Relación con el Entorno</div>
-    <p th:text="${i.situacionEntorno ?: 'N/A'}"></p>
+    <div class="section-title">7. SITUACIÓN SOCIAL: RELACIÓN CON EL ENTORNO</div>
+    <p th:text="${i.situacionEntorno != null ? i.situacionEntorno : '—'}"></p>
 </div>
 
-
+<!-- 8. SITUACIÓN EDUCATIVO – CULURAL -->
 <div class="section">
-    <div class="section-title">8. Situación Educativo – Cultural</div>
-    <p th:text="${i.situacionEducativoCultural ?: 'N/A'}"></p>
+    <div class="section-title">8. SITUACIÓN EDUCATIVO – CULURAL</div>
+    <p th:text="${i.situacionEducativoCultural != null ? i.situacionEducativoCultural : '—'}"></p>
 </div>
 
-
+<!-- 9. SITUACIÓN DE SALUD FISICA Y PSICOLOGICA -->
 <div class="section">
-    <div class="section-title">9. Situación de Salud Física y Psicológica</div>
-    <p th:text="${i.situacionSalud ?: 'N/A'}"></p>
+    <div class="section-title">9. SITUACIÓN DE SALUD FISICA Y PSICOLOGICA</div>
+    <p th:text="${i.situacionSalud != null ? i.situacionSalud : '—'}"></p>
 </div>
 
-
+<!-- 10. SITUACIÓN LEGAL -->
 <div class="section">
-    <div class="section-title">10. Situación Legal (en caso de existir)</div>
-    <p th:text="${i.situacionLegal ?: 'N/A'}"></p>
+    <div class="section-title">10. SITUACIÓN LEGAL (en caso de existir)</div>
+    <p th:text="${i.situacionLegal != null ? i.situacionLegal : '—'}"></p>
 </div>
 
-
+<!-- 11. ECOMAPA -->
 <div class="section">
-    <div class="section-title">11. Valoración Profesional</div>
-    <p th:text="${i.valoracionProfesional ?: 'N/A'}"></p>
+    <div class="section-title">11. ECOMAPA</div>
+    <div th:if="${ecomapaUri != null}" style="text-align: center; margin-top: 10px; margin-bottom: 10px;">
+        <img th:src="${ecomapaUri}" alt="Ecomapa" style="max-width: 90%; max-height: 350px; border: 1px solid #ddd; border-radius: 4px; padding: 5px;"/>
+    </div>
+    <div th:if="${ecomapaIsPdf}" style="text-align: center; margin-top: 10px; margin-bottom: 10px;">
+        <p style="font-style: italic; color: #555;">El ecomapa se adjunta en formato PDF.</p>
+    </div>
+    <p th:if="${ecomapaUri == null && ecomapaIsPdf == null}">No se ha cargado ecomapa</p>
 </div>
 
-
+<!-- 12. VALORACION PROFESIONAL -->
 <div class="section">
-    <div class="section-title">12. Recomendaciones</div>
-    <p th:text="${i.recomendaciones ?: 'N/A'}"></p>
+    <div class="section-title">12. VALORACION PROFESIONAL</div>
+    <p th:text="${i.valoracionProfesional != null ? i.valoracionProfesional : '—'}"></p>
 </div>
 
+<!-- 13. RECOMENDACIONES -->
+<div class="section">
+    <div class="section-title">13. RECOMENDACIONES</div>
+    <p th:text="${i.recomendaciones != null ? i.recomendaciones : '—'}"></p>
+</div>
 
-<div class="firma-section">
-    <table style="border: none; margin-top: 20px;">
-        <tr style="border: none;">
-            <td style="border: none; width: 50%; vertical-align: top;">
-                <div class="firma-line"></div>
-                <p><strong>Elaborado por:</strong>
-                    <span th:text="${i.elaboradoPor ?: 'N/A'}"></span>
-                </p>
-            </td>
-        </tr>
-    </table>
+<!-- 14. PROFESIONALES RESPONSABLES -->
+<div class="section" style="page-break-inside: avoid;">
+    <div class="section-title">14. PROFESIONALES RESPONSABLES:</div>
+    <div style="margin-top: 15px;">
+        <p><strong>ÁREA:</strong> Trabajo Social</p>
+        
+        <div style="margin-top: 40px; width: 100%; overflow: hidden;">
+            <div style="float: left; width: 45%; text-align: center;">
+                <p><strong>ELABORADO POR:</strong></p>
+                <div style="margin-top: 50px; border-top: 1px solid #000; width: 85%; margin-left: auto; margin-right: auto; padding-top: 5px;">
+                    <span th:text="${i.elaboradoPor != null ? i.elaboradoPor : 'Profesional de Trabajo Social'}"></span>
+                </div>
+            </div>
+            
+            <div style="float: right; width: 45%; text-align: center;">
+                <p><strong>PROFESIONAL RESPONSABLE:</strong></p>
+                <div style="margin-top: 50px; border-top: 1px solid #000; width: 85%; margin-left: auto; margin-right: auto; padding-top: 5px;">
+                    <span>Lcda. Gabriela Jara S., Mgs.</span><br/>
+                    <strong style="font-size: 11px; text-transform: uppercase;">COORDINADORA DE LA UDIPSAI</strong>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 </body>

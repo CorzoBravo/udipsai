@@ -53,7 +53,9 @@ public class PacienteDTO {
     private Boolean tieneDiscapacidad;
     private Boolean portadorCarnet;
     private Boolean perteneceAProyecto;
-    private String numCarne;
+    private String estadoCivil;
+    private String nacionalidad;
+    private String sexo;
     private String diagnostico;
     private String motivoConsulta;
     private String observaciones;

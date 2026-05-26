@@ -49,7 +49,9 @@ export default function FormularioPacientes() {
     tipoDiscapacidad: "",
     detalleDiscapacidad: "",
     porcentajeDiscapacidad: 0,
-    numCarne: "",
+    estadoCivil: "",
+    nacionalidad: "",
+    sexo: "",
     activo: true,
   });
 
@@ -89,7 +91,9 @@ export default function FormularioPacientes() {
 
           setFormData({
             ...data,
-            numcarne: data.numCarne || "",
+            estadoCivil: data.estadoCivil || "",
+            nacionalidad: data.nacionalidad || "",
+            sexo: data.sexo || "",
             institucionEducativaId: data.institucionEducativa?.id || 0,
             sedeId: data.sede?.id || 0,
           });
@@ -280,6 +284,20 @@ export default function FormularioPacientes() {
       console.error("Error saving institucion:", error);
     }
   };
+
+  const optionsEstadoCivil = [
+    { value: "Soltero/a", label: "Soltero/a" },
+    { value: "Casado/a", label: "Casado/a" },
+    { value: "Divorciado/a", label: "Divorciado/a" },
+    { value: "Viudo/a", label: "Viudo/a" },
+    { value: "Unión de Hecho", label: "Unión de Hecho" },
+  ];
+
+  const optionsSexo = [
+    { value: "Masculino", label: "Masculino" },
+    { value: "Femenino", label: "Femenino" },
+    { value: "Otro", label: "Otro" },
+  ];
 
   const optionsDiscapacidad = [
     { value: "intelectual", label: "Intelectual" },
@@ -534,6 +552,33 @@ export default function FormularioPacientes() {
                 hint={errors.numeroCelular}
               />
             </div>
+            <div>
+              <Label htmlFor="estadoCivil">Estado Civil</Label>
+              <Select
+                options={optionsEstadoCivil}
+                placeholder="Seleccione el estado civil"
+                onChange={(value) => handleSelectChange("estadoCivil", value)}
+                value={formData.estadoCivil || ""}
+              />
+            </div>
+            <div>
+              <Label htmlFor="nacionalidad">Nacionalidad</Label>
+              <Input
+                id="nacionalidad"
+                placeholder="Ingrese la nacionalidad"
+                value={formData.nacionalidad}
+                onChange={handleChange}
+              />
+            </div>
+            <div>
+              <Label htmlFor="sexo">Sexo</Label>
+              <Select
+                options={optionsSexo}
+                placeholder="Seleccione el sexo"
+                onChange={(value) => handleSelectChange("sexo", value)}
+                value={formData.sexo || ""}
+              />
+            </div>
           </div>
         </div>
       </ComponentCard>
@@ -593,17 +638,6 @@ export default function FormularioPacientes() {
                     type="number"
                     placeholder="Ingrese el porcentaje de discapacidad"
                     value={formData.porcentajeDiscapacidad}
-                    onChange={handleChange}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="numCarne">
-                    N° de Carnet de Discapacidad
-                  </Label>
-                  <Input
-                    id="numCarne"
-                    placeholder="Ingrese el número de carnet"
-                    value={formData.numCarne || ""}
                     onChange={handleChange}
                   />
                 </div>

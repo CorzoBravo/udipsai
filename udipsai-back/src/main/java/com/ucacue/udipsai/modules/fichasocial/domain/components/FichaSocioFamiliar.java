@@ -26,7 +26,16 @@ public class FichaSocioFamiliar {
     private String instruccion;
     private String ocupacion;
     private Double ingresoMensual;
-    
+
+    @Column(length = 15)
+    private String cedula;
+
+    @Column(name = "numero_telefono", length = 20)
+    private String numeroTelefono;
+
+    @Column(length = 100)
+    private String correoElectronico;
+
     @Column(name = "problemas_salud_familiar")
     private Boolean problemasSaludFamiliar;
 

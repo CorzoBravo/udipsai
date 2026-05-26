@@ -51,6 +51,12 @@ public class InformeSocialController {
         return (dto != null) ? ResponseEntity.ok(dto) : ResponseEntity.notFound().build();
     }
 
+    @GetMapping("/paciente/id/{pacienteId}")
+    public ResponseEntity<InformeSocialDTO> obtenerPorPacienteId(@PathVariable Integer pacienteId) {
+        InformeSocialDTO dto = informeService.obtenerPorPacienteId(pacienteId);
+        return (dto != null) ? ResponseEntity.ok(dto) : ResponseEntity.notFound().build();
+    }
+
     @PostMapping(value = "/crear", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<InformeSocialDTO> crearInforme(
             @RequestPart("informe") String informeJson,
@@ -89,10 +95,10 @@ public class InformeSocialController {
 
     @GetMapping("/reporte/excel")
     public ResponseEntity<Resource> descargarExcel(
-            @RequestParam(required = false) String cedula)
+            @RequestParam(required = false) Integer pacienteId)
             throws IOException {
 
-        ByteArrayInputStream in = reportService.exportarExcel(cedula);
+        ByteArrayInputStream in = reportService.exportarExcel(pacienteId);
 
         HttpHeaders headers = new HttpHeaders();
         headers.add(
@@ -109,10 +115,10 @@ public class InformeSocialController {
 
     @GetMapping("/reporte/pdf")
     public ResponseEntity<Resource> descargarPdf(
-            @RequestParam String cedula)
+            @RequestParam Integer pacienteId)
             throws Exception {
 
-        byte[] pdf = reportService.exportarPdf(cedula);
+        byte[] pdf = reportService.exportarPdf(pacienteId);
 
         HttpHeaders headers = new HttpHeaders();
         headers.add(
@@ -125,4 +131,39 @@ public class InformeSocialController {
                 .body(new ByteArrayResource(pdf));
     }
 
+    @GetMapping("/paciente/{pacienteId}/genograma")
+    public ResponseEntity<Resource> descargarGenograma(@PathVariable Integer pacienteId) {
+        Resource file = informeService.cargarGenogramaComoRecurso(pacienteId);
+        if (file == null) {
+            return ResponseEntity.notFound().build();
+        }
+        MediaType mediaType = getMediaTypeForFileName(file.getFilename());
+        return ResponseEntity.ok()
+                .contentType(mediaType)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + file.getFilename() + "\"")
+                .body(file);
+    }
+
+    @GetMapping("/paciente/{pacienteId}/ecomapa")
+    public ResponseEntity<Resource> descargarEcomapa(@PathVariable Integer pacienteId) {
+        Resource file = informeService.cargarEcomapaComoRecurso(pacienteId);
+        if (file == null) {
+            return ResponseEntity.notFound().build();
+        }
+        MediaType mediaType = getMediaTypeForFileName(file.getFilename());
+        return ResponseEntity.ok()
+                .contentType(mediaType)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + file.getFilename() + "\"")
+                .body(file);
+    }
+
+    private MediaType getMediaTypeForFileName(String filename) {
+        if (filename == null) return MediaType.APPLICATION_OCTET_STREAM;
+        String lower = filename.toLowerCase();
+        if (lower.endsWith(".png")) return MediaType.IMAGE_PNG;
+        if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) return MediaType.IMAGE_JPEG;
+        if (lower.endsWith(".gif")) return MediaType.IMAGE_GIF;
+        if (lower.endsWith(".pdf")) return MediaType.APPLICATION_PDF;
+        return MediaType.APPLICATION_OCTET_STREAM;
+    }
 }
