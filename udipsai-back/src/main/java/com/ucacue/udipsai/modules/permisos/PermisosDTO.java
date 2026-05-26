@@ -78,4 +78,9 @@ public class PermisosDTO {
     private Boolean informeSocialEditar;
     private Boolean informeSocialEliminar;
 
+    private Boolean seguimientoSocial;
+    private Boolean seguimientoSocialCrear;
+    private Boolean seguimientoSocialEditar;
+    private Boolean seguimientoSocialEliminar;
+
 }

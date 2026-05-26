@@ -161,10 +161,10 @@ export default function FichasUnificadasTable() {
       delete: fichasService.eliminarSeguimientoSocial,
       editPath: "/fichas/seguimiento-social/editar",
       createPath: "/fichas/seguimiento-social/nuevo",
-      permEdit: "PERM_PACIENTES_EDITAR",
-      permCreate: "PERM_PACIENTES_CREAR",
-      permDelete: "PERM_PACIENTES_ELIMINAR",
-      permRead: "PERM_PACIENTES",
+      permEdit: "PERM_SEGUIMIENTO_SOCIAL_EDITAR",
+      permCreate: "PERM_SEGUIMIENTO_SOCIAL_CREAR",
+      permDelete: "PERM_SEGUIMIENTO_SOCIAL_ELIMINAR",
+      permRead: "PERM_SEGUIMIENTO_SOCIAL",
       title: "Seguimiento Social",
     },
     {
@@ -365,7 +365,7 @@ export default function FichasUnificadasTable() {
 
       <div className="rounded-xl border border-gray-200 bg-white p-5 dark:border-white/[0.05] dark:bg-white/[0.03]">
         <div className="mb-6 flex flex-wrap gap-2 border-b border-gray-200 dark:border-gray-700 pb-2">
-          {tabs.map((tab) => {
+          {tabs.filter((tab) => hasPermission(tab.permRead)).map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTabKey === tab.key;
             return (

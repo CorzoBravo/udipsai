@@ -156,6 +156,15 @@ public class Permisos {
     @Column(name = "informesocial_eliminar")
     private Boolean informeSocialEliminar = false;
 
+    @Column(name = "seguimiento_social")
+    private Boolean seguimientoSocial = false;
+    @Column(name = "seguimiento_social_crear")
+    private Boolean seguimientoSocialCrear = false;
+    @Column(name = "seguimiento_social_editar")
+    private Boolean seguimientoSocialEditar = false;
+    @Column(name = "seguimiento_social_eliminar")
+    private Boolean seguimientoSocialEliminar = false;
+
     public List<SimpleGrantedAuthority> getAuthorities() {
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
 
@@ -309,6 +318,16 @@ public class Permisos {
         if (Boolean.TRUE.equals(this.informeSocialEliminar))
             authorities.add(new SimpleGrantedAuthority("PERM_INFORME_SOCIAL_ELIMINAR"));
 
+        // Seguimiento Social
+        if (Boolean.TRUE.equals(this.seguimientoSocial))
+            authorities.add(new SimpleGrantedAuthority("PERM_SEGUIMIENTO_SOCIAL"));
+        if (Boolean.TRUE.equals(this.seguimientoSocialCrear))
+            authorities.add(new SimpleGrantedAuthority("PERM_SEGUIMIENTO_SOCIAL_CREAR"));
+        if (Boolean.TRUE.equals(this.seguimientoSocialEditar))
+            authorities.add(new SimpleGrantedAuthority("PERM_SEGUIMIENTO_SOCIAL_EDITAR"));
+        if (Boolean.TRUE.equals(this.seguimientoSocialEliminar))
+            authorities.add(new SimpleGrantedAuthority("PERM_SEGUIMIENTO_SOCIAL_ELIMINAR"));
+
         return authorities;
 
     }
@@ -392,6 +411,11 @@ public class Permisos {
         this.informeSocialCrear = other.informeSocialCrear;
         this.informeSocialEditar = other.informeSocialEditar;
         this.informeSocialEliminar = other.informeSocialEliminar;
+
+        this.seguimientoSocial = other.seguimientoSocial;
+        this.seguimientoSocialCrear = other.seguimientoSocialCrear;
+        this.seguimientoSocialEditar = other.seguimientoSocialEditar;
+        this.seguimientoSocialEliminar = other.seguimientoSocialEliminar;
 
     }
 }

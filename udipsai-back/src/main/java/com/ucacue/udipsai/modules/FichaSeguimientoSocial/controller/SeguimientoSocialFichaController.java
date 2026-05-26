@@ -4,6 +4,7 @@ package com.ucacue.udipsai.modules.FichaSeguimientoSocial.controller;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import com.ucacue.udipsai.modules.FichaSeguimientoSocial.Services.SeguimientoSocialFichaService;
 import com.ucacue.udipsai.modules.FichaSeguimientoSocial.dto.SeguimientoSocialFichaDTO;
@@ -21,6 +22,7 @@ public class SeguimientoSocialFichaController {
 
     // POST: http://localhost:8081/api/seguimientos-sociales (Para Guardar)
     @PostMapping
+    @PreAuthorize("hasAuthority('PERM_SEGUIMIENTO_SOCIAL_CREAR')")
     public ResponseEntity<SeguimientoSocialFichaDTO> crearSeguimiento(@RequestBody SeguimientoSocialFichaRequest request) {
         SeguimientoSocialFichaDTO nuevoSeguimiento = seguimientoService.crearSeguimiento(request);
         return new ResponseEntity<>(nuevoSeguimiento, HttpStatus.CREATED);
@@ -29,6 +31,7 @@ public class SeguimientoSocialFichaController {
 
     // GET: http://localhost:8081/api/seguimientos-sociales
     @GetMapping
+    @PreAuthorize("hasAuthority('PERM_SEGUIMIENTO_SOCIAL')")
     public ResponseEntity<List<SeguimientoSocialFichaDTO>> listarTodos() {
         List<SeguimientoSocialFichaDTO> lista = seguimientoService.listarTodos();
         return ResponseEntity.ok(lista);
@@ -36,6 +39,7 @@ public class SeguimientoSocialFichaController {
 
     // GET: http://localhost:8081/api/seguimientos-sociales/paciente/1 (Listar por paciente)
     @GetMapping("/paciente/{pacienteId}")
+    @PreAuthorize("hasAuthority('PERM_SEGUIMIENTO_SOCIAL')")
     public ResponseEntity<List<SeguimientoSocialFichaDTO>> listarPorPaciente(@PathVariable Integer pacienteId) {
         List<SeguimientoSocialFichaDTO> lista = seguimientoService.listarPorPaciente(pacienteId);
         return ResponseEntity.ok(lista);
@@ -43,21 +47,26 @@ public class SeguimientoSocialFichaController {
     
     // GET: http://localhost:8081/api/seguimientos-sociales/1 (Obtener uno solo)
     @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('PERM_SEGUIMIENTO_SOCIAL')")
     public ResponseEntity<SeguimientoSocialFichaDTO> obtenerPorId(@PathVariable Integer id) {
         return ResponseEntity.ok(seguimientoService.obtenerPorId(id));
     }
+    
     @PutMapping("/{id}")
-public ResponseEntity<SeguimientoSocialFichaDTO> actualizar(@PathVariable Integer id, @RequestBody SeguimientoSocialFichaRequest request) {
-    return ResponseEntity.ok(seguimientoService.actualizar(id, request));
-}
+    @PreAuthorize("hasAuthority('PERM_SEGUIMIENTO_SOCIAL_EDITAR')")
+    public ResponseEntity<SeguimientoSocialFichaDTO> actualizar(@PathVariable Integer id, @RequestBody SeguimientoSocialFichaRequest request) {
+        return ResponseEntity.ok(seguimientoService.actualizar(id, request));
+    }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('PERM_SEGUIMIENTO_SOCIAL_ELIMINAR')")
     public ResponseEntity<Void> eliminar(@PathVariable Integer id) {
         seguimientoService.eliminar(id);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/reporte/pdf")
+    @PreAuthorize("hasAuthority('PERM_SEGUIMIENTO_SOCIAL')")
     public ResponseEntity<org.springframework.core.io.Resource> descargarPdf(@RequestParam Integer id) throws Exception {
         byte[] pdf = seguimientoService.exportarPdf(id);
 
@@ -71,6 +80,7 @@ public ResponseEntity<SeguimientoSocialFichaDTO> actualizar(@PathVariable Intege
     }
 
     @GetMapping("/reporte/excel")
+    @PreAuthorize("hasAuthority('PERM_SEGUIMIENTO_SOCIAL')")
     public ResponseEntity<org.springframework.core.io.Resource> descargarExcel(
             @RequestParam(required = false) Integer pacienteId) throws java.io.IOException {
 

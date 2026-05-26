@@ -191,7 +191,7 @@ export default function Wais() {
       };
 
       const response = await fetch(
-        "http://localhost:8081/api/wais/calcular-crudo",
+        `${import.meta.env.VITE_API_URL || "http://localhost:8081"}/api/wais/calcular-crudo`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
