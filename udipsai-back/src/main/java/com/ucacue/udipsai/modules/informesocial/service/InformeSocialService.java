@@ -2,7 +2,6 @@ package com.ucacue.udipsai.modules.informesocial.service;
 
 import com.ucacue.udipsai.infrastructure.storage.StorageService;
 import com.ucacue.udipsai.modules.informesocial.domain.InformeSocial;
-import com.ucacue.udipsai.modules.informesocial.domain.InformeSocialFamiliar;
 import com.ucacue.udipsai.modules.informesocial.dto.InformeSocialDTO;
 import com.ucacue.udipsai.modules.informesocial.dto.InformeSocialFamiliarDTO;
 import com.ucacue.udipsai.modules.informesocial.dto.InformeSocialRequest;
