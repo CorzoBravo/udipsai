@@ -201,7 +201,6 @@ export default function FichasUnificadasTable() {
   const [viewInformeModalOpen, setViewInformeModalOpen] = useState(false);
   const activeTab = tabs.find((t) => t.key === activeTabKey) || tabs[0];
 
-  // 👇 BANDERA PARA SABER SI ESTAMOS EN SEGUIMIENTO SOCIAL 👇
   const isSeguimientoSocial = activeTabKey === "seguimiento_social";
 
   const handleTabChange = (key: TabKey) => {
