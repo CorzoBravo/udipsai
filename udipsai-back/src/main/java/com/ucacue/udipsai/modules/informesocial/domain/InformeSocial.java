@@ -4,8 +4,6 @@ import com.ucacue.udipsai.modules.paciente.domain.Paciente;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.util.Date;
-import java.util.List;
-import java.util.ArrayList;
 
 @Entity
 @Table(name = "informes_sociales")
@@ -93,7 +91,4 @@ public class InformeSocial {
     private String recomendaciones;
 
     private String elaboradoPor;
-
-    @OneToMany(mappedBy = "informe", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<InformeSocialFamiliar> familiares = new ArrayList<>();
 }
