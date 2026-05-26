@@ -3,7 +3,7 @@ import ComponentCard from "../../common/ComponentCard";
 import Button from "../../ui/button/Button";
 import { useNavigate, useParams } from "react-router";
 import { toast } from "react-toastify";
-import { MessageSquare, User } from "lucide-react";
+import { MessageSquare, User, Upload, X } from "lucide-react";
 import { pacientesService, especialistasService, pasantesService } from "../../../services";
 import PatientSelector from "../../common/PatientSelector";
 import { useAuth } from "../../../context/AuthContext.tsx";
@@ -20,11 +20,9 @@ import SituacionSaludForm from "./sections/InformeSocial/SituacionSaludForm";
 import SituacionLegalForm from "./sections/InformeSocial/SituacionLegalForm";
 import ValoracionProfesionalForm from "./sections/InformeSocial/ValoracionProfesionalForm";
 import RecomendacionesForm from "./sections/InformeSocial/RecomendacionesForm";
-import FamiliaresForm from "./sections/InformeSocial/FamiliaresForm";
-import GenogramaEcomapaForm from "./sections/InformeSocial/GenogramaEcomapaForm";
+import ConformacionFamiliar from "./sections/SocioEconomica/ConformacionFamiliarForm";
 
-import { informeSocialService } from "../../../services/informeSocial";
-import Label from "../Label.tsx";
+import { fichasService } from "../../../services/fichas";
 
 interface SectionHeaderProps {
   title: string;
@@ -34,15 +32,14 @@ interface SectionHeaderProps {
   onToggle: () => void;
 }
 
-interface FamiliarItem {
-  id?: number;
-  nombres: string;
-  parentesco: string;
-  edad?: number;
-  estadoCivil?: string;
-  instruccion?: string;
-  ocupacion?: string;
-  ingresos?: number;
+export interface FamiliarItem {
+  relacion: string;
+  nombresApellidos: string;
+  edad: number;
+  estadocivil: string;
+  instruccion: string;
+  ocupacion: string;
+  ingresoMensual: number;
 }
 
 export interface InformeSocialState {
@@ -75,19 +72,74 @@ export interface InformeSocialState {
   recomendaciones: string;
   elaboradoPor: string;
 
+  pacienteEstadoCivil?: string;
+  pacienteNacionalidad?: string;
+  pacienteSexo?: string;
+
+  informanteNombre?: string;
+  informanteParentesco?: string;
+  informanteCedula?: string;
+  informanteTelefono?: string;
+  informanteCorreo?: string;
+
   familiares: FamiliarItem[];
 
   genogramFile?: File | null;
   ecomapFile?: File | null;
   genogramaUrl?: string;
   ecomapaUrl?: string;
+
+  tipoFamilia?: string;
+  tipoFamiliaEspecificar?: string;
 }
 
 const getFechaActual = (): string => {
   const today = new Date();
   return today.toISOString();
 };
+const buildRequest = (data: InformeSocialState) => {
+  return {
+    pacienteId: data.paciente?.id || null,
+    especialistaId: data.especialista?.id || null,
+    numFicha: data.numFicha,
+    fechaElaboracion: data.fechaElaboracion,
 
+    descripcionDinamicaFamiliar: data.descripcionDinamicaFamiliar,
+    situacionEconomica: data.situacionEconomica,
+    situacionHabitabilidad: data.situacionHabitabilidad,
+    situacionLaboral: data.situacionLaboral,
+    situacionEntorno: data.situacionEntorno,
+    situacionEducativoCultural: data.situacionEducativoCultural,
+    situacionSalud: data.situacionSalud,
+    situacionLegal: data.situacionLegal,
+    valoracionProfesional: data.valoracionProfesional,
+    recomendaciones: data.recomendaciones,
+    elaboradoPor: data.especialista?.nombresApellidos || "",
+
+    pacienteEstadoCivil: data.pacienteEstadoCivil || "",
+    pacienteNacionalidad: data.pacienteNacionalidad || "",
+    pacienteSexo: data.pacienteSexo || "",
+
+    informanteNombre: data.informanteNombre || "",
+    informanteParentesco: data.informanteParentesco || "",
+    informanteCedula: data.informanteCedula || "",
+    informanteTelefono: data.informanteTelefono || "",
+    informanteCorreo: data.informanteCorreo || "",
+
+    tipoFamilia: data.tipoFamilia || "",
+    tipoFamiliaEspecificar: data.tipoFamiliaEspecificar || "",
+
+    familiares: (data.familiares ?? []).map((f) => ({
+      nombres: f.nombresApellidos,
+      parentesco: f.relacion,
+      edad: f.edad,
+      estadoCivil: f.estadocivil,
+      instruccion: f.instruccion,
+      ocupacion: f.ocupacion,
+      ingresos: f.ingresoMensual,
+    })),
+  };
+};
 export const initialInformeSocialState: InformeSocialState = {
   paciente: {
     id: 0,
@@ -111,7 +163,17 @@ export const initialInformeSocialState: InformeSocialState = {
   valoracionProfesional: "",
   recomendaciones: "",
   elaboradoPor: "",
+  pacienteEstadoCivil: "",
+  pacienteNacionalidad: "",
+  pacienteSexo: "",
+  informanteNombre: "",
+  informanteParentesco: "",
+  informanteCedula: "",
+  informanteTelefono: "",
+  informanteCorreo: "",
   familiares: [],
+  tipoFamilia: "",
+  tipoFamiliaEspecificar: "",
 };
 
 export default function FormularioInformeSocial() {
@@ -125,15 +187,15 @@ export default function FormularioInformeSocial() {
   );
 
   const [loading, setLoading] = useState(false);
-  const [especialistaLoading, setEspecialistaLoading] = useState(true);
   const [showSelector, setShowSelector] = useState(false);
-  const [selectedPatient, setSelectedPatient] = useState<{
-    id: number;
-    nombresApellidos: string;
-    cedula: string;
-  } | null>(null);
+  const [selectedPatient, setSelectedPatient] = useState<any | null>(null);
+
+  const [genogramaPreview, setGenogramaPreview] = useState<string | null>(null);
+  const [ecomapaPreview, setEcomapaPreview] = useState<string | null>(null);
 
   const [secciones, setSecciones] = useState({
+    informacionPaciente: false,
+    informante: false,
     dinamicaFamiliar: false,
     situacionEconomica: false,
     situacionHabitabilidad: false,
@@ -145,7 +207,8 @@ export default function FormularioInformeSocial() {
     valoracionProfesional: false,
     recomendaciones: false,
     familiares: false,
-    genogramaEcomapa: false,
+    genograma: false,
+    ecomapa: false,
   });
 
   const [validaciones, setValidaciones] = useState<Record<string, boolean>>({
@@ -159,8 +222,17 @@ export default function FormularioInformeSocial() {
     situacionLegal: false,
     valoracionProfesional: false,
     recomendaciones: false,
-    familiares: false,
   });
+
+  const handleValidateFamiliares = useCallback(
+    (isValid: boolean, _errors: string[]) => {
+      setValidaciones((prev) => ({
+        ...prev,
+        familiares: isValid,
+      }));
+    },
+    []
+  );
 
   const isEdit = !!id;
 
@@ -168,12 +240,10 @@ export default function FormularioInformeSocial() {
   useEffect(() => {
     const loadEspecialista = async () => {
       if (!userIdentity || !userRole) {
-        setEspecialistaLoading(false);
         return;
       }
 
       try {
-        setEspecialistaLoading(true);
         let especialistaData = null;
 
         if (userRole === "ROLE_ESPECIALISTA") {
@@ -197,8 +267,6 @@ export default function FormularioInformeSocial() {
       } catch (error) {
         console.error("Error al cargar especialista:", error);
         toast.error("Error al cargar la información del especialista.");
-      } finally {
-        setEspecialistaLoading(false);
       }
     };
 
@@ -217,19 +285,58 @@ export default function FormularioInformeSocial() {
   const loadInforme = async (informeId: string) => {
     try {
       setLoading(true);
-      const data = await informeSocialService.obtenerPorId(informeId);
+      const data = await fichasService.obtenerInformeSocial(informeId);
 
       if (data) {
+        let genogramaObjUrl = undefined;
+        let ecomapaObjUrl = undefined;
+
+        if (data.genogramaUrl && data.paciente?.id) {
+          try {
+            genogramaObjUrl = await fichasService.obtenerGenogramaInformeSocial(data.paciente.id);
+          } catch (e) {
+            console.error("Error loading genograma blob preview:", e);
+          }
+        }
+
+        if (data.ecomapaUrl && data.paciente?.id) {
+          try {
+            ecomapaObjUrl = await fichasService.obtenerEcomapaInformeSocial(data.paciente.id);
+          } catch (e) {
+            console.error("Error loading ecomapa blob preview:", e);
+          }
+        }
+
+        const mappedFamiliares = (data.familiares || []).map((f: any) => ({
+          nombresApellidos: f.nombres || "",
+          relacion: f.parentesco || "",
+          edad: f.edad || 0,
+          estadocivil: f.estadoCivil || "",
+          instruccion: f.instruccion || "",
+          ocupacion: f.ocupacion || "",
+          ingresoMensual: f.ingresos || 0,
+        }));
+
         setFormData((prev) => ({
           ...prev,
           ...data,
           especialista: prev.especialista,
           paciente: data.paciente || prev.paciente,
+          genogramaUrl: genogramaObjUrl || prev.genogramaUrl,
+          ecomapaUrl: ecomapaObjUrl || prev.ecomapaUrl,
+          familiares: mappedFamiliares,
+          tipoFamilia: data.tipoFamilia || "",
+          tipoFamiliaEspecificar: data.tipoFamiliaEspecificar || "",
         }));
+
+        if (genogramaObjUrl) setGenogramaPreview(genogramaObjUrl);
+        if (ecomapaObjUrl) setEcomapaPreview(ecomapaObjUrl);
 
         // Marcar secciones como abiertas si tienen datos
         setSecciones({
-          dinamicaFamiliar: !!data.descripcionDinamicaFamiliar,
+          informacionPaciente: !!(data.pacienteEstadoCivil || data.pacienteNacionalidad || data.pacienteSexo),
+          informante: !!(data.informanteNombre || data.informanteParentesco || data.informanteCedula || data.informanteTelefono || data.informanteCorreo),
+          dinamicaFamiliar: !!data.descripcionDinamicaFamiliar || !!data.tipoFamilia,
           situacionEconomica: !!data.situacionEconomica,
           situacionHabitabilidad: !!data.situacionHabitabilidad,
           situacionLaboral: !!data.situacionLaboral,
@@ -240,7 +347,8 @@ export default function FormularioInformeSocial() {
           valoracionProfesional: !!data.valoracionProfesional,
           recomendaciones: !!data.recomendaciones,
           familiares: data.familiares?.length > 0,
-          genogramaEcomapa: !!data.genogramaUrl || !!data.ecomapaUrl,
+          genograma: !!data.genogramaUrl,
+          ecomapa: !!data.ecomapaUrl,
         });
 
         if (data.paciente) {
@@ -264,7 +372,35 @@ export default function FormularioInformeSocial() {
     }
   };
 
-  const handlePatientSelect = (patient: any) => {
+  const importarFamiliaresSocioeconomicos = async (pacienteId: number) => {
+    try {
+      const socioeconomica = await fichasService.obtenerSocioEconomico(pacienteId);
+      if (socioeconomica?.familiares?.length > 0) {
+        const mapped = socioeconomica.familiares.map((f: any) => ({
+          nombresApellidos: f.nombresApellidos || "",
+          relacion: f.relacion || "",
+          edad: f.edad || 0,
+          estadocivil: f.estadoCivil || "",
+          instruccion: f.instruccion || "",
+          ocupacion: f.ocupacion || "",
+          ingresoMensual: f.ingresoMensual || 0,
+        }));
+        setFormData((prev) => ({
+          ...prev,
+          familiares: mapped,
+        }));
+        setSecciones((prevSec) => ({
+          ...prevSec,
+          familiares: true,
+        }));
+        toast.info("Se cargaron los familiares automáticamente");
+      }
+    } catch (e) {
+      console.log("No se pudo cargar familiares automáticamente:", e);
+    }
+  };
+
+  const handlePatientSelect = async (patient: any) => {
     setFormData((prev) => ({
       ...prev,
       paciente: {
@@ -275,81 +411,64 @@ export default function FormularioInformeSocial() {
     }));
     setSelectedPatient(patient);
     setShowSelector(false);
+
+    // Intentar importar familiares automáticamente
+    await importarFamiliaresSocioeconomicos(patient.id);
   };
 
   const handleSubmit = async () => {
-    if (!formData.paciente?.id || formData.paciente.id <= 0) {
+    if (!formData.paciente?.id) {
       toast.error("Debe seleccionar un paciente válido");
       return;
     }
 
-    if (!formData.especialista?.id || formData.especialista.id <= 0) {
+    if (!formData.especialista?.id) {
       toast.error("No se pudo obtener el especialista válido");
-      return;
-    }
-
-    if (!formData.recomendaciones || formData.recomendaciones.trim() === "") {
-      toast.error("Las recomendaciones son requeridas");
-      return;
-    }
-
-    if (!formData.valoracionProfesional || formData.valoracionProfesional.trim() === "") {
-      toast.error("La valoración profesional es requerida");
       return;
     }
 
     try {
       setLoading(true);
 
-      const formDataMultipart = new FormData();
+      const request = buildRequest(formData);
 
-      const informeRequest = {
-        pacienteId: formData.paciente.id,
-        numFicha: formData.numFicha,
-        descripcionDinamicaFamiliar: formData.descripcionDinamicaFamiliar,
-        situacionEconomica: formData.situacionEconomica,
-        situacionHabitabilidad: formData.situacionHabitabilidad,
-        situacionLaboral: formData.situacionLaboral,
-        situacionEntorno: formData.situacionEntorno,
-        situacionEducativoCultural: formData.situacionEducativoCultural,
-        situacionSalud: formData.situacionSalud,
-        situacionLegal: formData.situacionLegal,
-        valoracionProfesional: formData.valoracionProfesional,
-        recomendaciones: formData.recomendaciones,
-        elaboradoPor: formData.elaboradoPor,
-        familiares: formData.familiares.map((f) => ({
-          nombres: f.nombres,
-          parentesco: f.parentesco,
-          edad: f.edad,
-          estadoCivil: f.estadoCivil,
-          instruccion: f.instruccion,
-          ocupacion: f.ocupacion,
-          ingresos: f.ingresos,
-        })),
-      };
-
-      formDataMultipart.append("informe", JSON.stringify(informeRequest));
-
-      if (formData.genogramFile) {
-        formDataMultipart.append("genograma", formData.genogramFile);
+      if (!request.pacienteId || request.pacienteId === 0) {
+        toast.error("Paciente inválido");
+        return;
       }
 
+      if (!request.especialistaId || request.especialistaId === 0) {
+        toast.error("Especialista inválido");
+        return;
+      }
+
+      const uploadData = new FormData();
+      uploadData.append("informe", JSON.stringify(request));
+
+      if (formData.genogramFile) {
+        uploadData.append("genograma", formData.genogramFile);
+      }
       if (formData.ecomapFile) {
-        formDataMultipart.append("ecomapa", formData.ecomapFile);
+        uploadData.append("ecomapa", formData.ecomapFile);
       }
 
       if (isEdit && formData.id) {
-        await informeSocialService.actualizar(formData.id, formDataMultipart);
+        await fichasService.actualizarInformeSocial(formData.id, uploadData);
         toast.success("Informe actualizado exitosamente");
       } else {
-        await informeSocialService.crear(formDataMultipart);
+        await fichasService.crearInformeSocial(uploadData);
         toast.success("Informe creado exitosamente");
       }
 
       navigate("/fichas");
     } catch (error: any) {
-      console.error("Error saving informe:", error);
-      toast.error(isEdit ? "Error al actualizar el informe" : "Error al crear el informe");
+      console.error("ERROR COMPLETO:", error?.response?.data);
+
+      toast.error(
+        isEdit
+          ? "Error al actualizar el informe"
+          : "Error al crear el informe"
+      );
     } finally {
       setLoading(false);
     }
@@ -443,10 +562,353 @@ export default function FormularioInformeSocial() {
         />
       </div>
 
-      {/* DINÁMICA FAMILIAR */}
+      {/* SECCIÓN INFORMACIÓN DEL PACIENTE */}
       <SectionHeader
-        title="Dinámica Familiar"
-        description="Descripción de la dinámica familiar"
+        title="Información del Paciente"
+        description="Datos personales, de salud y educación del paciente"
+        icon={<User size={24} />}
+        isOpen={secciones.informacionPaciente}
+        onToggle={() =>
+          setSecciones({
+            ...secciones,
+            informacionPaciente: !secciones.informacionPaciente,
+          })
+        }
+      />
+      {secciones.informacionPaciente && selectedPatient && (
+        <ComponentCard title="Información del Paciente">
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Nombres y Apellidos
+                </label>
+                <p className="px-4 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg text-gray-800 dark:text-gray-100">
+                  {selectedPatient.nombresApellidos || "—"}
+                </p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Cédula / Pasaporte
+                </label>
+                <p className="px-4 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg text-gray-800 dark:text-gray-100">
+                  {selectedPatient.cedula || "—"}
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Lugar de Nacimiento
+                </label>
+                <p className="px-4 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg text-gray-800 dark:text-gray-100">
+                  {selectedPatient.lugarNacimiento || "—"}
+                </p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Fecha de Nacimiento
+                </label>
+                <p className="px-4 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg text-gray-800 dark:text-gray-100">
+                  {selectedPatient.fechaNacimiento || "—"}
+                </p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Edad
+                </label>
+                <p className="px-4 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg text-gray-800 dark:text-gray-100">
+                  {selectedPatient.fechaNacimiento
+                    ? `${new Date().getFullYear() - new Date(selectedPatient.fechaNacimiento).getFullYear()} años`
+                    : "—"}
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Estado Civil
+                </label>
+                <select
+                  value={formData.pacienteEstadoCivil || ""}
+                  onChange={(e) => setFormData({ ...formData, pacienteEstadoCivil: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-medium"
+                >
+                  <option value="">Seleccione...</option>
+                  <option value="Soltero/a">Soltero/a</option>
+                  <option value="Casado/a">Casado/a</option>
+                  <option value="Divorciado/a">Divorciado/a</option>
+                  <option value="Viudo/a">Viudo/a</option>
+                  <option value="Unión de Hecho">Unión de Hecho</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Nacionalidad
+                </label>
+                <input
+                  type="text"
+                  value={formData.pacienteNacionalidad || ""}
+                  onChange={(e) => setFormData({ ...formData, pacienteNacionalidad: e.target.value })}
+                  placeholder="Ej: Ecuatoriana"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-medium"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Sexo
+                </label>
+                <select
+                  value={formData.pacienteSexo || ""}
+                  onChange={(e) => setFormData({ ...formData, pacienteSexo: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-medium"
+                >
+                  <option value="">Seleccione...</option>
+                  <option value="Masculino">Masculino</option>
+                  <option value="Femenino">Femenino</option>
+                  <option value="Otro">Otro</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Tipo de Discapacidad
+                </label>
+                <p className="px-4 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg text-gray-800 dark:text-gray-100">
+                  {selectedPatient.tieneDiscapacidad ? selectedPatient.tipoDiscapacidad : "Ninguna"}
+                </p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Porcentaje de Discapacidad
+                </label>
+                <p className="px-4 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg text-gray-800 dark:text-gray-100">
+                  {selectedPatient.tieneDiscapacidad && selectedPatient.porcentajeDiscapacidad !== undefined ? `${selectedPatient.porcentajeDiscapacidad}%` : "—"}
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Institución Educativa
+                </label>
+                <p className="px-4 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg text-gray-800 dark:text-gray-100">
+                  {selectedPatient.institucionEducativa?.nombre || "—"}
+                </p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Nivel Educativo
+                </label>
+                <p className="px-4 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg text-gray-800 dark:text-gray-100">
+                  {selectedPatient.nivelEducativo || "—"}
+                </p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Año que Cursa
+                </label>
+                <p className="px-4 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg text-gray-800 dark:text-gray-100">
+                  {selectedPatient.anioEducacion || "—"}
+                </p>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Lugar de Residencia
+              </label>
+              <p className="px-4 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg text-gray-800 dark:text-gray-100">
+                {selectedPatient.domicilio || "—"}
+              </p>
+            </div>
+          </div>
+        </ComponentCard>
+      )}
+
+      {/* SECCIÓN PERSONA QUE PROPORCIONA LA INFORMACIÓN */}
+      <SectionHeader
+        title="Persona que Proporciona la Información"
+        description="Datos del informante y su relación con el paciente"
+        icon={<User size={24} />}
+        isOpen={secciones.informante}
+        onToggle={() =>
+          setSecciones({
+            ...secciones,
+            informante: !secciones.informante,
+          })
+        }
+      />
+      {secciones.informante && (
+        <ComponentCard title="Persona que Proporciona la Información">
+          <div className="space-y-4">
+            {formData.familiares && formData.familiares.length > 0 && (
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                  Seleccionar de Miembros Familiares
+                </label>
+                <select
+                  value=""
+                  onChange={(e) => {
+                    const idx = e.target.value;
+                    if (idx !== "") {
+                      const familiar = formData.familiares[Number(idx)];
+                      setFormData({
+                        ...formData,
+                        informanteNombre: familiar.nombresApellidos,
+                        informanteParentesco: familiar.relacion,
+                      });
+                    }
+                  }}
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-medium"
+                >
+                  <option value="">-- Seleccione un familiar para auto-completar --</option>
+                  {formData.familiares.map((familiar, idx) => (
+                    <option key={idx} value={idx}>
+                      {familiar.nombresApellidos} ({familiar.relacion})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Nombre Completo
+                </label>
+                <input
+                  type="text"
+                  value={formData.informanteNombre || ""}
+                  onChange={(e) => setFormData({ ...formData, informanteNombre: e.target.value })}
+                  placeholder="Nombre de la persona"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-medium"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Parentesco
+                </label>
+                <input
+                  type="text"
+                  value={formData.informanteParentesco || ""}
+                  onChange={(e) => setFormData({ ...formData, informanteParentesco: e.target.value })}
+                  placeholder="Ej: Madre, Padre, Tío/a"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-medium"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Cédula / Pasaporte
+                </label>
+                <input
+                  type="text"
+                  value={formData.informanteCedula || ""}
+                  onChange={(e) => setFormData({ ...formData, informanteCedula: e.target.value })}
+                  placeholder="Cédula del informante"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-medium"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Teléfono
+                </label>
+                <input
+                  type="text"
+                  value={formData.informanteTelefono || ""}
+                  onChange={(e) => setFormData({ ...formData, informanteTelefono: e.target.value })}
+                  placeholder="Número de teléfono"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-medium"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Correo Electrónico
+              </label>
+              <input
+                type="email"
+                value={formData.informanteCorreo || ""}
+                onChange={(e) => setFormData({ ...formData, informanteCorreo: e.target.value })}
+                placeholder="ejemplo@correo.com"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-medium"
+              />
+            </div>
+          </div>
+        </ComponentCard>
+      )}
+
+      {/* 1. DATOS DE IDENTIFICACIÓN */}
+      <SectionHeader
+        title="1. DATOS DE IDENTIFICACIÓN"
+        description="Información de los miembros familiares"
+        icon={<MessageSquare size={24} />}
+        isOpen={secciones.familiares}
+        onToggle={() =>
+          setSecciones({
+            ...secciones,
+            familiares: !secciones.familiares,
+          })
+        }
+      />
+      {secciones.familiares && (
+        <ComponentCard title="1. DATOS DE IDENTIFICACIÓN">
+          <ConformacionFamiliar
+            data={formData.familiares}
+            onChange={(index, field, value) => {
+              setFormData((prev) => {
+                const updated = [...prev.familiares];
+                updated[index] = {
+                  ...updated[index],
+                  [field]: value,
+                };
+                return {
+                  ...prev,
+                  familiares: updated,
+                };
+              });
+            }}
+            onAdd={() => {
+              setFormData((prev) => ({
+                ...prev,
+                familiares: [
+                  ...prev.familiares,
+                  {
+                    relacion: "",
+                    nombresApellidos: "",
+                    edad: 0,
+                    estadocivil: "",
+                    instruccion: "",
+                    ocupacion: "",
+                    ingresoMensual: 0,
+                  },
+                ],
+              }));
+            }}
+            onRemove={(index) => {
+              setFormData((prev) => ({
+                ...prev,
+                familiares: prev.familiares.filter((_, i) => i !== index),
+              }));
+            }}
+            onValidate={handleValidateFamiliares}
+          />
+        </ComponentCard>
+      )}
+
+      {/* 2. CONFORMACIÓN FAMILIAR */}
+      <SectionHeader
+        title="2. CONFORMACIÓN FAMILIAR"
+        description="Tipo de familia y descripción de la dinámica familiar"
         icon={<MessageSquare size={24} />}
         isOpen={secciones.dinamicaFamiliar}
         onToggle={() =>
@@ -457,22 +919,151 @@ export default function FormularioInformeSocial() {
         }
       />
       {secciones.dinamicaFamiliar && (
-        <ComponentCard title="Dinámica Familiar">
-          <DinamicaFamiliarForm
-            data={formData.descripcionDinamicaFamiliar}
-            onChange={(value) =>
-              setFormData({ ...formData, descripcionDinamicaFamiliar: value })
-            }
-            onValidate={(isValid) =>
-              setValidaciones({ ...validaciones, dinamicaFamiliar: isValid })
-            }
-          />
+        <ComponentCard title="2. CONFORMACIÓN FAMILIAR">
+          <div className="space-y-6">
+            {/* Tipo de Familia Matrix */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                Tipo de Familia
+              </label>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {["Nuclear", "Extensa", "Monoparental", "Otros"].map((tipo) => (
+                  <label
+                    key={tipo}
+                    className={`flex items-center gap-2 p-3 rounded-xl border cursor-pointer transition-all ${
+                      formData.tipoFamilia === tipo
+                        ? "border-brand-500 bg-brand-50/20 text-brand-700 dark:border-gray-500 dark:bg-gray-800 dark:text-gray-200"
+                        : "border-gray-200 bg-white hover:bg-gray-50 dark:border-gray-800 dark:bg-white/[0.03] text-gray-700 dark:text-gray-300"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="tipoFamilia"
+                      value={tipo}
+                      checked={formData.tipoFamilia === tipo}
+                      onChange={(e) => {
+                        setFormData({
+                          ...formData,
+                          tipoFamilia: e.target.value,
+                          tipoFamiliaEspecificar: e.target.value === "Otros" ? formData.tipoFamiliaEspecificar : ""
+                        });
+                      }}
+                      className="text-brand-500 focus:ring-brand-400"
+                    />
+                    <span className="text-sm font-medium">{tipo}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {formData.tipoFamilia === "Otros" && (
+              <div className="space-y-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Especificar Tipo de Familia
+                </label>
+                <input
+                  type="text"
+                  value={formData.tipoFamiliaEspecificar || ""}
+                  onChange={(e) => setFormData({ ...formData, tipoFamiliaEspecificar: e.target.value })}
+                  placeholder="Escriba el tipo de familia..."
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-medium"
+                />
+              </div>
+            )}
+
+            <hr className="border-gray-150 dark:border-gray-700 my-4" />
+
+            {/* Dinámica Familiar Text Area */}
+            <DinamicaFamiliarForm
+              data={formData.descripcionDinamicaFamiliar}
+              onChange={(value) =>
+                setFormData({ ...formData, descripcionDinamicaFamiliar: value })
+              }
+              onValidate={(isValid) =>
+                setValidaciones({ ...validaciones, dinamicaFamiliar: isValid })
+              }
+            />
+          </div>
         </ComponentCard>
       )}
 
-      {/* SITUACIÓN ECONÓMICA */}
+      {/* 3. GENOGRAMA */}
       <SectionHeader
-        title="Situación Económica"
+        title="3. GENOGRAMA"
+        description="Documento gráfico del genograma"
+        icon={<MessageSquare size={24} />}
+        isOpen={secciones.genograma}
+        onToggle={() =>
+          setSecciones({
+            ...secciones,
+            genograma: !secciones.genograma,
+          })
+        }
+      />
+      {secciones.genograma && (
+        <ComponentCard title="3. GENOGRAMA">
+          <div className="space-y-3">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Genograma
+            </label>
+            <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center">
+              {genogramaPreview ? (
+                <div className="space-y-3">
+                  <img
+                    src={genogramaPreview}
+                    alt="Genograma"
+                    className="mx-auto max-h-60 max-w-full rounded-lg shadow-sm"
+                  />
+                  <button
+                    onClick={() => {
+                      setFormData({
+                        ...formData,
+                        genogramFile: null,
+                        genogramaUrl: undefined,
+                      });
+                      setGenogramaPreview(null);
+                    }}
+                    className="text-red-500 hover:text-red-700 text-sm flex items-center justify-center gap-1 mx-auto"
+                  >
+                    <X size={14} />
+                    Eliminar genograma
+                  </button>
+                </div>
+              ) : (
+                <label className="cursor-pointer space-y-2 block">
+                  <Upload className="mx-auto h-8 w-8 text-gray-400" />
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Clic para cargar genograma
+                  </p>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        setFormData({
+                          ...formData,
+                          genogramFile: file,
+                        });
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          setGenogramaPreview(reader.result as string);
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                    className="hidden"
+                  />
+                </label>
+              )}
+            </div>
+          </div>
+        </ComponentCard>
+      )}
+
+      {/* 4. SITUACIÓN ECONÓMICA */}
+      <SectionHeader
+        title="4. SITUACIÓN ECONÓMICA"
         description="Información sobre la situación económica"
         icon={<MessageSquare size={24} />}
         isOpen={secciones.situacionEconomica}
@@ -484,7 +1075,7 @@ export default function FormularioInformeSocial() {
         }
       />
       {secciones.situacionEconomica && (
-        <ComponentCard title="Situación Económica">
+        <ComponentCard title="4. SITUACIÓN ECONÓMICA">
           <SituacionEconomicaInformeForm
             data={formData.situacionEconomica}
             onChange={(value) =>
@@ -497,10 +1088,10 @@ export default function FormularioInformeSocial() {
         </ComponentCard>
       )}
 
-      {/* SITUACIÓN HABITABILIDAD */}
+      {/* 5. SITUACIÓN DE HABITABILIDAD O VIVIENDA */}
       <SectionHeader
-        title="Habitabilidad"
-        description="Condiciones de habitabilidad"
+        title="5. SITUACIÓN DE HABITABILIDAD O VIVIENDA"
+        description="Condiciones de habitabilidad y vivienda"
         icon={<MessageSquare size={24} />}
         isOpen={secciones.situacionHabitabilidad}
         onToggle={() =>
@@ -511,7 +1102,7 @@ export default function FormularioInformeSocial() {
         }
       />
       {secciones.situacionHabitabilidad && (
-        <ComponentCard title="Situación de Habitabilidad">
+        <ComponentCard title="5. SITUACIÓN DE HABITABILIDAD O VIVIENDA">
           <SituacionHabitabilidadForm
             data={formData.situacionHabitabilidad}
             onChange={(value) =>
@@ -524,9 +1115,9 @@ export default function FormularioInformeSocial() {
         </ComponentCard>
       )}
 
-      {/* SITUACIÓN LABORAL */}
+      {/* 6. SITUACIÓN LABORAL */}
       <SectionHeader
-        title="Situación Laboral"
+        title="6. SITUACIÓN LABORAL"
         description="Información laboral"
         icon={<MessageSquare size={24} />}
         isOpen={secciones.situacionLaboral}
@@ -538,7 +1129,7 @@ export default function FormularioInformeSocial() {
         }
       />
       {secciones.situacionLaboral && (
-        <ComponentCard title="Situación Laboral">
+        <ComponentCard title="6. SITUACIÓN LABORAL">
           <SituacionLaboralForm
             data={formData.situacionLaboral}
             onChange={(value) =>
@@ -551,9 +1142,9 @@ export default function FormularioInformeSocial() {
         </ComponentCard>
       )}
 
-      {/* SITUACIÓN ENTORNO */}
+      {/* 7. SITUACIÓN SOCIAL: RELACIÓN CON EL ENTORNO */}
       <SectionHeader
-        title="Entorno Social"
+        title="7. SITUACIÓN SOCIAL: RELACIÓN CON EL ENTORNO"
         description="Información del entorno social"
         icon={<MessageSquare size={24} />}
         isOpen={secciones.situacionEntorno}
@@ -565,7 +1156,7 @@ export default function FormularioInformeSocial() {
         }
       />
       {secciones.situacionEntorno && (
-        <ComponentCard title="Situación del Entorno">
+        <ComponentCard title="7. SITUACIÓN SOCIAL: RELACIÓN CON EL ENTORNO">
           <SituacionEntornoForm
             data={formData.situacionEntorno}
             onChange={(value) =>
@@ -578,9 +1169,9 @@ export default function FormularioInformeSocial() {
         </ComponentCard>
       )}
 
-      {/* SITUACIÓN EDUCATIVO CULTURAL */}
+      {/* 8. SITUACIÓN EDUCATIVO – CULTURAL */}
       <SectionHeader
-        title="Educativo y Cultural"
+        title="8. SITUACIÓN EDUCATIVO – CULTURAL"
         description="Información educativa y cultural"
         icon={<MessageSquare size={24} />}
         isOpen={secciones.situacionEducativoCultural}
@@ -592,7 +1183,7 @@ export default function FormularioInformeSocial() {
         }
       />
       {secciones.situacionEducativoCultural && (
-        <ComponentCard title="Situación Educativa y Cultural">
+        <ComponentCard title="8. SITUACIÓN EDUCATIVO – CULTURAL">
           <SituacionEducativoCulturalForm
             data={formData.situacionEducativoCultural}
             onChange={(value) =>
@@ -608,10 +1199,10 @@ export default function FormularioInformeSocial() {
         </ComponentCard>
       )}
 
-      {/* SITUACIÓN SALUD */}
+      {/* 9. SITUACIÓN DE SALUD FISICA Y PSICOLOGICA */}
       <SectionHeader
-        title="Salud"
-        description="Información de salud"
+        title="9. SITUACIÓN DE SALUD FISICA Y PSICOLOGICA"
+        description="Información de salud física y psicológica"
         icon={<MessageSquare size={24} />}
         isOpen={secciones.situacionSalud}
         onToggle={() =>
@@ -622,7 +1213,7 @@ export default function FormularioInformeSocial() {
         }
       />
       {secciones.situacionSalud && (
-        <ComponentCard title="Situación de Salud">
+        <ComponentCard title="9. SITUACIÓN DE SALUD FISICA Y PSICOLOGICA">
           <SituacionSaludForm
             data={formData.situacionSalud}
             onChange={(value) =>
@@ -635,10 +1226,10 @@ export default function FormularioInformeSocial() {
         </ComponentCard>
       )}
 
-      {/* SITUACIÓN LEGAL */}
+      {/* 10. SITUACIÓN LEGAL (en caso de existir) */}
       <SectionHeader
-        title="Situación Legal"
-        description="Información legal"
+        title="10. SITUACIÓN LEGAL (en caso de existir)"
+        description="Información de la situación legal"
         icon={<MessageSquare size={24} />}
         isOpen={secciones.situacionLegal}
         onToggle={() =>
@@ -649,7 +1240,7 @@ export default function FormularioInformeSocial() {
         }
       />
       {secciones.situacionLegal && (
-        <ComponentCard title="Situación Legal">
+        <ComponentCard title="10. SITUACIÓN LEGAL (en caso de existir)">
           <SituacionLegalForm
             data={formData.situacionLegal}
             onChange={(value) =>
@@ -662,9 +1253,83 @@ export default function FormularioInformeSocial() {
         </ComponentCard>
       )}
 
-      {/* VALORACIÓN PROFESIONAL */}
+      {/* 11. ECOMAPA */}
       <SectionHeader
-        title="Valoración Profesional"
+        title="11. ECOMAPA"
+        description="Documento gráfico del ecomapa"
+        icon={<MessageSquare size={24} />}
+        isOpen={secciones.ecomapa}
+        onToggle={() =>
+          setSecciones({
+            ...secciones,
+            ecomapa: !secciones.ecomapa,
+          })
+        }
+      />
+      {secciones.ecomapa && (
+        <ComponentCard title="11. ECOMAPA">
+          <div className="space-y-3">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Ecomapa
+            </label>
+            <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center">
+              {ecomapaPreview ? (
+                <div className="space-y-3">
+                  <img
+                    src={ecomapaPreview}
+                    alt="Ecomapa"
+                    className="mx-auto max-h-60 max-w-full rounded-lg shadow-sm"
+                  />
+                  <button
+                    onClick={() => {
+                      setFormData({
+                        ...formData,
+                        ecomapFile: null,
+                        ecomapaUrl: undefined,
+                      });
+                      setEcomapaPreview(null);
+                    }}
+                    className="text-red-500 hover:text-red-700 text-sm flex items-center justify-center gap-1 mx-auto"
+                  >
+                    <X size={14} />
+                    Eliminar ecomapa
+                  </button>
+                </div>
+              ) : (
+                <label className="cursor-pointer space-y-2 block">
+                  <Upload className="mx-auto h-8 w-8 text-gray-400" />
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Clic para cargar ecomapa
+                  </p>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        setFormData({
+                          ...formData,
+                          ecomapFile: file,
+                        });
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          setEcomapaPreview(reader.result as string);
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                    className="hidden"
+                  />
+                </label>
+              )}
+            </div>
+          </div>
+        </ComponentCard>
+      )}
+
+      {/* 12. VALORACIÓN PROFESIONAL */}
+      <SectionHeader
+        title="12. VALORACIÓN PROFESIONAL"
         description="Análisis profesional del caso"
         icon={<MessageSquare size={24} />}
         isOpen={secciones.valoracionProfesional}
@@ -676,7 +1341,7 @@ export default function FormularioInformeSocial() {
         }
       />
       {secciones.valoracionProfesional && (
-        <ComponentCard title="Valoración Profesional">
+        <ComponentCard title="12. VALORACIÓN PROFESIONAL">
           <ValoracionProfesionalForm
             data={formData.valoracionProfesional}
             onChange={(value) =>
@@ -689,9 +1354,9 @@ export default function FormularioInformeSocial() {
         </ComponentCard>
       )}
 
-      {/* RECOMENDACIONES */}
+      {/* 13. RECOMENDACIONES */}
       <SectionHeader
-        title="Recomendaciones"
+        title="13. RECOMENDACIONES"
         description="Recomendaciones profesionales"
         icon={<MessageSquare size={24} />}
         isOpen={secciones.recomendaciones}
@@ -703,7 +1368,7 @@ export default function FormularioInformeSocial() {
         }
       />
       {secciones.recomendaciones && (
-        <ComponentCard title="Recomendaciones">
+        <ComponentCard title="13. RECOMENDACIONES">
           <RecomendacionesForm
             data={formData.recomendaciones}
             onChange={(value) =>
@@ -711,61 +1376,6 @@ export default function FormularioInformeSocial() {
             }
             onValidate={(isValid) =>
               setValidaciones({ ...validaciones, recomendaciones: isValid })
-            }
-          />
-        </ComponentCard>
-      )}
-
-      {/* FAMILIARES */}
-      <SectionHeader
-        title="Miembros Familiares"
-        description="Información de familiares"
-        icon={<MessageSquare size={24} />}
-        isOpen={secciones.familiares}
-        onToggle={() =>
-          setSecciones({
-            ...secciones,
-            familiares: !secciones.familiares,
-          })
-        }
-      />
-      {secciones.familiares && (
-        <ComponentCard title="Miembros Familiares">
-          <FamiliaresForm
-            data={formData.familiares}
-            onChange={(familiares) =>
-              setFormData({ ...formData, familiares })
-            }
-            onValidate={(isValid) =>
-              setValidaciones({ ...validaciones, familiares: isValid })
-            }
-          />
-        </ComponentCard>
-      )}
-
-      {/* GENOGRAMA Y ECOMAPA */}
-      <SectionHeader
-        title="Genograma y Ecomapa"
-        description="Documentos gráficos"
-        icon={<MessageSquare size={24} />}
-        isOpen={secciones.genogramaEcomapa}
-        onToggle={() =>
-          setSecciones({
-            ...secciones,
-            genogramaEcomapa: !secciones.genogramaEcomapa,
-          })
-        }
-      />
-      {secciones.genogramaEcomapa && (
-        <ComponentCard title="Genograma y Ecomapa">
-          <GenogramaEcomapaForm
-            genogramaUrl={formData.genogramaUrl}
-            ecomapaUrl={formData.ecomapaUrl}
-            onGenogramaChange={(file) =>
-              setFormData({ ...formData, genogramFile: file })
-            }
-            onEcomapaChange={(file) =>
-              setFormData({ ...formData, ecomapFile: file })
             }
           />
         </ComponentCard>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Upload, X } from "lucide-react";
 
 interface GenogramaEcomapaFormProps {
@@ -20,6 +20,18 @@ const GenogramaEcomapaForm: React.FC<GenogramaEcomapaFormProps> = ({
   const [ecomapaPreview, setEcomapaPreview] = useState<string | null>(
     ecomapaUrl || null
   );
+
+  useEffect(() => {
+    if (genogramaUrl) {
+      setGenogramaPreview(genogramaUrl);
+    }
+  }, [genogramaUrl]);
+
+  useEffect(() => {
+    if (ecomapaUrl) {
+      setEcomapaPreview(ecomapaUrl);
+    }
+  }, [ecomapaUrl]);
 
   const handleGenogramaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

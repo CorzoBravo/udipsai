@@ -281,20 +281,28 @@ export const fichasService = {
 
 
   obtenerInformeSocial: async (id: number | string) => {
-    const res = await api.get(`/informes-sociales/${id}`);
+    const res = await api.get(`/informes-sociales/paciente/id/${id}`);
     return res.data;
   },
 
-  crearInformeSocial: async (data: any) => {
-    const res = await api.post("/informes-sociales/crear", data);
+  crearInformeSocial: async (data: FormData) => {
+    const res = await api.post("/informes-sociales/crear", data, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
     return res.data;
   },
-  
-  actualizarInformeSocial: async (id: number | string, data: any) => {
-    const res = await api.put(`/informes-sociales/${id}`, data);
+
+  actualizarInformeSocial: async (id: number | string, data: FormData) => {
+    const res = await api.put(`/informes-sociales/${id}`, data, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
     return res.data;
   },
-  
+
   eliminarInformeSocial: async (id: number | string) => {
     const res = await api.delete(`/informes-sociales/${id}`);
     return res.data;
@@ -459,7 +467,36 @@ export const fichasService = {
       throw error;
     }
   },
-  
+
+  obtenerGenogramaInformeSocial: async (pacienteId: number | string) => {
+    try {
+      const response = await api.get(
+        `/informes-sociales/paciente/${pacienteId}/genograma`,
+        {
+          responseType: "blob",
+        }
+      );
+      return URL.createObjectURL(response.data);
+    } catch (error) {
+      console.error("Error al obtener genograma de informe social:", error);
+      throw error;
+    }
+  },
+
+  obtenerEcomapaInformeSocial: async (pacienteId: number | string) => {
+    try {
+      const response = await api.get(
+        `/informes-sociales/paciente/${pacienteId}/ecomapa`,
+        {
+          responseType: "blob",
+        }
+      );
+      return URL.createObjectURL(response.data);
+    } catch (error) {
+      console.error("Error al obtener ecomapa de informe social:", error);
+      throw error;
+    }
+  },
 };
 
 
