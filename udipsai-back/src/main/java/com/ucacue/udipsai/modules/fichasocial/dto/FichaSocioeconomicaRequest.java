@@ -19,6 +19,11 @@ public class FichaSocioeconomicaRequest {
     private DesgloseEconomico desgloseEconomico;
     private SituacionEconomica situacionEconomica;
 
+    private String pacienteInstruccion;
+    private String pacienteOcupacion;
+    private String pacienteEmail;
+    private String pacienteNumCarne;
+
     private String conclusiones;
     private String recomendaciones;
     private String responsable;

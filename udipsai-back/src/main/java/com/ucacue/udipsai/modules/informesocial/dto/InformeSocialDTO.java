@@ -23,10 +23,6 @@ public class InformeSocialDTO {
     private String tipoFamilia;
     private String tipoFamiliaEspecificar;
 
-    private String pacienteEstadoCivil;
-    private String pacienteNacionalidad;
-    private String pacienteSexo;
-
     private String informanteNombre;
     private String informanteParentesco;
     private String informanteCedula;

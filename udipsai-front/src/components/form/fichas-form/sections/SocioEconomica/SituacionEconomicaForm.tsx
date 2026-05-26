@@ -1,13 +1,10 @@
-import React from "react";
-import { toast } from "react-toastify";
+import React, { useEffect, useRef } from "react";
 
 interface SituacionEconomicaFormProps {
     data: {
         totalIngresos: number;
         totalEgresos: number;
         condicionEconomica: string;
-        capacidadGastoEvaluacion: string;
-        actividadesTiempoLibre: string;
     };
 
     desglose: {
@@ -31,14 +28,8 @@ interface SituacionEconomicaFormProps {
 
 const validateSituacionEconomica = (data: SituacionEconomicaFormProps["data"]): string[] => {
     const errors: string[] = [];
-    if (!data.actividadesTiempoLibre || data.actividadesTiempoLibre.trim() === "") {
-        errors.push("Actividades de tiempo libre es requerido");
-    }
     if (!data.condicionEconomica || data.condicionEconomica.trim() === "") {
         errors.push("Condición económica es requerida");
-    }
-    if (!data.capacidadGastoEvaluacion || data.capacidadGastoEvaluacion.trim() === "") {
-        errors.push("Capacidad de gasto en evaluación es requerida");
     }
     return errors;
 };
@@ -51,13 +42,21 @@ const SituacionEconomicaForm: React.FC<SituacionEconomicaFormProps> = ({
     onChange,
     onValidate,
 }) => {
+    const lastValidationRef = useRef("");
+
+    useEffect(() => {
+        const errors = validateSituacionEconomica(data);
+        const serialized = JSON.stringify(errors);
+        if (serialized !== lastValidationRef.current) {
+            lastValidationRef.current = serialized;
+            onValidate?.(errors.length === 0, errors);
+        }
+    }, [data, onValidate]);
 
     const calcularTotalIngresos = (familiares: any[]) => {
-        const total = familiares.reduce((acc, fam) => {
+        return familiares.reduce((acc, fam) => {
             return acc + Number(fam.ingresoMensual || 0);
         }, 0);
-
-        return total;
     };
     const totalIngresos = calcularTotalIngresos(familiares);
 
@@ -73,219 +72,22 @@ const SituacionEconomicaForm: React.FC<SituacionEconomicaFormProps> = ({
         );
     };
     const totalEgresos = calcularTotalEgresos(desglose);
+
+    // Sync totals to parent when they change
+    useEffect(() => {
+        if (data.totalIngresos !== totalIngresos) {
+            onChange("totalIngresos", totalIngresos);
+        }
+    }, [totalIngresos, data.totalIngresos]);
+
+    useEffect(() => {
+        if (data.totalEgresos !== totalEgresos) {
+            onChange("totalEgresos", totalEgresos);
+        }
+    }, [totalEgresos, data.totalEgresos]);
+
     return (
         <div className="space-y-6">
-            <div className="space-y-3">
-                <h3 className="text-md font-semibold text-gray-700 dark:text-gray-200">
-                    Uso de tiempo libre
-                </h3>
-
-                {(() => {
-
-                    // =========================
-                    // RECUPERAR DATOS
-                    // =========================
-                    let actividadesSeleccionadas: string[] = [];
-
-                    try {
-                        actividadesSeleccionadas = data.actividadesTiempoLibre
-                            ? JSON.parse(data.actividadesTiempoLibre)
-                            : [];
-                    } catch {
-                        actividadesSeleccionadas = [];
-                    }
-
-                    // =========================
-                    // ACTIVIDADES NORMALES
-                    // =========================
-                    const actividadesBase = [
-                        "Deporte",
-                        "Música",
-                        "TV",
-                        "Internet",
-                        "Paseos familiares",
-                        "Amigos/as",
-                    ];
-
-                    // =========================
-                    // TOGGLE NORMAL
-                    // =========================
-                    const toggleActividad = (value: string) => {
-                        let nuevas = [...actividadesSeleccionadas];
-
-                        if (nuevas.includes(value)) {
-                            nuevas = nuevas.filter((a) => a !== value);
-                        } else {
-                            nuevas.push(value);
-                        }
-
-                        onChange(
-                            "actividadesTiempoLibre",
-                            JSON.stringify(nuevas)
-                        );
-                    };
-
-                    // =========================
-                    // TOGGLE ESPECIAL
-                    // =========================
-                    const toggleEspecial = (
-                        prefijo: string,
-                        checked: boolean
-                    ) => {
-
-                        let nuevas = actividadesSeleccionadas.filter(
-                            (a) => !a.startsWith(prefijo)
-                        );
-
-                        if (checked) {
-                            nuevas.push(`${prefijo}`);
-                        }
-
-                        onChange(
-                            "actividadesTiempoLibre",
-                            JSON.stringify(nuevas)
-                        );
-                    };
-
-                    // =========================
-                    // ACTUALIZAR TEXTO
-                    // =========================
-                    const actualizarTextoEspecial = (
-                        prefijo: string,
-                        valor: string
-                    ) => {
-
-                        let nuevas = actividadesSeleccionadas.filter(
-                            (a) => !a.startsWith(prefijo)
-                        );
-
-                        nuevas.push(`${prefijo}${valor}`);
-
-                        onChange(
-                            "actividadesTiempoLibre",
-                            JSON.stringify(nuevas)
-                        );
-                    };
-
-                    return (
-                        <div className="space-y-4">
-
-                            {/* CHECKBOXES */}
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-
-                                {actividadesBase.map((item) => (
-                                    <label
-                                        key={item}
-                                        className="flex items-center gap-2"
-                                    >
-                                        <input
-                                            type="checkbox"
-                                            checked={actividadesSeleccionadas.includes(item)}
-                                            onChange={() => toggleActividad(item)}
-                                        />
-
-                                        {item}
-                                    </label>
-                                ))}
-
-                                {/* Trabajo infantil */}
-                                <label className="flex items-center gap-2">
-                                    <input
-                                        type="checkbox"
-                                        checked={actividadesSeleccionadas.some((a) =>
-                                            a.startsWith("Trabajo infantil:")
-                                        )}
-                                        onChange={(e) =>
-                                            toggleEspecial(
-                                                "Trabajo infantil:",
-                                                e.target.checked
-                                            )
-                                        }
-                                    />
-
-                                    Trabajo infantil
-                                </label>
-
-                                {/* Otros */}
-                                <label className="flex items-center gap-2">
-                                    <input
-                                        type="checkbox"
-                                        checked={actividadesSeleccionadas.some((a) =>
-                                            a.startsWith("Otros:")
-                                        )}
-                                        onChange={(e) =>
-                                            toggleEspecial(
-                                                "Otros:",
-                                                e.target.checked
-                                            )
-                                        }
-                                    />
-
-                                    Otros
-                                </label>
-                            </div>
-
-                            {/* INPUT TRABAJO INFANTIL */}
-                            {actividadesSeleccionadas.some((a) =>
-                                a.startsWith("Trabajo infantil:")
-                            ) && (
-                                    <div>
-                                        <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Especifique trabajo infantil
-                                        </label>
-
-                                        <input
-                                            type="text"
-                                            value={
-                                                actividadesSeleccionadas
-                                                    .find((a) =>
-                                                        a.startsWith("Trabajo infantil:")
-                                                    )
-                                                    ?.replace("Trabajo infantil:", "") || ""
-                                            }
-                                            onChange={(e) =>
-                                                actualizarTextoEspecial(
-                                                    "Trabajo infantil:",
-                                                    e.target.value
-                                                )
-                                            }
-                                            className="w-full rounded-lg border border-gray-300 px-3 py-2 dark:bg-gray-900 dark:border-gray-700"
-                                        />
-                                    </div>
-                                )}
-
-                            {/* INPUT OTROS */}
-                            {actividadesSeleccionadas.some((a) =>
-                                a.startsWith("Otros:")
-                            ) && (
-                                    <div>
-                                        <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Especifique otros
-                                        </label>
-
-                                        <input
-                                            type="text"
-                                            value={
-                                                actividadesSeleccionadas
-                                                    .find((a) =>
-                                                        a.startsWith("Otros:")
-                                                    )
-                                                    ?.replace("Otros:", "") || ""
-                                            }
-                                            onChange={(e) =>
-                                                actualizarTextoEspecial(
-                                                    "Otros:",
-                                                    e.target.value
-                                                )
-                                            }
-                                            className="w-full rounded-lg border border-gray-300 px-3 py-2 dark:bg-gray-900 dark:border-gray-700"
-                                        />
-                                    </div>
-                                )}
-                        </div>
-                    );
-                })()}
-            </div>
             {/* ================= INGRESOS ================= */}
             <div className="space-y-3">
                 <h3 className="text-md font-semibold text-gray-700 dark:text-gray-200">
@@ -359,7 +161,7 @@ const SituacionEconomicaForm: React.FC<SituacionEconomicaFormProps> = ({
 
                     <div>
                         <label className="text-sm text-gray-600 dark:text-gray-300">
-                            Servicios Básicos
+                            Servicios Básicos (Agua, Luz)
                         </label>
                         <input
                             type="number"
@@ -450,77 +252,23 @@ const SituacionEconomicaForm: React.FC<SituacionEconomicaFormProps> = ({
                 </div>
             </div>
 
-            {/* ================= RESULTADO ================= */}
-            <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
-
-                <div>
-                    <label className="block text-sm mb-2 text-gray-600 dark:text-gray-300">
-                        Condición Económica
-                    </label>
-                    <select
-                        value={data.condicionEconomica || ""}
-                        onChange={(e) => onChange("condicionEconomica", e.target.value)}
-                        className="w-full px-4 py-2 border rounded-lg bg-white dark:bg-gray-800"
-                    >
-                        <option value="">Seleccione</option>
-                        <option value="Muy buena">Muy buena</option>
-                        <option value="Buena">Buena</option>
-                        <option value="Regular">Regular</option>
-                        <option value="Mala">Mala</option>
-                    </select>
-                </div>
-
-                <div className="space-y-3 md:grid-cols-2">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        ¿Hasta cuánto podría gastar en una evaluación psicopedagógica?
-                    </label>
-
-                    {[
-                        { label: "3$ por sesión", value: "3" },
-                        { label: "5$ por sesión", value: "5" },
-                        { label: "10$ por sesión", value: "10" },
-                        { label: "15$ por sesión", value: "15" },
-                        { label: "No puedo cubrir los gastos", value: "NO" },
-                    ].map((op) => (
-                        <label key={op.value} className="flex items-center gap-2">
-                            <input
-                                type="radio"
-                                name="capacidadGasto"
-                                value={op.value}
-                                checked={data.capacidadGastoEvaluacion?.startsWith(op.value)}
-                                onChange={() =>
-                                    onChange("capacidadGastoEvaluacion", op.label) // 👈 guardas el texto completo
-                                }
-                            />
-                            {op.label}
-                        </label>
-                    ))}
-
-                    {/* Otros */}
-                    <div className="flex items-center gap-2">
-                        <input
-                            type="radio"
-                            name="capacidadGasto"
-                            value="OTRO"
-                            checked={data.capacidadGastoEvaluacion?.startsWith("OTRO")}
-                            onChange={() => onChange("capacidadGastoEvaluacion", "OTRO")}
-                        />
-                        <span>Otros:</span>
-
-                        <input
-                            type="text"
-                            placeholder="Especifique..."
-                            disabled={!data.capacidadGastoEvaluacion?.startsWith("OTRO")}
-                            onChange={(e) =>
-                                onChange("capacidadGastoEvaluacion", "OTRO: " + e.target.value)
-                            }
-                            className="px-2 py-1 border rounded"
-                        />
-                    </div>
-                </div>
-
+            {/* ================= CONDICIÓN ================= */}
+            <div>
+                <label className="block text-sm mb-2 text-gray-600 dark:text-gray-300">
+                    Condición Económica
+                </label>
+                <select
+                    value={data.condicionEconomica || ""}
+                    onChange={(e) => onChange("condicionEconomica", e.target.value)}
+                    className="w-full px-4 py-2 border rounded-lg bg-white dark:bg-gray-800"
+                >
+                    <option value="">Seleccione</option>
+                    <option value="Muy buena">Muy buena</option>
+                    <option value="Buena">Buena</option>
+                    <option value="Regular">Regular</option>
+                    <option value="Mala">Mala</option>
+                </select>
             </div>
-
         </div>
     );
 };

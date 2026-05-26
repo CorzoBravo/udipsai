@@ -408,6 +408,10 @@ export default function FormularioInformeSocial() {
         nombresApellidos: patient.nombresApellidos,
         cedula: patient.cedula,
       },
+      // Auto-fill patient information desde el paciente
+      pacienteEstadoCivil: patient.estadoCivil || "",
+      pacienteNacionalidad: patient.nacionalidad || "",
+      pacienteSexo: patient.sexo || "",
     }));
     setSelectedPatient(patient);
     setShowSelector(false);
@@ -631,45 +635,25 @@ export default function FormularioInformeSocial() {
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Estado Civil
                 </label>
-                <select
-                  value={formData.pacienteEstadoCivil || ""}
-                  onChange={(e) => setFormData({ ...formData, pacienteEstadoCivil: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-medium"
-                >
-                  <option value="">Seleccione...</option>
-                  <option value="Soltero/a">Soltero/a</option>
-                  <option value="Casado/a">Casado/a</option>
-                  <option value="Divorciado/a">Divorciado/a</option>
-                  <option value="Viudo/a">Viudo/a</option>
-                  <option value="Unión de Hecho">Unión de Hecho</option>
-                </select>
+                <p className="px-4 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg text-gray-800 dark:text-gray-100">
+                  {selectedPatient.estadoCivil || "—"}
+                </p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Nacionalidad
                 </label>
-                <input
-                  type="text"
-                  value={formData.pacienteNacionalidad || ""}
-                  onChange={(e) => setFormData({ ...formData, pacienteNacionalidad: e.target.value })}
-                  placeholder="Ej: Ecuatoriana"
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-medium"
-                />
+                <p className="px-4 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg text-gray-800 dark:text-gray-100">
+                  {selectedPatient.nacionalidad || "—"}
+                </p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Sexo
                 </label>
-                <select
-                  value={formData.pacienteSexo || ""}
-                  onChange={(e) => setFormData({ ...formData, pacienteSexo: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-medium"
-                >
-                  <option value="">Seleccione...</option>
-                  <option value="Masculino">Masculino</option>
-                  <option value="Femenino">Femenino</option>
-                  <option value="Otro">Otro</option>
-                </select>
+                <p className="px-4 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg text-gray-800 dark:text-gray-100">
+                  {selectedPatient.sexo || "—"}
+                </p>
               </div>
             </div>
 
@@ -930,11 +914,10 @@ export default function FormularioInformeSocial() {
                 {["Nuclear", "Extensa", "Monoparental", "Otros"].map((tipo) => (
                   <label
                     key={tipo}
-                    className={`flex items-center gap-2 p-3 rounded-xl border cursor-pointer transition-all ${
-                      formData.tipoFamilia === tipo
+                    className={`flex items-center gap-2 p-3 rounded-xl border cursor-pointer transition-all ${formData.tipoFamilia === tipo
                         ? "border-brand-500 bg-brand-50/20 text-brand-700 dark:border-gray-500 dark:bg-gray-800 dark:text-gray-200"
                         : "border-gray-200 bg-white hover:bg-gray-50 dark:border-gray-800 dark:bg-white/[0.03] text-gray-700 dark:text-gray-300"
-                    }`}
+                      }`}
                   >
                     <input
                       type="radio"

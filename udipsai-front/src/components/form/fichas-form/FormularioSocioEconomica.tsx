@@ -156,6 +156,11 @@ export interface FichaSocioeconomicaState {
 
   conclusiones: string;
   recomendaciones: string;
+
+  pacienteInstruccion?: string;
+  pacienteOcupacion?: string;
+  pacienteEmail?: string;
+  pacienteNumCarne?: string;
 }
 
 const getFechaActual = (): string => {
@@ -260,6 +265,10 @@ export const initialFichaSocioeconomicaState: FichaSocioeconomicaState = {
   },
   conclusiones: "",
   recomendaciones: "",
+  pacienteInstruccion: "",
+  pacienteOcupacion: "",
+  pacienteEmail: "",
+  pacienteNumCarne: "",
 };
 const buildRequest = (data: FichaSocioeconomicaState) => {
   return {
@@ -303,6 +312,11 @@ const buildRequest = (data: FichaSocioeconomicaState) => {
     },
 
     desgloseEconomico: data.desgloseEconomico,
+
+    pacienteInstruccion: data.pacienteInstruccion,
+    pacienteOcupacion: data.pacienteOcupacion,
+    pacienteEmail: data.pacienteEmail,
+    pacienteNumCarne: data.pacienteNumCarne,
 
     conclusiones: data.conclusiones,
     recomendaciones: data.recomendaciones,
@@ -348,19 +362,26 @@ export default function FormularioFichaSocioeconomica() {
   const [verRiesgosFamiliares, setVerRiesgosFamiliares] = useState(false);
   const [verVulnerabilidades, setVerVulnerabilidades] = useState(false);
   const [verRelacionFamiliar, setVerRelacionFamiliar] = useState(false);
+  const [verTipoHogar, setVerTipoHogar] = useState(false);
   const [verVivienda, setVerVivienda] = useState(false);
   const [verSalud, setVerSalud] = useState(false);
+  const [verTiempoLibre, setVerTiempoLibre] = useState(false);
   const [verSituacionEconomica, setVerSituacionEconomica] = useState(false);
   const [verConclusiones, setVerConclusiones] = useState(false);
+  const [verRecomendaciones, setVerRecomendaciones] = useState(false);
+  const [verCapacidadGasto, setVerCapacidadGasto] = useState(false);
 
   const [validaciones, setValidaciones] = useState<Record<string, boolean>>({
     conformacionFamiliar: false,
     riesgosFamiliares: false,
     vulnerabilidades: false,
     relacionFamiliar: false,
+    tipoHogar: false,
     condicionesVivienda: false,
     salud: false,
+    tiempoLibre: false,
     situacionEconomica: false,
+    capacidadGasto: false,
   });
   const [selectedPatient, setSelectedPatient] = useState<{
     id: number;
@@ -533,15 +554,25 @@ export default function FormularioFichaSocioeconomica() {
           initialFichaSocioeconomicaState.conclusiones
         );
 
-        if (hasInformacionPaciente) setVerInformacionPaciente(true);
+         if (hasInformacionPaciente) setVerInformacionPaciente(true);
         if (hasConformacionFamiliar) setVerConformacionFamiliar(true);
         if (hasRiesgosFamiliares) setVerRiesgosFamiliares(true);
         if (hasVulnerabilidades) setVerVulnerabilidades(true);
-        if (hasDinamicaFamiliar) setVerRelacionFamiliar(true);
+        if (hasDinamicaFamiliar) {
+          setVerRelacionFamiliar(true);
+          setVerTipoHogar(true);
+        }
         if (hasVivienda) setVerVivienda(true);
         if (hasSalud) setVerSalud(true);
-        if (hasSituacionEconomica) setVerSituacionEconomica(true);
-        if (hasConclusiones) setVerConclusiones(true);
+        if (hasSituacionEconomica) {
+          setVerSituacionEconomica(true);
+          setVerTiempoLibre(true);
+          setVerCapacidadGasto(true);
+        }
+        if (hasConclusiones) {
+          setVerConclusiones(true);
+          setVerRecomendaciones(true);
+        }
 
         if (data.paciente) {
           try {
@@ -620,15 +651,20 @@ export default function FormularioFichaSocioeconomica() {
       { key: "riesgosFamiliares", nombre: "Riesgos Familiares", activa: verRiesgosFamiliares },
       { key: "vulnerabilidades", nombre: "Vulnerabilidades", activa: verVulnerabilidades },
       { key: "relacionFamiliar", nombre: "Dinámica Familiar", activa: verRelacionFamiliar },
+      { key: "tipoHogar", nombre: "Tipo de Hogar", activa: verTipoHogar, check: () => !!formData.dinamicaFamiliar.tipoHogar?.trim() },
       { key: "condicionesVivienda", nombre: "Condiciones de Vivienda", activa: verVivienda },
       { key: "salud", nombre: "Salud", activa: verSalud },
+      { key: "tiempoLibre", nombre: "Uso del Tiempo Libre", activa: verTiempoLibre, check: () => !!formData.situacionEconomica.actividadesTiempoLibre?.trim() },
       { key: "situacionEconomica", nombre: "Situación Económica", activa: verSituacionEconomica },
+      { key: "capacidadGasto", nombre: "Capacidad de Gasto en Evaluación", activa: verCapacidadGasto, check: () => !!formData.situacionEconomica.capacidadGastoEvaluacion?.trim() }
     ];
 
     for (const seccion of seccionesRequeridas) {
-      if (seccion.activa && !validaciones[seccion.key]) {
-        toast.error(`Complete la sección de ${seccion.nombre}`);
-        return;
+      if (seccion.activa) {
+        if (seccion.check ? !seccion.check() : !validaciones[seccion.key]) {
+          toast.error(`Complete la sección de ${seccion.nombre}`);
+          return;
+        }
       }
     }
 
@@ -794,6 +830,16 @@ export default function FormularioFichaSocioeconomica() {
             >
               <InformacionPacienteForm
                 data={formData.paciente}
+                pacienteInstruccion={formData.pacienteInstruccion}
+                pacienteOcupacion={formData.pacienteOcupacion}
+                pacienteEmail={formData.pacienteEmail}
+                pacienteNumCarne={formData.pacienteNumCarne}
+                onChangePaciente={(field, value) => {
+                  setFormData((prev) => ({
+                    ...prev,
+                    [field]: value,
+                  }));
+                }}
                 onChange={(field, value) =>
                   handleNestedChange("paciente", field, value)
                 }
@@ -953,7 +999,7 @@ export default function FormularioFichaSocioeconomica() {
 
         {/* DINAMICA */}
         <SectionHeader
-          title="Dinámica Familiar"
+          title="5. Relaciones Familiares"
           description="Relaciones y dinámicas dentro del núcleo familiar"
           icon={<MessageSquare size={24} />}
           isOpen={verRelacionFamiliar}
@@ -965,7 +1011,7 @@ export default function FormularioFichaSocioeconomica() {
         {verRelacionFamiliar && (
           <div className="mt-6 space-y-6 animate-in slide-in-from-bottom-4 duration-500">
             <ComponentCard
-              title="Dinámica Familiar"
+              title="Relaciones Familiares"
               onHeaderClick={() =>
                 setVerRelacionFamiliar(!verRelacionFamiliar)
               }
@@ -991,9 +1037,43 @@ export default function FormularioFichaSocioeconomica() {
           </div>
         )}
 
+        {/* TIPO DE HOGAR */}
+        <SectionHeader
+          title="6. Tipo de Hogar"
+          description="Estructura y funcionalidad familiar"
+          icon={<MessageSquare size={24} />}
+          isOpen={verTipoHogar}
+          onToggle={() => setVerTipoHogar(!verTipoHogar)}
+        />
+        {verTipoHogar && (
+          <div className="mt-6 space-y-6 animate-in slide-in-from-bottom-4 duration-500">
+            <ComponentCard
+              title="Tipo de Hogar"
+              onHeaderClick={() => setVerTipoHogar(!verTipoHogar)}
+              bodyDisabled={!verTipoHogar}
+            >
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {["Completo", "Incompleto", "Funcional", "Disfuncional"].map((t) => (
+                  <label key={t} className="flex items-center gap-2 cursor-pointer p-3 border rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800">
+                    <input
+                      type="radio"
+                      name="tipoHogar"
+                      value={t}
+                      checked={formData.dinamicaFamiliar.tipoHogar === t}
+                      onChange={() => handleNestedChange("dinamicaFamiliar", "tipoHogar", t)}
+                      className="text-brand-500 focus:ring-brand-500"
+                    />
+                    <span className="text-gray-700 dark:text-gray-300 font-medium">{t}</span>
+                  </label>
+                ))}
+              </div>
+            </ComponentCard>
+          </div>
+        )}
+
         {/* VIVIENDA */}
         <SectionHeader
-          title="Condiciones de Vivienda"
+          title="7. Vivienda y Habitabilidad"
           description="Información sobre las condiciones habitacionales"
           icon={<MessageSquare size={24} />}
           isOpen={verVivienda}
@@ -1003,7 +1083,7 @@ export default function FormularioFichaSocioeconomica() {
         {verVivienda && (
           <div className="mt-6 space-y-6 animate-in slide-in-from-bottom-4 duration-500">
             <ComponentCard
-              title="Condiciones de Vivienda"
+              title="Vivienda y Habitabilidad"
               onHeaderClick={() =>
                 setVerVivienda(!verVivienda)
               }
@@ -1027,7 +1107,7 @@ export default function FormularioFichaSocioeconomica() {
 
         {/* SALUD */}
         <SectionHeader
-          title="Salud"
+          title="8. Situación de Salud"
           description="Información sobre la salud del paciente y su familia"
           icon={<MessageSquare size={24} />}
           isOpen={verSalud}
@@ -1068,9 +1148,130 @@ export default function FormularioFichaSocioeconomica() {
           />
         )}
 
+        {/* USO DEL TIEMPO LIBRE */}
+        <SectionHeader
+          title="9. Uso del Tiempo Libre"
+          description="Actividades recreativas del estudiante"
+          icon={<MessageSquare size={24} />}
+          isOpen={verTiempoLibre}
+          onToggle={() => setVerTiempoLibre(!verTiempoLibre)}
+        />
+        {verTiempoLibre && (
+          <div className="mt-6 space-y-6 animate-in slide-in-from-bottom-4 duration-500">
+            <ComponentCard
+              title="Uso del Tiempo Libre"
+              onHeaderClick={() => setVerTiempoLibre(!verTiempoLibre)}
+              bodyDisabled={!verTiempoLibre}
+            >
+              {(() => {
+                let actividadesSeleccionadas: string[] = [];
+                try {
+                  actividadesSeleccionadas = formData.situacionEconomica.actividadesTiempoLibre
+                    ? JSON.parse(formData.situacionEconomica.actividadesTiempoLibre)
+                    : [];
+                } catch {
+                  actividadesSeleccionadas = [];
+                }
+
+                const actividadesBase = [
+                  "Deporte",
+                  "Música",
+                  "TV",
+                  "Internet",
+                  "Paseos familiares",
+                  "Amigos/as",
+                ];
+
+                const toggleActividad = (value: string) => {
+                  let nuevas = [...actividadesSeleccionadas];
+                  if (nuevas.includes(value)) {
+                    nuevas = nuevas.filter((a) => a !== value);
+                  } else {
+                    nuevas.push(value);
+                  }
+                  handleNestedChange("situacionEconomica", "actividadesTiempoLibre", JSON.stringify(nuevas));
+                };
+
+                const toggleEspecial = (prefijo: string, checked: boolean) => {
+                  let nuevas = actividadesSeleccionadas.filter((a) => !a.startsWith(prefijo));
+                  if (checked) {
+                    nuevas.push(`${prefijo}`);
+                  }
+                  handleNestedChange("situacionEconomica", "actividadesTiempoLibre", JSON.stringify(nuevas));
+                };
+
+                const actualizarTextoEspecial = (prefijo: string, valor: string) => {
+                  let nuevas = actividadesSeleccionadas.filter((a) => !a.startsWith(prefijo));
+                  nuevas.push(`${prefijo}${valor}`);
+                  handleNestedChange("situacionEconomica", "actividadesTiempoLibre", JSON.stringify(nuevas));
+                };
+
+                return (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                      {actividadesBase.map((item) => (
+                        <label key={item} className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={actividadesSeleccionadas.includes(item)}
+                            onChange={() => toggleActividad(item)}
+                          />
+                          {item}
+                        </label>
+                      ))}
+
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={actividadesSeleccionadas.some((a) => a.startsWith("Trabajo infantil:"))}
+                          onChange={(e) => toggleEspecial("Trabajo infantil:", e.target.checked)}
+                        />
+                        Trabajo infantil
+                      </label>
+
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={actividadesSeleccionadas.some((a) => a.startsWith("Otros:"))}
+                          onChange={(e) => toggleEspecial("Otros:", e.target.checked)}
+                        />
+                        Otros
+                      </label>
+                    </div>
+
+                    {actividadesSeleccionadas.some((a) => a.startsWith("Trabajo infantil:")) && (
+                      <div className="mt-3">
+                        <Label>Especifique trabajo infantil</Label>
+                        <input
+                          type="text"
+                          value={actividadesSeleccionadas.find((a) => a.startsWith("Trabajo infantil:"))?.replace("Trabajo infantil:", "") || ""}
+                          onChange={(e) => actualizarTextoEspecial("Trabajo infantil:", e.target.value)}
+                          className="w-full rounded-lg border border-gray-300 px-3 py-2 dark:bg-gray-900 dark:border-gray-700 mt-2"
+                        />
+                      </div>
+                    )}
+
+                    {actividadesSeleccionadas.some((a) => a.startsWith("Otros:")) && (
+                      <div className="mt-3">
+                        <Label>Especifique otros</Label>
+                        <input
+                          type="text"
+                          value={actividadesSeleccionadas.find((a) => a.startsWith("Otros:"))?.replace("Otros:", "") || ""}
+                          onChange={(e) => actualizarTextoEspecial("Otros:", e.target.value)}
+                          className="w-full rounded-lg border border-gray-300 px-3 py-2 dark:bg-gray-900 dark:border-gray-700 mt-2"
+                        />
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+            </ComponentCard>
+          </div>
+        )}
+
         {/* SITUACION ECONOMICA */}
         <SectionHeader
-          title="Situación Económica"
+          title="10. Situación Económica"
           description="Información sobre ingresos, egresos y condiciones económicas"
           icon={<MessageSquare size={24} />}
           isOpen={verSituacionEconomica}
@@ -1106,14 +1307,115 @@ export default function FormularioFichaSocioeconomica() {
 
         {/* CONCLUSIONES */}
         <SectionHeader
-          title="Conclusiones y Recomendaciones"
-          description="Análisis final del caso"
+          title="11. Conclusiones"
+          description="Conclusiones finales de la evaluación"
           icon={<MessageSquare size={24} />}
           isOpen={verConclusiones}
           onToggle={() =>
             setVerConclusiones(!verConclusiones)
           }
         />
+        {verConclusiones && (
+          <div className="mt-6 space-y-6 animate-in slide-in-from-bottom-4 duration-500">
+            <ComponentCard
+              title="Conclusiones"
+              onHeaderClick={() => setVerConclusiones(!verConclusiones)}
+              bodyDisabled={!verConclusiones}
+            >
+              <textarea
+                value={formData.conclusiones}
+                onChange={(e) => setFormData((prev) => ({ ...prev, conclusiones: e.target.value }))}
+                placeholder="Ingrese las conclusiones de la evaluación"
+                className="w-full min-h-[120px] p-3 rounded-lg border border-gray-300 dark:border-gray-700 dark:bg-gray-900"
+              />
+            </ComponentCard>
+          </div>
+        )}
+
+        {/* RECOMENDACIONES */}
+        <SectionHeader
+          title="12. Recomendaciones"
+          description="Recomendaciones sugeridas"
+          icon={<MessageSquare size={24} />}
+          isOpen={verRecomendaciones}
+          onToggle={() =>
+            setVerRecomendaciones(!verRecomendaciones)
+          }
+        />
+        {verRecomendaciones && (
+          <div className="mt-6 space-y-6 animate-in slide-in-from-bottom-4 duration-500">
+            <ComponentCard
+              title="Recomendaciones"
+              onHeaderClick={() => setVerRecomendaciones(!verRecomendaciones)}
+              bodyDisabled={!verRecomendaciones}
+            >
+              <textarea
+                value={formData.recomendaciones}
+                onChange={(e) => setFormData((prev) => ({ ...prev, recomendaciones: e.target.value }))}
+                placeholder="Ingrese las recomendaciones sugeridas"
+                className="w-full min-h-[120px] p-3 rounded-lg border border-gray-300 dark:border-gray-700 dark:bg-gray-900"
+              />
+            </ComponentCard>
+          </div>
+        )}
+
+        {/* CAPACIDAD DE GASTO */}
+        <SectionHeader
+          title="13. Capacidad de Gasto en Evaluación"
+          description="Hasta cuánto podría gastar en una evaluación psicopedagógica"
+          icon={<MessageSquare size={24} />}
+          isOpen={verCapacidadGasto}
+          onToggle={() => setVerCapacidadGasto(!verCapacidadGasto)}
+        />
+        {verCapacidadGasto && (
+          <div className="mt-6 space-y-6 animate-in slide-in-from-bottom-4 duration-500">
+            <ComponentCard
+              title="Capacidad de Gasto"
+              onHeaderClick={() => setVerCapacidadGasto(!verCapacidadGasto)}
+              bodyDisabled={!verCapacidadGasto}
+            >
+              <div className="space-y-3">
+                {[
+                  { label: "3$ por sesión", value: "3" },
+                  { label: "5$ por sesión", value: "5" },
+                  { label: "10$ por sesión", value: "10" },
+                  { label: "15$ por sesión", value: "15" },
+                  { label: "No puedo cubrir los gastos", value: "NO" },
+                ].map((op) => (
+                  <label key={op.value} className="flex items-center gap-2 cursor-pointer p-2 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg">
+                    <input
+                      type="radio"
+                      name="capacidadGasto"
+                      value={op.value}
+                      checked={formData.situacionEconomica.capacidadGastoEvaluacion?.startsWith(op.value)}
+                      onChange={() => handleNestedChange("situacionEconomica", "capacidadGastoEvaluacion", op.label)}
+                    />
+                    <span className="text-gray-700 dark:text-gray-300">{op.label}</span>
+                  </label>
+                ))}
+
+                <div className="flex items-center gap-2 p-2 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg">
+                  <input
+                    type="radio"
+                    name="capacidadGasto"
+                    value="OTRO"
+                    checked={formData.situacionEconomica.capacidadGastoEvaluacion?.startsWith("OTRO")}
+                    onChange={() => handleNestedChange("situacionEconomica", "capacidadGastoEvaluacion", "OTRO")}
+                  />
+                  <span className="text-gray-700 dark:text-gray-300">Otros:</span>
+                  <input
+                    type="text"
+                    placeholder="Especifique..."
+                    disabled={!formData.situacionEconomica.capacidadGastoEvaluacion?.startsWith("OTRO")}
+                    value={formData.situacionEconomica.capacidadGastoEvaluacion?.startsWith("OTRO:") ? formData.situacionEconomica.capacidadGastoEvaluacion.replace("OTRO:", "").trim() : ""}
+                    onChange={(e) => handleNestedChange("situacionEconomica", "capacidadGastoEvaluacion", "OTRO: " + e.target.value)}
+                    className="px-2 py-1 border rounded bg-white dark:bg-gray-900 text-gray-800 dark:text-white"
+                  />
+                </div>
+              </div>
+            </ComponentCard>
+          </div>
+        )}
 
         {/* BOTONES */}
         <div className="flex justify-end gap-4">

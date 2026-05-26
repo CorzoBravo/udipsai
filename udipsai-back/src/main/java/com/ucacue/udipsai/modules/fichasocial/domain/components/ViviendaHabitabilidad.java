@@ -35,6 +35,9 @@ public class ViviendaHabitabilidad {
     @Column(name = "agua_procedencia")
     private String procedenciaAgua;
 
+    @Column(name = "tipo_sanitario")
+    private String tipoSanitario;
+
     @Column(name = "energia_electrica_focos")
     private String detalleElectricidad; 
 }

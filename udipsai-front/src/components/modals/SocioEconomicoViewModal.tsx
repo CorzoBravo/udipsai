@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { Modal } from "../ui/modal";
 import { toast } from "react-toastify";
-import { fichasService } from "../../services";
+import { fichasService, pacientesService } from "../../services";
 import { FichaSocioeconomicaState } from "../form/fichas-form/FormularioSocioEconomica";
-import { FileDown } from "lucide-react";
+import { FileDown, User, Users, ShieldAlert, HeartPulse, Home, Clock, DollarSign, FileText } from "lucide-react";
 import Button from "../ui/button/Button";
+
 interface SocioEconomicoProps {
   isOpen: boolean;
   onClose: () => void;
@@ -18,19 +19,28 @@ export const SocioEconomicoViewModal: React.FC<SocioEconomicoProps> = ({
 }) => {
   const [data, setData] = useState<FichaSocioeconomicaState | null>(null);
   const [loading, setLoading] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   useEffect(() => {
     if (isOpen && pacienteId) {
       cargarFicha();
     }
   }, [isOpen, pacienteId]);
-  const [isExporting, setIsExporting] = useState(false);
+
   const cargarFicha = async () => {
     try {
       setLoading(true);
 
-      // ⚠️ CAMBIA ESTE MÉTODO SI TIENES UNO POR PACIENTE
       const res = await fichasService.obtenerSocioEconomico(pacienteId);
+
+      let fullPaciente = res.paciente;
+      if (res.paciente?.id) {
+        try {
+          fullPaciente = await pacientesService.obtenerPorId(res.paciente.id);
+        } catch (pError) {
+          console.warn("No se pudo cargar el detalle completo del paciente:", pError);
+        }
+      }
 
       const mappedFamiliares = (res.familiares || []).map((f: any) => ({
         ...f,
@@ -38,8 +48,7 @@ export const SocioEconomicoViewModal: React.FC<SocioEconomicoProps> = ({
           problema: f.problemas_salud || false,
           enfermedad: f.descripProblemasSaludFamiliar || "",
           catastrofica: f.enfermedad_catastrofica || false,
-          enfermedadCatastrofica:
-            f.descripEnfermedadCatastrofica || "",
+          enfermedadCatastrofica: f.descripEnfermedadCatastrofica || "",
           discapacidad: f.discapacidad || false,
           descripDiscapacidad: f.descripDiscapacidad || "",
         },
@@ -47,6 +56,10 @@ export const SocioEconomicoViewModal: React.FC<SocioEconomicoProps> = ({
 
       const loadedData: FichaSocioeconomicaState = {
         ...res,
+        paciente: {
+          ...res.paciente,
+          ...fullPaciente,
+        },
         riesgosFamiliares: res.riesgosSociales || {},
         vulnerabilidadesDetalle: res.vulnerabilidad || {},
         familiares: mappedFamiliares,
@@ -86,14 +99,63 @@ export const SocioEconomicoViewModal: React.FC<SocioEconomicoProps> = ({
     const valorNormalizado = normalizarValor(valor);
 
     return (
-      <div className="flex flex-wrap gap-4">
-        {opciones.map((op) => (
-          <span key={op}>
-            ({valorNormalizado === op ? "X" : " "}) {op}
-          </span>
-        ))}
+      <div className="flex flex-wrap gap-2.5 mt-1.5">
+        {opciones.map((op) => {
+          const selected =
+            valorNormalizado.toLowerCase() === op.toLowerCase() ||
+            (op === "Hijo único" && valorNormalizado === "HIJO_UNICO") ||
+            (op === "Muy buena" && valorNormalizado === "Muy buena");
+          return (
+            <span
+              key={op}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-xl border text-sm font-medium transition-all ${
+                selected
+                  ? "border-brand-500 bg-brand-50/50 text-brand-700 dark:border-brand-500/50 dark:bg-brand-950/20 dark:text-brand-400"
+                  : "border-gray-200 bg-white text-gray-500 dark:border-gray-800 dark:bg-gray-900/50 dark:text-gray-400"
+              }`}
+            >
+              <span
+                className={`w-2 h-2 rounded-full ${
+                  selected ? "bg-brand-500" : "bg-gray-300 dark:bg-gray-700"
+                }`}
+              />
+              {op}
+            </span>
+          );
+        })}
       </div>
     );
+  };
+
+  const getLugarAgresion = (tipo: string, lugarAgresion?: string) => {
+    if (!lugarAgresion) return "";
+    const item = lugarAgresion.split(",").find((i) => i.startsWith(tipo));
+    return item ? item.split(":")[1] || "" : "";
+  };
+
+  const getActividadesTiempoLibre = (fieldVal?: string) => {
+    if (!fieldVal) return [];
+    try {
+      return JSON.parse(fieldVal) as string[];
+    } catch {
+      return [];
+    }
+  };
+
+  const checkValue = (fieldVal: string | undefined, option: string) => {
+    if (!fieldVal) return false;
+    const values = fieldVal.split(",");
+    if (option === "otros") {
+      return values.some((v) => v.startsWith("otros"));
+    }
+    return values.includes(option);
+  };
+
+  const getOtrosValue = (fieldVal: string | undefined) => {
+    if (!fieldVal) return "";
+    const values = fieldVal.split(",");
+    const otrosItem = values.find((v) => v.startsWith("otros:"));
+    return otrosItem ? otrosItem.split(":")[1] || "" : "";
   };
 
   const handleExportPdf = async () => {
@@ -101,47 +163,22 @@ export const SocioEconomicoViewModal: React.FC<SocioEconomicoProps> = ({
 
     try {
       setIsExporting(true);
-
       toast.info("Generando reporte PDF...");
 
-      const blob =
-        await fichasService.exportarPdfSocioEconomico(
-          pacienteId
-        );
-
-      const url =
-        window.URL.createObjectURL(blob);
-
-      const link =
-        document.createElement("a");
-
+      const blob = await fichasService.exportarPdfSocioEconomico(pacienteId);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
       link.href = url;
-
-      link.setAttribute(
-        "download",
-        `ficha_socioeconomica_${pacienteId}.pdf`
-      );
-
+      link.setAttribute("download", `ficha_socioeconomica_${pacienteId}.pdf`);
       document.body.appendChild(link);
-
       link.click();
-
       link.remove();
-
       window.URL.revokeObjectURL(url);
 
-      toast.success(
-        "Reporte PDF generado correctamente"
-      );
+      toast.success("Reporte PDF generado correctamente");
     } catch (error) {
-      console.error(
-        "Error al exportar PDF:",
-        error
-      );
-
-      toast.error(
-        "Error al generar el reporte PDF"
-      );
+      console.error("Error al exportar PDF:", error);
+      toast.error("Error al generar el reporte PDF");
     } finally {
       setIsExporting(false);
     }
@@ -151,657 +188,1045 @@ export const SocioEconomicoViewModal: React.FC<SocioEconomicoProps> = ({
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} className="max-w-[1000px] p-6">
-      <div className="mb-6 flex items-start justify-between">
+      <div className="mb-6 flex items-start justify-between border-b pb-4 dark:border-gray-800">
         <div>
-          <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-            Ficha Socioeconómica
+          <h3 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+            <FileText className="text-brand-500" /> Ficha Socioeconómica
           </h3>
-
-          <p className="text-gray-500">
-            Paciente ID: {pacienteId}
+          <p className="text-sm text-gray-500 mt-1">
+            Paciente ID: {pacienteId} &bull; Ficha N°: {data?.id ?? "N/A"}
           </p>
-
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleExportPdf}
-            disabled={isExporting}
-            className="flex items-center gap-2"
-          >
-            <FileDown size={16} />
-
-            {isExporting
-              ? "Generando..."
-              : "Reporte PDF"}
-          </Button>
         </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleExportPdf}
+          disabled={isExporting}
+          className="flex items-center gap-2"
+        >
+          <FileDown size={16} />
+          {isExporting ? "Generando..." : "Exportar PDF"}
+        </Button>
       </div>
-      {
-        loading ? (
-          <p className="text-center text-gray-500">Cargando...</p>
-        ) : !data ? (
-          <p className="text-center text-gray-500">
-            No existe ficha socioeconómica
-          </p>
-        ) : (
-          <div className="space-y-8">
 
-            {/* GENERAL */}
-            <section className="space-y-2">
-              <h4 className="font-bold border-b pb-2">
-                Ficha Socioeconómica
-              </h4>
-
-              <p>
-                Fecha de elaboración:{" "}
+      {loading ? (
+        <div className="py-12 flex justify-center items-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500"></div>
+          <span className="ml-3 text-gray-500">Cargando datos de la ficha...</span>
+        </div>
+      ) : !data ? (
+        <div className="py-12 text-center text-gray-500">
+          No existe una ficha socioeconómica registrada para este paciente.
+        </div>
+      ) : (
+        <div className="space-y-8 max-h-[70vh] overflow-y-auto pr-2">
+          {/* HEADER META INFO */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-gray-50 dark:bg-gray-800/40 p-4 rounded-2xl border border-gray-100 dark:border-gray-800">
+            <div>
+              <span className="text-xs text-gray-400 block uppercase font-semibold">Fecha de Elaboración</span>
+              <span className="font-semibold text-gray-800 dark:text-gray-200">
                 {data.fechaElaboracion
-                  ? new Date(
-                    data.fechaElaboracion
-                  ).toLocaleDateString()
+                  ? new Date(data.fechaElaboracion).toLocaleDateString()
                   : "N/A"}
-              </p>
+              </span>
+            </div>
+            <div>
+              <span className="text-xs text-gray-400 block uppercase font-semibold">N° de Ficha</span>
+              <span className="font-semibold text-gray-800 dark:text-gray-200">{data.id ?? "N/A"}</span>
+            </div>
+            <div>
+              <span className="text-xs text-gray-400 block uppercase font-semibold">Especialista Encargado</span>
+              <span className="font-semibold text-gray-800 dark:text-gray-200">
+                {data.especialista?.nombresApellidos ?? (data as any).responsable ?? "N/A"}
+              </span>
+            </div>
+          </div>
 
-              <p>N° de ficha: {data.id ?? "N/A"}</p>
-
-              <p>
-                Especialista encargado:{" "}
-                {data.especialista?.nombresApellidos ?? "N/A"}
-              </p>
-            </section>
-
-            {/* PACIENTE */}
-            <section className="space-y-2">
-              <h4 className="font-bold border-b pb-2">
-                Información del Paciente
-              </h4>
-
-              <p>
-                Nombres y Apellidos:{" "}
-                {data.paciente?.nombresApellidos ?? "N/A"}
-              </p>
-
-              <p>
-                Fecha de Nacimiento:{" "}
-                {data.paciente?.fechaNacimiento ?? "N/A"}
-              </p>
-
-              <p>Edad: {data.paciente?.edad ?? "N/A"}</p>
-
-              <p>
-                Lugar de nacimiento:{" "}
-                {data.paciente?.lugarNacimiento ?? "N/A"}
-              </p>
-
-              <p>
-                Cédula: {data.paciente?.cedula ?? "N/A"}
-              </p>
-
-              <p>
-                Teléfono:{" "}
-                {data.paciente?.numeroTelefono ?? "N/A"}
-              </p>
-
-              <p>
-                Celular:{" "}
-                {data.paciente?.numeroCelular ?? "N/A"}
-              </p>
-
-              <p>
-                Domicilio:{" "}
-                {data.paciente?.domicilio ?? "N/A"}
-              </p>
-            </section>
-
-            {/* FAMILIARES */}
-            <section className="space-y-4">
-              <h4 className="font-bold border-b pb-2">
-                Conformación Familiar
-              </h4>
-
-              {data.familiares?.length > 0 ? (
-                <div className="overflow-x-auto">
-                  <table className="min-w-full border border-gray-300 dark:border-gray-700">
-                    <thead className="bg-gray-100 dark:bg-gray-800">
-                      <tr>
-                        <th className="p-2 text-left">Relación</th>
-                        <th className="p-2 text-left">
-                          Nombres y Apellidos
-                        </th>
-                        <th className="p-2 text-left">Edad</th>
-                        <th className="p-2 text-left">
-                          Estado Civil
-                        </th>
-                        <th className="p-2 text-left">
-                          Instrucción
-                        </th>
-                        <th className="p-2 text-left">
-                          Ocupación
-                        </th>
-                        <th className="p-2 text-left">
-                          Ingreso Mensual
-                        </th>
-                      </tr>
-                    </thead>
-
-                    <tbody>
-                      {data.familiares.map((item, index) => (
-                        <tr
-                          key={index}
-                          className="border-t"
-                        >
-                          <td className="p-2">
-                            {item.relacion}
-                          </td>
-
-                          <td className="p-2">
-                            {item.nombresApellidos}
-                          </td>
-
-                          <td className="p-2">
-                            {item.edad}
-                          </td>
-
-                          <td className="p-2">
-                            {item.estadocivil}
-                          </td>
-
-                          <td className="p-2">
-                            {item.instruccion}
-                          </td>
-
-                          <td className="p-2">
-                            {item.ocupacion}
-                          </td>
-
-                          <td className="p-2">
-                            ${item.ingresoMensual}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+          {/* 1. DATOS DE IDENTIFICACIÓN */}
+          <section className="space-y-3 bg-white dark:bg-gray-900 p-5 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm">
+            <h4 className="font-bold text-gray-800 dark:text-white border-l-4 border-brand-500 pl-3 uppercase text-sm tracking-wider flex items-center gap-2">
+              <User size={18} className="text-brand-500" /> 1. Datos de Identificación
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3 text-sm pt-2">
+              <div>
+                <span className="font-semibold text-gray-700 dark:text-gray-300">Nombres y Apellidos:</span>{" "}
+                <span className="text-gray-600 dark:text-gray-400">{data.paciente?.nombresApellidos || "N/A"}</span>
+              </div>
+              <div>
+                <span className="font-semibold text-gray-700 dark:text-gray-300">Lugar y Fecha de Nacimiento:</span>{" "}
+                <span className="text-gray-600 dark:text-gray-400">
+                  {data.paciente?.lugarNacimiento || "N/A"} &bull;{" "}
+                  {data.paciente?.fechaNacimiento
+                    ? new Date(data.paciente.fechaNacimiento).toLocaleDateString()
+                    : "N/A"}
+                </span>
+              </div>
+              <div>
+                <span className="font-semibold text-gray-700 dark:text-gray-300">Edad:</span>{" "}
+                <span className="text-gray-600 dark:text-gray-400">
+                  {data.paciente?.edad ? `${data.paciente.edad} años` : "N/A"}
+                </span>
+              </div>
+              <div>
+                <span className="font-semibold text-gray-700 dark:text-gray-300">Estado Civil:</span>{" "}
+                <span className="text-gray-600 dark:text-gray-400">{data.paciente?.estadoCivil || "N/A"}</span>
+              </div>
+              <div>
+                <span className="font-semibold text-gray-700 dark:text-gray-300">Nacionalidad:</span>{" "}
+                <span className="text-gray-600 dark:text-gray-400">{data.paciente?.nacionalidad || "N/A"}</span>
+              </div>
+              <div>
+                <span className="font-semibold text-gray-700 dark:text-gray-300">Sexo:</span>{" "}
+                <span className="text-gray-600 dark:text-gray-400">{data.paciente?.sexo || "N/A"}</span>
+              </div>
+              <div>
+                <span className="font-semibold text-gray-700 dark:text-gray-300">Instrucción:</span>{" "}
+                <span className="text-gray-600 dark:text-gray-400">{data.pacienteInstruccion || "N/A"}</span>
+              </div>
+              <div>
+                <span className="font-semibold text-gray-700 dark:text-gray-300">Ocupación:</span>{" "}
+                <span className="text-gray-600 dark:text-gray-400">{data.pacienteOcupacion || "N/A"}</span>
+              </div>
+              <div className="md:col-span-2">
+                <span className="font-semibold text-gray-700 dark:text-gray-300">Dirección Domicilio:</span>{" "}
+                <span className="text-gray-600 dark:text-gray-400">{data.paciente?.domicilio || "N/A"}</span>
+              </div>
+              <div>
+                <span className="font-semibold text-gray-700 dark:text-gray-300">E-mail:</span>{" "}
+                <span className="text-gray-600 dark:text-gray-400">{data.pacienteEmail || "N/A"}</span>
+              </div>
+              <div>
+                <span className="font-semibold text-gray-700 dark:text-gray-300">Teléfono/Celular:</span>{" "}
+                <span className="text-gray-600 dark:text-gray-400">
+                  {[data.paciente?.numeroTelefono, data.paciente?.numeroCelular].filter(Boolean).join(" / ") || "N/A"}
+                </span>
+              </div>
+              <div className="md:col-span-2 flex flex-wrap gap-x-6 gap-y-2 mt-1 border-t border-gray-50 dark:border-gray-800 pt-3">
+                <div>
+                  <span className="font-semibold text-gray-700 dark:text-gray-300">Presenta Discapacidad:</span>{" "}
+                  <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+                    {data.paciente?.portadorCarnet ? "SÍ" : "NO"}
+                  </span>
                 </div>
-              ) : (
-                <p>No hay familiares registrados</p>
-              )}
-            </section>
+                {data.paciente?.portadorCarnet && (
+                  <>
+                    <div>
+                      <span className="font-semibold text-gray-700 dark:text-gray-300">Tipo:</span>{" "}
+                      <span className="text-gray-600 dark:text-gray-400">{data.paciente?.tipoDiscapacidad || "N/A"}</span>
+                    </div>
+                    <div>
+                      <span className="font-semibold text-gray-700 dark:text-gray-300">Porcentaje:</span>{" "}
+                      <span className="text-gray-600 dark:text-gray-400">
+                        {data.paciente?.porcentajeDiscapacidad ? `${data.paciente.porcentajeDiscapacidad}%` : "N/A"}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="font-semibold text-gray-700 dark:text-gray-300">N° Carné:</span>{" "}
+                      <span className="text-gray-600 dark:text-gray-400">{data.pacienteNumCarne || "N/A"}</span>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          </section>
 
-            {/* RIESGOS */}
-            <section className="space-y-2">
-              <h4 className="font-bold border-b pb-2">
-                Riesgos Familiares
-              </h4>
+          {/* 2. CONFORMACIÓN FAMILIAR */}
+          <section className="space-y-3 bg-white dark:bg-gray-900 p-5 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm">
+            <h4 className="font-bold text-gray-800 dark:text-white border-l-4 border-brand-500 pl-3 uppercase text-sm tracking-wider flex items-center gap-2">
+              <Users size={18} className="text-brand-500" /> 2. Conformación Familiar
+            </h4>
+            <div className="overflow-x-auto rounded-xl border border-gray-100 dark:border-gray-800 mt-2">
+              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
+                <thead className="bg-gray-50 dark:bg-gray-800/60">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider dark:text-gray-400">N°</th>
+                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider dark:text-gray-400">Relación</th>
+                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider dark:text-gray-400">Nombres y Apellidos</th>
+                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider dark:text-gray-400">Edad</th>
+                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider dark:text-gray-400">Est. Civil</th>
+                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider dark:text-gray-400">Instrucción</th>
+                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider dark:text-gray-400">Ocupación</th>
+                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider dark:text-gray-400">Ingreso Mensual</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-100 dark:bg-gray-900 dark:divide-gray-800">
+                  {data.familiares && data.familiares.length > 0 ? (
+                    data.familiares.map((fam, idx) => (
+                      <tr key={idx} className="hover:bg-gray-50 dark:hover:bg-gray-800/40">
+                        <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">{idx + 1}</td>
+                        <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">{fam.relacion || "-"}</td>
+                        <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">{fam.nombresApellidos || "-"}</td>
+                        <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">{fam.edad || "-"}</td>
+                        <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">{fam.estadocivil || "-"}</td>
+                        <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">{fam.instruccion || "-"}</td>
+                        <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">{fam.ocupacion || "-"}</td>
+                        <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">
+                          {fam.ingresoMensual != null ? `$${fam.ingresoMensual}` : "-"}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={8} className="px-4 py-4 text-center text-sm text-gray-500">
+                        Sin miembros de la familia registrados
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </section>
 
-              <p>
-                Tabaquismo:{" "}
-                {data.riesgosFamiliares?.tabaquismo
-                  ? "Sí"
-                  : "No"}
-              </p>
-
-              <p>
-                Alcoholismo:{" "}
-                {data.riesgosFamiliares?.alcoholismo
-                  ? "Sí"
-                  : "No"}
-              </p>
-
-              <p>
-                Drogadicción:{" "}
-                {data.riesgosFamiliares?.drogadiccion
-                  ? "Sí"
-                  : "No"}
-              </p>
-
-              <p>
-                Violencia intrafamiliar:{" "}
-                {data.riesgosFamiliares
-                  ?.violenciaIntrafamiliar
-                  ? "Sí"
-                  : "No"}
-              </p>
-
-              <p>
-                Problemas sociales:{" "}
-                {data.riesgosFamiliares
-                  ?.problemasSociales || "N/A"}
-              </p>
-
-              <p>
-                Vulnerabilidades:{" "}
-                {data.riesgosFamiliares
-                  ?.vulnerabilidades || "N/A"}
-              </p>
-
-              <p>
-                Migración exterior:{" "}
-                {data.riesgosFamiliares?.migroExterior
-                  ? "Sí"
-                  : "No"}
-              </p>
-
-              <p>
-                Lugar migración:{" "}
-                {data.riesgosFamiliares
-                  ?.lugarMigracion || "N/A"}
-              </p>
-
-              <p>
-                Tiempo migración:{" "}
-                {data.riesgosFamiliares
-                  ?.tiempoMigracion || "N/A"}
-              </p>
-
-              <p>
-                Afectación familiar:{" "}
-                {data.riesgosFamiliares
-                  ?.afectacionFamiliar || "N/A"}
-              </p>
-            </section>
-
-            {/* VULNERABILIDAD */}
-            <section className="space-y-4">
-              <h4 className="font-bold border-b pb-2">
-                Situación de Vulnerabilidad
-              </h4>
-
-              <div className="grid grid-cols-2 gap-4">
+          {/* 3. PROBLEMAS SOCIALES QUE PONEN EN RIESGO LA ESTABILIDAD FAMILIAR */}
+          <section className="space-y-3 bg-white dark:bg-gray-900 p-5 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm">
+            <h4 className="font-bold text-gray-800 dark:text-white border-l-4 border-brand-500 pl-3 uppercase text-sm tracking-wider flex items-center gap-2">
+              <ShieldAlert size={18} className="text-brand-500" /> 3. Problemas Sociales que ponen en riesgo la estabilidad familiar
+            </h4>
+            <div className="space-y-4 pt-2">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                 {[
                   {
-                    label: "Movilidad humana",
-                    value:
-                      data.vulnerabilidadesDetalle
-                        ?.movilidadHumana,
+                    label: "Violencia intrafamiliar",
+                    checked:
+                      data.riesgosFamiliares?.violenciaIntrafamiliar ||
+                      data.riesgosFamiliares?.problemasSociales?.includes("violencia"),
                   },
-                  {
-                    label:
-                      "Enfermedad catastrófica",
-                    value:
-                      data.vulnerabilidadesDetalle
-                        ?.enfermedadCatastrofica,
-                  },
-                  {
-                    label:
-                      "Embarazo adolescente",
-                    value:
-                      data.vulnerabilidadesDetalle
-                        ?.embarazoAdolescente,
-                  },
-                  {
-                    label: "Abuso sexual",
-                    value:
-                      data.vulnerabilidadesDetalle
-                        ?.abusoSexual,
-                  },
-                  {
-                    label: "Agresión física",
-                    value:
-                      data.vulnerabilidadesDetalle
-                        ?.agresionFisica,
-                  },
-                  {
-                    label:
-                      "Agresión psicológica",
-                    value:
-                      data.vulnerabilidadesDetalle
-                        ?.agresionPsicologica,
-                  },
-                ].map((item, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center gap-2"
-                  >
-                    <div className="w-4 h-4 border border-gray-500 flex items-center justify-center">
-                      {item.value && (
-                        <div className="w-2 h-2 bg-black"></div>
-                      )}
-                    </div>
-
-                    <span>{item.label}</span>
+                  { label: "Alcoholismo", checked: data.riesgosFamiliares?.problemasSociales?.includes("alcoholismo") },
+                  { label: "Drogadicción", checked: data.riesgosFamiliares?.problemasSociales?.includes("drogadiccion") },
+                  { label: "Desempleo", checked: data.riesgosFamiliares?.problemasSociales?.includes("desempleo") },
+                  { label: "Delincuencia", checked: data.riesgosFamiliares?.problemasSociales?.includes("delincuencia") },
+                  { label: "Tabaquismo", checked: data.riesgosFamiliares?.problemasSociales?.includes("tabaquismo") },
+                  { label: "Discapacidad", checked: data.riesgosFamiliares?.problemasSociales?.includes("discapacidad") },
+                  { label: "Juegos de azar", checked: data.riesgosFamiliares?.problemasSociales?.includes("juegosAzar") },
+                ].map((item, idx) => (
+                  <div key={idx} className="flex items-center gap-2 text-sm">
+                    <span
+                      className={`inline-flex items-center justify-center w-5 h-5 rounded border ${
+                        item.checked
+                          ? "border-brand-500 bg-brand-50 text-brand-600 dark:bg-brand-950/30 dark:text-brand-400 font-bold"
+                          : "border-gray-300 dark:border-gray-700 text-transparent"
+                      }`}
+                    >
+                      {item.checked ? "✓" : ""}
+                    </span>
+                    <span className="text-gray-700 dark:text-gray-300">{item.label}</span>
                   </div>
                 ))}
               </div>
 
-              <p>
-                Lugar agresión:{" "}
-                {data.vulnerabilidadesDetalle
-                  ?.lugarAgresion || "N/A"}
-              </p>
-            </section>
+              {data.riesgosFamiliares?.problemasSociales?.includes("otros") && (
+                <div className="flex items-center gap-2 text-sm bg-gray-50 dark:bg-gray-800/40 p-2.5 rounded-xl border border-gray-100 dark:border-gray-800">
+                  <span className="font-semibold text-gray-700 dark:text-gray-300">Otros problemas:</span>
+                  <span className="text-gray-600 dark:text-gray-400">
+                    {getOtrosValue(data.riesgosFamiliares?.problemasSociales)}
+                  </span>
+                </div>
+              )}
 
-            {/* DINÁMICA */}
-            <section className="space-y-4">
-              <h4 className="font-bold border-b pb-2">
-                Dinámica Familiar
-              </h4>
+              <div className="border-t border-gray-100 dark:border-gray-800 pt-3 mt-3">
+                <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
+                  <div>
+                    <span className="font-semibold text-gray-700 dark:text-gray-300">
+                      ¿Algún miembro de la familia migró al exterior?:
+                    </span>{" "}
+                    <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+                      {data.riesgosFamiliares?.migroExterior ? "SÍ" : "NO"}
+                    </span>
+                  </div>
+                  {data.riesgosFamiliares?.migroExterior && (
+                    <>
+                      <div>
+                        <span className="font-semibold text-gray-700 dark:text-gray-300">Lugar:</span>{" "}
+                        <span className="text-gray-600 dark:text-gray-400">
+                          {data.riesgosFamiliares?.lugarMigracion || "N/A"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="font-semibold text-gray-700 dark:text-gray-300">Tiempo:</span>{" "}
+                        <span className="text-gray-600 dark:text-gray-400">
+                          {data.riesgosFamiliares?.tiempoMigracion || "N/A"}
+                        </span>
+                      </div>
+                    </>
+                  )}
+                </div>
+                {data.riesgosFamiliares?.migroExterior && data.riesgosFamiliares?.afectacionFamiliar && (
+                  <div className="mt-2 text-sm bg-gray-50 dark:bg-gray-800/40 p-2.5 rounded-xl border border-gray-100 dark:border-gray-800">
+                    <span className="font-semibold block text-gray-700 dark:text-gray-300 mb-1">
+                      Afectación familiar:
+                    </span>
+                    <span className="text-gray-600 dark:text-gray-400">{data.riesgosFamiliares.afectacionFamiliar}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </section>
 
-              <p>
-                Resolución conflictos:{" "}
-                {data.dinamicaFamiliar
-                  ?.resolucionConflictos || "N/A"}
-              </p>
+          {/* 4. SITUACIÓN DE VULNERABILIDAD */}
+          <section className="space-y-3 bg-white dark:bg-gray-900 p-5 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm">
+            <h4 className="font-bold text-gray-800 dark:text-white border-l-4 border-brand-500 pl-3 uppercase text-sm tracking-wider flex items-center gap-2">
+              <ShieldAlert size={18} className="text-brand-500" /> 4. Situación de Vulnerabilidad
+            </h4>
+            <div className="space-y-3 pt-2">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {[
+                  { label: "Movilidad humana", checked: data.vulnerabilidadesDetalle?.movilidadHumana },
+                  { label: "Enfermedades catastróficas", checked: data.vulnerabilidadesDetalle?.enfermedadCatastrofica },
+                  { label: "Embarazo adolescente", checked: data.vulnerabilidadesDetalle?.embarazoAdolescente },
+                  { label: "Abuso sexual", checked: data.vulnerabilidadesDetalle?.abusoSexual },
+                  { label: "Agresión física", checked: data.vulnerabilidadesDetalle?.agresionFisica },
+                  { label: "Agresión psicológica", checked: data.vulnerabilidadesDetalle?.agresionPsicologica },
+                ].map((item, idx) => (
+                  <div key={idx} className="flex items-center gap-2 text-sm">
+                    <span
+                      className={`inline-flex items-center justify-center w-5 h-5 rounded border ${
+                        item.checked
+                          ? "border-brand-500 bg-brand-50 text-brand-600 dark:bg-brand-950/30 dark:text-brand-400 font-bold"
+                          : "border-gray-300 dark:border-gray-700 text-transparent"
+                      }`}
+                    >
+                      {item.checked ? "✓" : ""}
+                    </span>
+                    <span className="text-gray-700 dark:text-gray-300">{item.label}</span>
+                  </div>
+                ))}
+              </div>
 
-              <p>
-                Incumplen reglas:{" "}
-                {data.dinamicaFamiliar
-                  ?.quienesIncumplenReglas || "N/A"}
-              </p>
+              {(data.vulnerabilidadesDetalle?.agresionFisica || data.vulnerabilidadesDetalle?.agresionPsicologica) && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3 border-t border-gray-100 dark:border-gray-800 pt-3">
+                  {data.vulnerabilidadesDetalle?.agresionFisica && (
+                    <div className="text-sm bg-gray-50 dark:bg-gray-800/40 p-2.5 rounded-xl border border-gray-100 dark:border-gray-800">
+                      <span className="font-semibold text-gray-700 dark:text-gray-300">Lugar agresión física:</span>{" "}
+                      <span className="text-gray-600 dark:text-gray-400 font-medium">
+                        {getLugarAgresion("fisica", data.vulnerabilidadesDetalle?.lugarAgresion) || "N/A"}
+                      </span>
+                    </div>
+                  )}
+                  {data.vulnerabilidadesDetalle?.agresionPsicologica && (
+                    <div className="text-sm bg-gray-50 dark:bg-gray-800/40 p-2.5 rounded-xl border border-gray-100 dark:border-gray-800">
+                      <span className="font-semibold text-gray-700 dark:text-gray-300">Lugar agresión psicológica:</span>{" "}
+                      <span className="text-gray-600 dark:text-gray-400 font-medium">
+                        {getLugarAgresion("psicologica", data.vulnerabilidadesDetalle?.lugarAgresion) || "N/A"}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </section>
 
-              <p>
-                Actividades compartidas:{" "}
-                {data.dinamicaFamiliar
-                  ?.actividadesCompartidas || "N/A"}
-              </p>
+          {/* 5. RELACIONES FAMILIARES */}
+          <section className="space-y-3 bg-white dark:bg-gray-900 p-5 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm">
+            <h4 className="font-bold text-gray-800 dark:text-white border-l-4 border-brand-500 pl-3 uppercase text-sm tracking-wider flex items-center gap-2">
+              <Users size={18} className="text-brand-500" /> 5. Relaciones Familiares
+            </h4>
+            <div className="space-y-4 text-sm pt-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-gray-50 dark:bg-gray-800/30 p-3 rounded-2xl border border-gray-100 dark:border-gray-800 flex justify-between items-center">
+                  <span className="font-medium text-gray-700 dark:text-gray-300">
+                    ¿Se respeta la opinión de los miembros de la familia?
+                  </span>
+                  <span className="font-bold text-brand-600 dark:text-brand-400 border border-brand-200 dark:border-brand-900 bg-brand-50 dark:bg-brand-950/20 px-3 py-1 rounded-xl">
+                    {data.dinamicaFamiliar?.opinionfamiliar ? "SÍ" : "NO"}
+                  </span>
+                </div>
+                <div className="bg-gray-50 dark:bg-gray-800/30 p-3 rounded-2xl border border-gray-100 dark:border-gray-800 flex justify-between items-center">
+                  <span className="font-medium text-gray-700 dark:text-gray-300">
+                    ¿La familia es muy unida cuando enfrentan problemas?
+                  </span>
+                  <span className="font-bold text-brand-600 dark:text-brand-400 border border-brand-200 dark:border-brand-900 bg-brand-50 dark:bg-brand-950/20 px-3 py-1 rounded-xl">
+                    {data.dinamicaFamiliar?.unionfamiliar ? "SÍ" : "NO"}
+                  </span>
+                </div>
+                <div className="md:col-span-2 bg-gray-50 dark:bg-gray-800/30 p-3 rounded-2xl border border-gray-100 dark:border-gray-800">
+                  <span className="font-medium block text-gray-700 dark:text-gray-300 mb-1">
+                    En caso de conflictos familiares, ¿cómo los resuelven?
+                  </span>
+                  <span className="text-gray-600 dark:text-gray-400 font-medium">
+                    {data.dinamicaFamiliar?.resolucionConflictos || "N/A"}
+                  </span>
+                </div>
+                <div className="bg-gray-50 dark:bg-gray-800/30 p-3 rounded-2xl border border-gray-100 dark:border-gray-800 flex justify-between items-center">
+                  <span className="font-medium text-gray-700 dark:text-gray-300">
+                    ¿Los miembros de la familia cumplen con las reglas establecidas?
+                  </span>
+                  <span className="font-bold text-brand-600 dark:text-brand-400 border border-brand-200 dark:border-brand-900 bg-brand-50 dark:bg-brand-950/20 px-3 py-1 rounded-xl">
+                    {data.dinamicaFamiliar?.cumplenReglas ? "SÍ" : "NO"}
+                  </span>
+                </div>
+                {!data.dinamicaFamiliar?.cumplenReglas && (
+                  <div className="bg-gray-50 dark:bg-gray-800/30 p-3 rounded-2xl border border-gray-100 dark:border-gray-800">
+                    <span className="font-medium block text-gray-700 dark:text-gray-300 mb-1">
+                      ¿Quiénes no cumplen con las reglas?
+                    </span>
+                    <span className="text-gray-600 dark:text-gray-400 font-medium">
+                      {data.dinamicaFamiliar?.quienesIncumplenReglas || "N/A"}
+                    </span>
+                  </div>
+                )}
+                <div className="md:col-span-2 bg-gray-50 dark:bg-gray-800/30 p-3 rounded-2xl border border-gray-100 dark:border-gray-800">
+                  <span className="font-medium text-gray-700 dark:text-gray-300">
+                    ¿La familia comparte actividades del hogar?
+                  </span>
+                  <span className="font-bold text-brand-600 dark:text-brand-400 border border-brand-200 dark:border-brand-900 bg-brand-50 dark:bg-brand-950/20 px-3 py-1 rounded-xl ml-2">
+                    {data.dinamicaFamiliar?.tieneActividadesFamiliares ? "SÍ" : "NO"}
+                  </span>
+                  {data.dinamicaFamiliar?.tieneActividadesFamiliares && data.dinamicaFamiliar?.actividadesCompartidas && (
+                    <div className="mt-2 border-t border-gray-200 dark:border-gray-700 pt-2 text-gray-600 dark:text-gray-400 font-medium">
+                      <span className="font-semibold text-gray-800 dark:text-gray-200">Actividades:</span>{" "}
+                      {data.dinamicaFamiliar.actividadesCompartidas}
+                    </div>
+                  )}
+                </div>
+              </div>
 
-              <div>
-                <p className="font-medium">
-                  Relación hermanos:
-                </p>
-
-                {renderOpciones(
-                  data.dinamicaFamiliar
-                    ?.relacionHermanos,
-                  [
+              <div className="space-y-3 mt-4 border-t border-gray-100 dark:border-gray-800 pt-4">
+                <div>
+                  <span className="font-semibold text-gray-700 dark:text-gray-300 block mb-1">
+                    Las relaciones entre los/las hermanos/as es:
+                  </span>
+                  {renderOpciones(data.dinamicaFamiliar?.relacionHermanos, [
                     "Muy buena",
                     "Buena",
                     "Regular",
                     "Mala",
                     "Hijo único",
-                  ]
-                )}
-              </div>
-
-              <div>
-                <p className="font-medium">
-                  Relación padres-hijos:
-                </p>
-
-                {renderOpciones(
-                  data.dinamicaFamiliar
-                    ?.relacionPadresHijos,
-                  [
+                  ])}
+                </div>
+                <div>
+                  <span className="font-semibold text-gray-700 dark:text-gray-300 block mb-1">
+                    Las relaciones entre padres e hijos/as es:
+                  </span>
+                  {renderOpciones(data.dinamicaFamiliar?.relacionPadresHijos, ["Muy buena", "Buena", "Regular", "Mala"])}
+                </div>
+                <div>
+                  <span className="font-semibold text-gray-700 dark:text-gray-300 block mb-1">
+                    La comunicación entre los miembros de la familia es:
+                  </span>
+                  {renderOpciones(data.dinamicaFamiliar?.comunicacionFamiliar, [
                     "Muy buena",
                     "Buena",
                     "Regular",
                     "Mala",
-                  ]
-                )}
+                  ])}
+                </div>
               </div>
+            </div>
+          </section>
 
-              <div>
-                <p className="font-medium">
-                  Comunicación familiar:
-                </p>
+          {/* 6. TIPO DE HOGAR */}
+          <section className="space-y-3 bg-white dark:bg-gray-900 p-5 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm">
+            <h4 className="font-bold text-gray-800 dark:text-white border-l-4 border-brand-500 pl-3 uppercase text-sm tracking-wider flex items-center gap-2">
+              <Users size={18} className="text-brand-500" /> 6. Tipo de Hogar
+            </h4>
+            <div className="text-sm pt-2">
+              <p className="font-semibold text-gray-700 dark:text-gray-300 mb-2">Estructura y funcionalidad familiar:</p>
+              {renderOpciones(data.dinamicaFamiliar?.tipoHogar, ["Completo", "Incompleto", "Funcional", "Disfuncional"])}
+            </div>
+          </section>
 
-                {renderOpciones(
-                  data.dinamicaFamiliar
-                    ?.comunicacionFamiliar,
-                  [
-                    "Muy buena",
-                    "Buena",
-                    "Regular",
-                    "Mala",
-                  ]
-                )}
-              </div>
-            </section>
-
-            {/* VIVIENDA */}
-            <section className="space-y-4">
-              <h4 className="font-bold border-b pb-2">
-                Vivienda
-              </h4>
-
-              <p>
-                Tipo tenencia:{" "}
-                {data.vivienda?.tipoTenencia ||
-                  "N/A"}
-              </p>
-
-              <p>
-                Material paredes:{" "}
-                {data.vivienda?.materialParedes ||
-                  "N/A"}
-              </p>
-
-              <p>
-                Material piso:{" "}
-                {data.vivienda?.materialPiso ||
-                  "N/A"}
-              </p>
-
-              <p>
-                Material techo:{" "}
-                {data.vivienda?.materialTecho ||
-                  "N/A"}
-              </p>
-
-              <p>
-                N° cuartos:{" "}
-                {data.vivienda?.numeroCuartos ??
-                  "N/A"}
-              </p>
-
-              <p>
-                N° dormitorios:{" "}
-                {data.vivienda
-                  ?.numeroDormitorios ?? "N/A"}
-              </p>
-
-              <p>
-                N° camas:{" "}
-                {data.vivienda?.numeroCamas ??
-                  "N/A"}
-              </p>
-
-              <p>
-                N° sanitarios:{" "}
-                {data.vivienda
-                  ?.numeroSanitarios ?? "N/A"}
-              </p>
-            </section>
-
-            {/* SALUD */}
-            <section className="space-y-4">
-              <h4 className="font-bold border-b pb-2">
-                Salud
-              </h4>
-
-              <p>
-                Lugar atención médica:{" "}
-                {data.salud?.lugarAtencionMedica ||
-                  "N/A"}
-              </p>
-
-              <p>
-                Salud estudiante:{" "}
-                {data.salud?.saludEstudiante ||
-                  "N/A"}
-              </p>
-
-              <p>
-                Ayudas técnicas:{" "}
-                {data.salud?.ayudasTecnicas ||
-                  "N/A"}
-              </p>
-
-              <div className="space-y-3">
-                <h5 className="font-semibold">
-                  Salud Familiar
+          {/* 7. VIVIENDA Y HABITABILIDAD */}
+          <section className="space-y-3 bg-white dark:bg-gray-900 p-5 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm">
+            <h4 className="font-bold text-gray-800 dark:text-white border-l-4 border-brand-500 pl-3 uppercase text-sm tracking-wider flex items-center gap-2">
+              <Home size={18} className="text-brand-500" /> 7. Vivienda y Habitabilidad
+            </h4>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 text-sm pt-2">
+              {/* Left Column: Vivienda */}
+              <div className="space-y-4">
+                <h5 className="font-bold text-gray-800 dark:text-gray-200 border-b pb-1 dark:border-gray-800">
+                  Condiciones de Vivienda
                 </h5>
+                <div>
+                  <span className="font-semibold block text-gray-700 dark:text-gray-300 mb-1.5">Tipo de tenencia:</span>
+                  <div className="flex flex-wrap gap-x-4 gap-y-2">
+                    {["propia", "arrendada", "prestada", "servicios", "hipoteca", "otros"].map((t) => {
+                      const checked = checkValue(data.vivienda?.tipoTenencia, t);
+                      return (
+                        <span key={t} className="flex items-center gap-1.5">
+                          <span
+                            className={`inline-flex items-center justify-center w-4 h-4 rounded-full border ${
+                              checked
+                                ? "border-brand-500 bg-brand-50 text-brand-600 dark:bg-brand-950/30 dark:text-brand-400 font-bold"
+                                : "border-gray-300 dark:border-gray-700 text-transparent"
+                            }`}
+                          >
+                            {checked ? "✓" : ""}
+                          </span>
+                          <span className="capitalize text-gray-600 dark:text-gray-400">
+                            {t === "servicios" ? "Por servicios" : t === "hipoteca" ? "Hipoteca" : t}
+                          </span>
+                        </span>
+                      );
+                    })}
+                  </div>
+                  {checkValue(data.vivienda?.tipoTenencia, "otros") && (
+                    <p className="mt-2 text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 p-2 rounded-lg border border-gray-200 dark:border-gray-700">
+                      <span className="font-semibold text-gray-700 dark:text-gray-300">Especificado:</span>{" "}
+                      {getOtrosValue(data.vivienda?.tipoTenencia)}
+                    </p>
+                  )}
+                </div>
 
-                {data.familiares?.map(
-                  (familiar, index) => (
-                    <div
-                      key={index}
-                      className="border rounded p-3"
-                    >
-                      <p className="font-medium">
-                        {familiar.nombresApellidos}
-                      </p>
+                <div>
+                  <span className="font-semibold block text-gray-700 dark:text-gray-300 mb-1.5">
+                    Material de paredes:
+                  </span>
+                  <div className="flex flex-wrap gap-x-4 gap-y-2">
+                    {["adobe", "ladrillo", "bloque", "madera", "bahareque", "otros"].map((t) => {
+                      const checked = checkValue(data.vivienda?.materialParedes, t);
+                      return (
+                        <span key={t} className="flex items-center gap-1.5">
+                          <span
+                            className={`inline-flex items-center justify-center w-4 h-4 rounded-full border ${
+                              checked
+                                ? "border-brand-500 bg-brand-50 text-brand-600 dark:bg-brand-950/30 dark:text-brand-400 font-bold"
+                                : "border-gray-300 dark:border-gray-700 text-transparent"
+                            }`}
+                          >
+                            {checked ? "✓" : ""}
+                          </span>
+                          <span className="capitalize text-gray-600 dark:text-gray-400">{t}</span>
+                        </span>
+                      );
+                    })}
+                  </div>
+                  {checkValue(data.vivienda?.materialParedes, "otros") && (
+                    <p className="mt-2 text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 p-2 rounded-lg border border-gray-200 dark:border-gray-700">
+                      <span className="font-semibold text-gray-700 dark:text-gray-300">Especificado:</span>{" "}
+                      {getOtrosValue(data.vivienda?.materialParedes)}
+                    </p>
+                  )}
+                </div>
 
-                      <p>
-                        Problemas salud:{" "}
-                        {familiar.salud?.problema
-                          ? "Sí"
-                          : "No"}
-                      </p>
+                <div>
+                  <span className="font-semibold block text-gray-700 dark:text-gray-300 mb-1.5">Material de piso:</span>
+                  <div className="flex flex-wrap gap-x-4 gap-y-2">
+                    {["baldosa", "cemento", "madera", "tierra", "otros"].map((t) => {
+                      const checked = checkValue(data.vivienda?.materialPiso, t);
+                      return (
+                        <span key={t} className="flex items-center gap-1.5">
+                          <span
+                            className={`inline-flex items-center justify-center w-4 h-4 rounded-full border ${
+                              checked
+                                ? "border-brand-500 bg-brand-50 text-brand-600 dark:bg-brand-950/30 dark:text-brand-400 font-bold"
+                                : "border-gray-300 dark:border-gray-700 text-transparent"
+                            }`}
+                          >
+                            {checked ? "✓" : ""}
+                          </span>
+                          <span className="capitalize text-gray-600 dark:text-gray-400">{t}</span>
+                        </span>
+                      );
+                    })}
+                  </div>
+                  {checkValue(data.vivienda?.materialPiso, "otros") && (
+                    <p className="mt-2 text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 p-2 rounded-lg border border-gray-200 dark:border-gray-700">
+                      <span className="font-semibold text-gray-700 dark:text-gray-300">Especificado:</span>{" "}
+                      {getOtrosValue(data.vivienda?.materialPiso)}
+                    </p>
+                  )}
+                </div>
 
-                      <p>
-                        Enfermedad:{" "}
-                        {familiar.salud
-                          ?.enfermedad || "N/A"}
-                      </p>
+                <div>
+                  <span className="font-semibold block text-gray-700 dark:text-gray-300 mb-1.5">Material de techo:</span>
+                  <div className="flex flex-wrap gap-x-4 gap-y-2">
+                    {["zinc", "teja", "eternit", "loza", "ardex", "otros"].map((t) => {
+                      const checked = checkValue(data.vivienda?.materialTecho, t);
+                      return (
+                        <span key={t} className="flex items-center gap-1.5">
+                          <span
+                            className={`inline-flex items-center justify-center w-4 h-4 rounded-full border ${
+                              checked
+                                ? "border-brand-500 bg-brand-50 text-brand-600 dark:bg-brand-950/30 dark:text-brand-400 font-bold"
+                                : "border-gray-300 dark:border-gray-700 text-transparent"
+                            }`}
+                          >
+                            {checked ? "✓" : ""}
+                          </span>
+                          <span className="capitalize text-gray-600 dark:text-gray-400">
+                            {t === "ardex" ? "Árdex" : t}
+                          </span>
+                        </span>
+                      );
+                    })}
+                  </div>
+                  {checkValue(data.vivienda?.materialTecho, "otros") && (
+                    <p className="mt-2 text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 p-2 rounded-lg border border-gray-200 dark:border-gray-700">
+                      <span className="font-semibold text-gray-700 dark:text-gray-300">Especificado:</span>{" "}
+                      {getOtrosValue(data.vivienda?.materialTecho)}
+                    </p>
+                  )}
+                </div>
+              </div>
 
-                      <p>
-                        Enfermedad catastrófica:{" "}
-                        {familiar.salud
-                          ?.catastrofica
-                          ? "Sí"
-                          : "No"}
-                      </p>
+              {/* Right Column: Habitabilidad */}
+              <div className="space-y-4 lg:border-l lg:pl-6 lg:border-gray-100 lg:dark:border-gray-800">
+                <h5 className="font-bold text-gray-800 dark:text-gray-200 border-b pb-1 dark:border-gray-800">
+                  Condiciones de Habitabilidad
+                </h5>
+                <div className="grid grid-cols-2 gap-4 bg-gray-50 dark:bg-gray-800/30 p-3.5 rounded-2xl border border-gray-100 dark:border-gray-800">
+                  <div>
+                    <span className="font-semibold text-gray-600 dark:text-gray-400">N° Cuartos:</span>{" "}
+                    <strong className="text-gray-900 dark:text-white">{data.vivienda?.numeroCuartos ?? 0}</strong>
+                  </div>
+                  <div>
+                    <span className="font-semibold text-gray-600 dark:text-gray-400">N° Dormitorios:</span>{" "}
+                    <strong className="text-gray-900 dark:text-white">{data.vivienda?.numeroDormitorios ?? 0}</strong>
+                  </div>
+                  <div>
+                    <span className="font-semibold text-gray-600 dark:text-gray-400">N° Camas:</span>{" "}
+                    <strong className="text-gray-900 dark:text-white">{data.vivienda?.numeroCamas ?? 0}</strong>
+                  </div>
+                  <div>
+                    <span className="font-semibold text-gray-600 dark:text-gray-400">N° SS.HH.:</span>{" "}
+                    <strong className="text-gray-900 dark:text-white">{data.vivienda?.numeroSanitarios ?? 0}</strong>
+                  </div>
+                </div>
 
-                      <p>
-                        Descripción:{" "}
-                        {familiar.salud
-                          ?.enfermedadCatastrofica ||
-                          "N/A"}
-                      </p>
+                <div>
+                  <span className="font-semibold block text-gray-700 dark:text-gray-300 mb-1.5">
+                    Abastecimiento de agua:
+                  </span>
+                  <div className="flex flex-wrap gap-x-4 gap-y-2">
+                    {["potable", "entubada", "acequia", "fuera"].map((t) => {
+                      const checked = checkValue(data.vivienda?.procedenciaAgua, t);
+                      return (
+                        <span key={t} className="flex items-center gap-1.5">
+                          <span
+                            className={`inline-flex items-center justify-center w-4 h-4 rounded-full border ${
+                              checked
+                                ? "border-brand-500 bg-brand-50 text-brand-600 dark:bg-brand-950/30 dark:text-brand-400 font-bold"
+                                : "border-gray-300 dark:border-gray-700 text-transparent"
+                            }`}
+                          >
+                            {checked ? "✓" : ""}
+                          </span>
+                          <span className="text-gray-600 dark:text-gray-400">
+                            {t === "fuera" ? "Fuera de la casa" : t}
+                          </span>
+                        </span>
+                      );
+                    })}
+                  </div>
+                </div>
 
-                      <p>
-                        Discapacidad:{" "}
-                        {familiar.salud
-                          ?.discapacidad
-                          ? "Sí"
-                          : "No"}
-                      </p>
+                <div>
+                  <span className="font-semibold block text-gray-700 dark:text-gray-300 mb-1.5">
+                    Tipo de servicio sanitario:
+                  </span>
+                  <div className="flex flex-wrap gap-x-4 gap-y-2">
+                    {["sshh", "letrina", "airelibre", "pozo"].map((t) => {
+                      const checked = checkValue(data.vivienda?.tipoSanitario, t);
+                      return (
+                        <span key={t} className="flex items-center gap-1.5">
+                          <span
+                            className={`inline-flex items-center justify-center w-4 h-4 rounded-full border ${
+                              checked
+                                ? "border-brand-500 bg-brand-50 text-brand-600 dark:bg-brand-950/30 dark:text-brand-400 font-bold"
+                                : "border-gray-300 dark:border-gray-700 text-transparent"
+                            }`}
+                          >
+                            {checked ? "✓" : ""}
+                          </span>
+                          <span className="text-gray-600 dark:text-gray-400">
+                            {t === "sshh"
+                              ? "SS.HH."
+                              : t === "airelibre"
+                              ? "Aire libre"
+                              : t === "pozo"
+                              ? "Pozo séptico"
+                              : "Letrina"}
+                          </span>
+                        </span>
+                      );
+                    })}
+                  </div>
+                </div>
 
-                      <p>
-                        Descripción discapacidad:{" "}
-                        {familiar.salud
-                          ?.descripDiscapacidad ||
-                          "N/A"}
-                      </p>
+                <div>
+                  <span className="font-semibold block text-gray-700 dark:text-gray-300 mb-1">
+                    Electricidad / Telecomunicaciones:
+                  </span>
+                  <p className="text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800/30 p-2.5 rounded-xl border border-gray-100 dark:border-gray-800 mt-1">
+                    {data.vivienda?.detalleElectricidad || "N/A"}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* 8. SITUACIÓN DE SALUD */}
+          <section className="space-y-3 bg-white dark:bg-gray-900 p-5 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm">
+            <h4 className="font-bold text-gray-800 dark:text-white border-l-4 border-brand-500 pl-3 uppercase text-sm tracking-wider flex items-center gap-2">
+              <HeartPulse size={18} className="text-brand-500" /> 8. Situación de Salud
+            </h4>
+            <div className="space-y-4 text-sm pt-2">
+              <div>
+                <span className="font-semibold block text-gray-700 dark:text-gray-300 mb-2">
+                  Cuando requiere atención médica acude a:
+                </span>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 dark:bg-gray-800/30 p-3.5 rounded-2xl border border-gray-100 dark:border-gray-800">
+                  <div>
+                    <p className="font-bold text-gray-800 dark:text-gray-200 mb-1.5">Institución Pública</p>
+                    <div className="space-y-1">
+                      {["Subcentro de Salud", "Hospital", "Seguro Social", "Seguro Campesino", "Institución Pública"].map(
+                        (op) => {
+                          const checked = data.salud?.lugarAtencionMedica?.includes(op);
+                          return (
+                            <div key={op} className="flex items-center gap-2">
+                              <span
+                                className={`inline-flex items-center justify-center w-4 h-4 rounded border ${
+                                  checked
+                                    ? "border-brand-500 bg-brand-50 text-brand-600 dark:bg-brand-950/30 dark:text-brand-400 font-bold"
+                                    : "border-gray-300 dark:border-gray-700 text-transparent"
+                                }`}
+                              >
+                                {checked ? "✓" : ""}
+                              </span>
+                              <span className="text-gray-755 dark:text-gray-300">
+                                {op === "Institución Pública" ? "Otra Inst. Pública" : op}
+                              </span>
+                            </div>
+                          );
+                        }
+                      )}
                     </div>
-                  )
+                  </div>
+                  <div>
+                    <p className="font-bold text-gray-800 dark:text-gray-200 mb-1.5">Institución Privada / Otros</p>
+                    <div className="space-y-1">
+                      {["Médico naturista", "Médico particular", "Seguro privado", "Medicina casera", "Se automedica"].map(
+                        (op) => {
+                          const checked = data.salud?.lugarAtencionMedica?.includes(op);
+                          return (
+                            <div key={op} className="flex items-center gap-2">
+                              <span
+                                className={`inline-flex items-center justify-center w-4 h-4 rounded border ${
+                                  checked
+                                    ? "border-brand-500 bg-brand-50 text-brand-600 dark:bg-brand-950/30 dark:text-brand-400 font-bold"
+                                    : "border-gray-300 dark:border-gray-700 text-transparent"
+                                }`}
+                              >
+                                {checked ? "✓" : ""}
+                              </span>
+                              <span className="text-gray-755 dark:text-gray-300">{op}</span>
+                            </div>
+                          );
+                        }
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t border-gray-100 dark:border-gray-800 pt-3 flex flex-wrap gap-x-6 gap-y-2">
+                <div>
+                  <span className="font-semibold text-gray-700 dark:text-gray-300">
+                    Problemas de salud del estudiante:
+                  </span>{" "}
+                  <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+                    {data.salud?.saludEstudiante ? "SÍ" : "NO"}
+                  </span>
+                  {data.salud?.saludEstudiante && (
+                    <span className="ml-2 text-gray-600 dark:text-gray-400">({data.salud.saludEstudiante})</span>
+                  )}
+                </div>
+              </div>
+
+              <div className="border-t border-gray-100 dark:border-gray-800 pt-3">
+                <span className="font-semibold text-gray-700 dark:text-gray-300 block mb-1.5">
+                  Requiere ayudas técnicas:
+                </span>
+                <div className="flex flex-wrap gap-x-6 gap-y-2">
+                  {["audifonos", "lentes", "jaws", "silla"].map((op) => {
+                    const checked = data.salud?.ayudasTecnicas?.includes(op);
+                    return (
+                      <span key={op} className="flex items-center gap-1.5">
+                        <span
+                          className={`inline-flex items-center justify-center w-4 h-4 rounded border ${
+                            checked
+                              ? "border-brand-500 bg-brand-50 text-brand-600 dark:bg-brand-950/30 dark:text-brand-400 font-bold"
+                              : "border-gray-300 dark:border-gray-700 text-transparent"
+                          }`}
+                        >
+                          {checked ? "✓" : ""}
+                        </span>
+                        <span className="capitalize text-gray-600 dark:text-gray-400">
+                          {op === "silla" ? "Silla de ruedas" : op}
+                        </span>
+                      </span>
+                    );
+                  })}
+                </div>
+                {data.salud?.ayudasTecnicas?.includes("otros:") && (
+                  <p className="mt-2 text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 p-2 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <span className="font-semibold text-gray-700 dark:text-gray-300">Otras ayudas:</span>{" "}
+                    {data.salud.ayudasTecnicas.split("otros:")[1]}
+                  </p>
                 )}
               </div>
-            </section>
 
-            {/* ECONOMÍA */}
-            <section className="space-y-4">
-              <h4 className="font-bold border-b pb-2">
-                Situación Económica
-              </h4>
-
-              <p>
-                Total ingresos: $
-                {data.situacionEconomica
-                  ?.totalIngresos ?? 0}
-              </p>
-
-              <p>
-                Total egresos: $
-                {data.situacionEconomica
-                  ?.totalEgresos ?? 0}
-              </p>
-
-              <p>
-                Condición económica:{" "}
-                {normalizarValor(
-                  data.situacionEconomica
-                    ?.condicionEconomica
+              {/* Salud de Familiares */}
+              <div className="border-t border-gray-100 dark:border-gray-800 pt-3">
+                <span className="font-semibold text-gray-700 dark:text-gray-300 block mb-2">Salud de Familiares:</span>
+                {data.familiares &&
+                data.familiares.some((f) => f.salud?.problema || f.salud?.catastrofica || f.salud?.discapacidad) ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {data.familiares
+                      .filter((f) => f.salud?.problema || f.salud?.catastrofica || f.salud?.discapacidad)
+                      .map((fam, idx) => (
+                        <div
+                          key={idx}
+                          className="bg-gray-50 dark:bg-gray-800/30 p-3 rounded-2xl border border-gray-100 dark:border-gray-800 space-y-1.5"
+                        >
+                          <p className="font-bold text-gray-800 dark:text-gray-200">
+                            {fam.nombresApellidos} ({fam.relacion})
+                          </p>
+                          {fam.salud?.problema && (
+                            <p className="text-gray-600 dark:text-gray-400">
+                              <span className="font-semibold">Problemas salud:</span> {fam.salud.enfermedad || "Sí"}
+                            </p>
+                          )}
+                          {fam.salud?.catastrofica && (
+                            <p className="text-gray-600 dark:text-gray-400">
+                              <span className="font-semibold text-red-500 dark:text-red-400">
+                                Enfermedad catastrófica:
+                              </span>{" "}
+                              {fam.salud.enfermedadCatastrofica || "Sí"}
+                            </p>
+                          )}
+                          {fam.salud?.discapacidad && (
+                            <p className="text-gray-600 dark:text-gray-400">
+                              <span className="font-semibold">Discapacidad:</span>{" "}
+                              {(() => {
+                                const desc = fam.salud.descripDiscapacidad || "";
+                                const parts = desc.split("|");
+                                const tipo = parts[0] || "N/A";
+                                const pct = parts[1] || "N/A";
+                                const carnet = parts[2] ? parts[2].replace("Carnet:", "") : "N/A";
+                                return `Tipo: ${tipo}, Porcentaje: ${pct}%, N° Carné: ${carnet}`;
+                              })()}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500 text-xs">
+                    Ningún familiar presenta problemas de salud, enfermedad catastrófica o discapacidad.
+                  </p>
                 )}
-              </p>
+              </div>
+            </div>
+          </section>
 
-              <p>
-                Capacidad gasto evaluación:{" "}
-                {data.situacionEconomica
-                  ?.capacidadGastoEvaluacion ||
-                  "N/A"}
-              </p>
+          {/* 9. USO DEL TIEMPO LIBRE */}
+          <section className="space-y-3 bg-white dark:bg-gray-900 p-5 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm">
+            <h4 className="font-bold text-gray-800 dark:text-white border-l-4 border-brand-500 pl-3 uppercase text-sm tracking-wider flex items-center gap-2">
+              <Clock size={18} className="text-brand-500" /> 9. Uso del Tiempo Libre
+            </h4>
+            <div className="text-sm pt-2">
+              <div className="flex flex-wrap gap-x-6 gap-y-3">
+                {(() => {
+                  const actividades = getActividadesTiempoLibre(data.situacionEconomica?.actividadesTiempoLibre);
+                  return (
+                    <>
+                      {["Deporte", "Música", "TV", "Internet", "Paseos familiares", "Amigos/as"].map((op) => {
+                        const checked = actividades.includes(op);
+                        return (
+                          <span key={op} className="flex items-center gap-1.5">
+                            <span
+                              className={`inline-flex items-center justify-center w-4 h-4 rounded border ${
+                                checked
+                                  ? "border-brand-500 bg-brand-50 text-brand-600 dark:bg-brand-950/30 dark:text-brand-400 font-bold"
+                                  : "border-gray-300 dark:border-gray-700 text-transparent"
+                              }`}
+                            >
+                              {checked ? "✓" : ""}
+                            </span>
+                            <span className="text-gray-600 dark:text-gray-400">{op}</span>
+                          </span>
+                        );
+                      })}
+                      {actividades.some((a) => a.startsWith("Trabajo infantil:")) && (
+                        <div className="w-full bg-gray-50 dark:bg-gray-800/30 p-2.5 rounded-xl border border-gray-100 dark:border-gray-800 mt-2">
+                          <span className="font-semibold text-gray-700 dark:text-gray-300">Trabajo infantil:</span>{" "}
+                          <span className="text-gray-600 dark:text-gray-400">
+                            {actividades.find((a) => a.startsWith("Trabajo infantil:"))?.replace("Trabajo infantil:", "")}
+                          </span>
+                        </div>
+                      )}
+                      {actividades.some((a) => a.startsWith("Otros:")) && (
+                        <div className="w-full bg-gray-50 dark:bg-gray-800/30 p-2.5 rounded-xl border border-gray-100 dark:border-gray-800 mt-2">
+                          <span className="font-semibold text-gray-700 dark:text-gray-300">Otros detalles:</span>{" "}
+                          <span className="text-gray-600 dark:text-gray-400">
+                            {actividades.find((a) => a.startsWith("Otros:"))?.replace("Otros:", "")}
+                          </span>
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
+              </div>
+            </div>
+          </section>
 
-              <p>
-                Actividades tiempo libre:{" "}
-                {data.situacionEconomica
-                  ?.actividadesTiempoLibre ||
-                  "N/A"}
-              </p>
-
-              <div className="grid grid-cols-2 gap-4 border p-4 rounded">
-                <div>
-                  Alimentación: $
-                  {data.desgloseEconomico
-                    ?.egresoAlimentacion ?? 0}
-                </div>
-
-                <div>
-                  Arriendo: $
-                  {data.desgloseEconomico
-                    ?.egresoArriendo ?? 0}
-                </div>
-
-                <div>
-                  Servicios básicos: $
-                  {data.desgloseEconomico
-                    ?.egresoServiciosBasicos ?? 0}
-                </div>
-
-                <div>
-                  Salud: $
-                  {data.desgloseEconomico
-                    ?.egresoSalud ?? 0}
-                </div>
-
-                <div>
-                  Educación: $
-                  {data.desgloseEconomico
-                    ?.egresoEducacion ?? 0}
-                </div>
-
-                <div>
-                  Préstamos: $
-                  {data.desgloseEconomico
-                    ?.egresoPrestamos ?? 0}
-                </div>
-
-                <div>
-                  Otros: $
-                  {data.desgloseEconomico
-                    ?.egresoOtros ?? 0}
+          {/* 10. SITUACIÓN ECONÓMICA */}
+          <section className="space-y-3 bg-white dark:bg-gray-900 p-5 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm">
+            <h4 className="font-bold text-gray-800 dark:text-white border-l-4 border-brand-500 pl-3 uppercase text-sm tracking-wider flex items-center gap-2">
+              <DollarSign size={18} className="text-brand-500" /> 10. Situación Económica
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm pt-2">
+              {/* Ingresos */}
+              <div className="space-y-3">
+                <h5 className="font-bold text-gray-800 dark:text-gray-200 border-b pb-1 dark:border-gray-800">
+                  Ingresos Mensuales
+                </h5>
+                <div className="space-y-2 bg-gray-50 dark:bg-gray-800/30 p-3.5 rounded-2xl border border-gray-100 dark:border-gray-800">
+                  <div className="flex justify-between">
+                    <span className="font-semibold text-gray-600 dark:text-gray-400">Padre:</span>
+                    <span>${(data.desgloseEconomico as any)?.ingresoPadre ?? 0}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-semibold text-gray-600 dark:text-gray-400">Madre:</span>
+                    <span>${(data.desgloseEconomico as any)?.ingresoMadre ?? 0}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-semibold text-gray-600 dark:text-gray-400">Familiares:</span>
+                    <span>${(data.desgloseEconomico as any)?.ingresoFamiliares ?? 0}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-semibold text-gray-600 dark:text-gray-400">Otros:</span>
+                    <span>${(data.desgloseEconomico as any)?.ingresoOtros ?? 0}</span>
+                  </div>
+                  <div className="border-t border-gray-200 dark:border-gray-700 pt-2 mt-2 font-bold flex justify-between text-brand-600 dark:text-brand-400">
+                    <span>Total Ingresos:</span>
+                    <span>${data.situacionEconomica?.totalIngresos ?? 0}</span>
+                  </div>
                 </div>
               </div>
-            </section>
 
-            {/* CONCLUSIONES */}
-            <section className="space-y-4">
-              <h4 className="font-bold border-b pb-2">
-                Conclusiones y Recomendaciones
-              </h4>
-
-              <div>
-                <p className="font-medium">
-                  Conclusiones:
-                </p>
-
-                <p>
-                  {data.conclusiones || "N/A"}
-                </p>
+              {/* Egresos */}
+              <div className="space-y-3">
+                <h5 className="font-bold text-gray-800 dark:text-gray-200 border-b pb-1 dark:border-gray-800">
+                  Egresos Mensuales
+                </h5>
+                <div className="space-y-2 bg-gray-50 dark:bg-gray-800/30 p-3.5 rounded-2xl border border-gray-100 dark:border-gray-800">
+                  <div className="flex justify-between">
+                    <span className="font-semibold text-gray-600 dark:text-gray-400">Alimentación:</span>
+                    <span>${data.desgloseEconomico?.egresoAlimentacion ?? 0}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-semibold text-gray-600 dark:text-gray-400">Arriendo:</span>
+                    <span>${data.desgloseEconomico?.egresoArriendo ?? 0}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-semibold text-gray-600 dark:text-gray-400">Agua/Luz:</span>
+                    <span>${data.desgloseEconomico?.egresoServiciosBasicos ?? 0}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-semibold text-gray-600 dark:text-gray-400">Salud:</span>
+                    <span>${data.desgloseEconomico?.egresoSalud ?? 0}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-semibold text-gray-600 dark:text-gray-400">Educación:</span>
+                    <span>${data.desgloseEconomico?.egresoEducacion ?? 0}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-semibold text-gray-600 dark:text-gray-400">Préstamos:</span>
+                    <span>${data.desgloseEconomico?.egresoPrestamos ?? 0}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-semibold text-gray-600 dark:text-gray-400">Otros:</span>
+                    <span>${data.desgloseEconomico?.egresoOtros ?? 0}</span>
+                  </div>
+                  <div className="border-t border-gray-200 dark:border-gray-700 pt-2 mt-2 font-bold flex justify-between text-brand-600 dark:text-brand-400">
+                    <span>Total Egresos:</span>
+                    <span>${data.situacionEconomica?.totalEgresos ?? 0}</span>
+                  </div>
+                </div>
               </div>
 
-              <div>
-                <p className="font-medium">
-                  Recomendaciones:
-                </p>
-
-                <p>
-                  {data.recomendaciones || "N/A"}
-                </p>
+              {/* Condición */}
+              <div className="space-y-3">
+                <h5 className="font-bold text-gray-800 dark:text-gray-200 border-b pb-1 dark:border-gray-800">
+                  Condición Económica
+                </h5>
+                <div className="pt-1.5">
+                  {renderOpciones(data.situacionEconomica?.condicionEconomica, ["Muy buena", "Buena", "Regular", "Mala"])}
+                </div>
               </div>
-            </section>
-          </div>
-        )
-      }
-    </Modal >
+            </div>
+          </section>
+
+          {/* 11. CONCLUSIONES */}
+          <section className="space-y-3 bg-white dark:bg-gray-900 p-5 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm">
+            <h4 className="font-bold text-gray-800 dark:text-white border-l-4 border-brand-500 pl-3 uppercase text-sm tracking-wider flex items-center gap-2">
+              <FileText size={18} className="text-brand-500" /> 11. Conclusiones
+            </h4>
+            <div className="text-sm bg-gray-50 dark:bg-gray-800/30 p-4 rounded-2xl border border-gray-100 dark:border-gray-800 whitespace-pre-wrap leading-relaxed mt-2 text-gray-700 dark:text-gray-300">
+              {data.conclusiones || "No registradas"}
+            </div>
+          </section>
+
+          {/* 12. RECOMENDACIONES */}
+          <section className="space-y-3 bg-white dark:bg-gray-900 p-5 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm">
+            <h4 className="font-bold text-gray-800 dark:text-white border-l-4 border-brand-500 pl-3 uppercase text-sm tracking-wider flex items-center gap-2">
+              <FileText size={18} className="text-brand-500" /> 12. Recomendaciones
+            </h4>
+            <div className="text-sm bg-gray-50 dark:bg-gray-800/30 p-4 rounded-2xl border border-gray-100 dark:border-gray-800 whitespace-pre-wrap leading-relaxed mt-2 text-gray-700 dark:text-gray-300">
+              {data.recomendaciones || "No registradas"}
+            </div>
+          </section>
+
+          {/* 13. CAPACIDAD DE GASTO EN EVALUACIÓN */}
+          <section className="space-y-3 bg-white dark:bg-gray-900 p-5 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm">
+            <h4 className="font-bold text-gray-800 dark:text-white border-l-4 border-brand-500 pl-3 uppercase text-sm tracking-wider flex items-center gap-2">
+              <DollarSign size={18} className="text-brand-500" /> 13. Capacidad de Gasto en Evaluación
+            </h4>
+            <div className="text-sm pt-2">
+              <p className="font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                Según su situación económica, ¿hasta cuánto podría gastar en una evaluación psicopedagógica?:
+              </p>
+              {(() => {
+                const val = data.situacionEconomica?.capacidadGastoEvaluacion || "";
+                const matchesOp = ["3$ por sesión", "5$ por sesión", "10$ por sesión", "15$ por sesión", "No puedo cubrir los gastos"].some(
+                  (op) => val.startsWith(op.substring(0, 3)) || (op.startsWith("No puedo") && val.includes("No puedo"))
+                );
+                return (
+                  <div className="space-y-2.5">
+                    {["3$ por sesión", "5$ por sesión", "10$ por sesión", "15$ por sesión", "No puedo cubrir los gastos"].map((op) => {
+                      const checked =
+                        val.startsWith(op.substring(0, 3)) ||
+                        (op.startsWith("No puedo") && val.includes("No puedo"));
+                      return (
+                        <div key={op} className="flex items-center gap-2">
+                          <span
+                            className={`inline-flex items-center justify-center w-5 h-5 rounded-full border ${
+                              checked
+                                ? "border-brand-500 bg-brand-50 text-brand-600 dark:bg-brand-950/30 dark:text-brand-400 font-bold"
+                                : "border-gray-300 dark:border-gray-700 text-transparent"
+                            }`}
+                          >
+                            {checked ? "✓" : ""}
+                          </span>
+                          <span className="text-gray-600 dark:text-gray-400 font-medium">{op}</span>
+                        </div>
+                      );
+                    })}
+                    {!matchesOp && val.trim() !== "" && (
+                      <div className="flex items-center gap-2 mt-2 bg-gray-50 dark:bg-gray-800/40 p-2.5 rounded-xl border border-gray-100 dark:border-gray-800">
+                        <span className="font-semibold text-gray-700 dark:text-gray-300">Otros:</span>
+                        <span className="text-gray-600 dark:text-gray-400">{val.replace("OTRO:", "").trim()}</span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+            </div>
+          </section>
+        </div>
+      )}
+    </Modal>
   );
 };
