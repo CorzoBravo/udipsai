@@ -58,7 +58,9 @@ export interface FichaSocioeconomicaState {
     portadorCarnet?: boolean;
     tipoDiscapacidad?: string;
     porcentajeDiscapacidad?: number;
-    numCarne?: string;
+    estadoCivil?: string;
+    nacionalidad?: string;
+    sexo?: string;
   };
 
   especialista: {
@@ -179,7 +181,9 @@ export const initialFichaSocioeconomicaState: FichaSocioeconomicaState = {
     portadorCarnet: false,
     tipoDiscapacidad: "",
     porcentajeDiscapacidad: 0,
-    numCarne: "",
+    estadoCivil: "",
+    nacionalidad: "",
+    sexo: "",
   },
   especialista: {
     id: 0,

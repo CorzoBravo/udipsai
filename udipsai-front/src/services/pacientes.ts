@@ -25,7 +25,9 @@ export type Paciente = {
   sedeId: number;
   institucionEducativaId: number;
   activo: boolean;
-  numCarne: string;
+  estadoCivil?: string;
+  nacionalidad?: string;
+  sexo?: string;
 };
 
 export interface PacienteCriteria {

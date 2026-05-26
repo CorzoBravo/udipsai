@@ -11,6 +11,9 @@ interface FamiliarItem {
   instruccion?: string;
   ocupacion?: string;
   ingresos?: number;
+  cedula?: string;
+  telefono?: string;
+  correo?: string;
 }
 
 interface FamiliaresFormProps {
@@ -132,6 +135,57 @@ const FamiliaresForm: React.FC<FamiliaresFormProps> = ({
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm focus:ring-2 focus:ring-blue-500"
             />
           </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Cédula/Pasaporte
+            </label>
+            <input
+              type="text"
+              value={familiarForm.cedula || ""}
+              onChange={(e) =>
+                setFamiliarForm({
+                  ...familiarForm,
+                  cedula: e.target.value,
+                })
+              }
+              placeholder="Cédula o Pasaporte"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Teléfono
+            </label>
+            <input
+              type="tel"
+              value={familiarForm.telefono || ""}
+              onChange={(e) =>
+                setFamiliarForm({
+                  ...familiarForm,
+                  telefono: e.target.value,
+                })
+              }
+              placeholder="Número de teléfono"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Correo Electrónico
+            </label>
+            <input
+              type="email"
+              value={familiarForm.correo || ""}
+              onChange={(e) =>
+                setFamiliarForm({
+                  ...familiarForm,
+                  correo: e.target.value,
+                })
+              }
+              placeholder="correo@ejemplo.com"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
         </div>
         <Button
           onClick={handleAddFamiliar}
@@ -162,6 +216,15 @@ const FamiliaresForm: React.FC<FamiliaresFormProps> = ({
                   {familiar.edad && ` • ${familiar.edad} años`}
                   {familiar.ingresos && ` • $${familiar.ingresos}`}
                 </p>
+                {(familiar.cedula || familiar.telefono || familiar.correo) && (
+                  <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                    {familiar.cedula && `ID: ${familiar.cedula}`}
+                    {familiar.cedula && familiar.telefono && " • "}
+                    {familiar.telefono && `Tel: ${familiar.telefono}`}
+                    {(familiar.cedula || familiar.telefono) && familiar.correo && " • "}
+                    {familiar.correo && `${familiar.correo}`}
+                  </p>
+                )}
               </div>
               <button
                 onClick={() => handleRemoveFamiliar(index)}

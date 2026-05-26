@@ -25,11 +25,16 @@ import java.util.stream.Collectors;
 @Service
 public class InformeSocialService {
 
-    @Autowired private InformeSocialRepository informeRepository;
-    @Autowired private PacienteRepository pacienteRepository;
-    @Autowired private StorageService storageService;
-    @Autowired private FichaSocioeconomicaRepository fichaRepository;
-    @Autowired private EspecialistaRepository especialistaRepository;
+    @Autowired
+    private InformeSocialRepository informeRepository;
+    @Autowired
+    private PacienteRepository pacienteRepository;
+    @Autowired
+    private StorageService storageService;
+    @Autowired
+    private FichaSocioeconomicaRepository fichaRepository;
+    @Autowired
+    private EspecialistaRepository especialistaRepository;
 
     @Transactional
     public InformeSocialDTO crearInforme(InformeSocialRequest request, MultipartFile genograma, MultipartFile ecomapa) {
@@ -53,7 +58,6 @@ public class InformeSocialService {
         informe.setInformanteTelefono(request.getInformanteTelefono());
         informe.setInformanteCorreo(request.getInformanteCorreo());
 
-        
         if (genograma != null && !genograma.isEmpty()) {
             informe.setGenogramaUrl(storageService.store(genograma));
         }
@@ -73,7 +77,6 @@ public class InformeSocialService {
         informe.setRecomendaciones(request.getRecomendaciones());
         informe.setElaboradoPor(request.getElaboradoPor());
 
-        
         FichaSocioeconomica ficha = fichaRepository.findByPacienteIdAndActivo(paciente.getId(), true);
         if (ficha == null) {
             ficha = new FichaSocioeconomica();
@@ -81,7 +84,8 @@ public class InformeSocialService {
             ficha.setActivo(true);
             ficha.setFechaElaboracion(new java.util.Date());
             if (request.getEspecialistaId() != null) {
-                com.ucacue.udipsai.modules.especialistas.domain.Especialista esp = especialistaRepository.findById(request.getEspecialistaId()).orElse(null);
+                com.ucacue.udipsai.modules.especialistas.domain.Especialista esp = especialistaRepository
+                        .findById(request.getEspecialistaId()).orElse(null);
                 ficha.setEspecialista(esp);
             }
             ficha = fichaRepository.save(ficha);
@@ -98,6 +102,10 @@ public class InformeSocialService {
                 familiar.setInstruccion(fDto.getInstruccion());
                 familiar.setOcupacion(fDto.getOcupacion());
                 familiar.setIngresoMensual(fDto.getIngresos());
+                familiar.setCedula(fDto.getCedula());
+                familiar.setNumeroTelefono(fDto.getTelefono());
+                familiar.setCorreoElectronico(fDto.getCorreo());
+                familiar.setFicha(ficha);
                 familiar.setFicha(ficha);
                 ficha.getFamiliares().add(familiar);
             }
@@ -191,7 +199,8 @@ public class InformeSocialService {
             ficha.setActivo(true);
             ficha.setFechaElaboracion(new java.util.Date());
             if (request.getEspecialistaId() != null) {
-                com.ucacue.udipsai.modules.especialistas.domain.Especialista esp = especialistaRepository.findById(request.getEspecialistaId()).orElse(null);
+                com.ucacue.udipsai.modules.especialistas.domain.Especialista esp = especialistaRepository
+                        .findById(request.getEspecialistaId()).orElse(null);
                 ficha.setEspecialista(esp);
             }
             ficha = fichaRepository.save(ficha);
@@ -203,7 +212,11 @@ public class InformeSocialService {
                 FichaSocioFamiliar familiar = new FichaSocioFamiliar();
                 familiar.setRelacion(fDto.getParentesco());
                 familiar.setNombresApellidos(fDto.getNombres());
-                familiar.setEdad(fDto.getEdad());
+                familiar.setIngresoMensual(fDto.getIngresos());
+                familiar.setCedula(fDto.getCedula());
+                familiar.setNumeroTelefono(fDto.getTelefono());
+                familiar.setCorreoElectronico(fDto.getCorreo());
+                familiar.setFicha(ficha);
                 familiar.setEstadoCivil(fDto.getEstadoCivil());
                 familiar.setInstruccion(fDto.getInstruccion());
                 familiar.setOcupacion(fDto.getOcupacion());
@@ -233,9 +246,11 @@ public class InformeSocialService {
         dto.setGenogramaUrl(entity.getGenogramaUrl());
         dto.setEcomapaUrl(entity.getEcomapaUrl());
 
-        dto.setPacienteEstadoCivil(entity.getPacienteEstadoCivil());
-        dto.setPacienteNacionalidad(entity.getPacienteNacionalidad());
-        dto.setPacienteSexo(entity.getPacienteSexo());
+        if (entity.getPaciente() != null) {
+            dto.setPacienteEstadoCivil(entity.getPaciente().getEstadoCivil());
+            dto.setPacienteNacionalidad(entity.getPaciente().getNacionalidad());
+            dto.setPacienteSexo(entity.getPaciente().getSexo());
+        }
         dto.setTipoFamilia(entity.getTipoFamilia());
         dto.setTipoFamiliaEspecificar(entity.getTipoFamiliaEspecificar());
 
@@ -277,6 +292,9 @@ public class InformeSocialService {
                     fDto.setIngresos(f.getIngresoMensual());
                     fDto.setInstruccion(f.getInstruccion());
                     fDto.setOcupacion(f.getOcupacion());
+                    fDto.setCedula(f.getCedula());
+                    fDto.setTelefono(f.getNumeroTelefono());
+                    fDto.setCorreo(f.getCorreoElectronico());
                     return fDto;
                 }).collect(Collectors.toList()));
             } else {

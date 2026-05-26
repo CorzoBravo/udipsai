@@ -22,7 +22,9 @@ public class PacienteRequest {
     private Boolean perteneceInclusion;
     private Boolean tieneDiscapacidad;
     private Boolean portadorCarnet;
-    private String numCarne;
+    private String estadoCivil;
+    private String nacionalidad;
+    private String sexo;
     private Boolean perteneceAProyecto;
     private String proyecto;
     private String diagnostico;

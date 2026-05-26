@@ -17,7 +17,9 @@ interface InformacionPacienteFormProps {
         portadorCarnet?: boolean;
         tipoDiscapacidad?: string;
         porcentajeDiscapacidad?: number;
-        numCarne?: string;
+        estadoCivil?: string;
+        nacionalidad?: string;
+        sexo?: string;
     };
     onChange: (field: string, value: any) => void;
 }
@@ -74,6 +76,33 @@ const InformacionPacienteForm: React.FC<InformacionPacienteFormProps> = ({ data 
                     {data.lugarNacimiento || "—"}
                 </p>
             </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Estado Civil
+                    </label>
+                    <p className="px-4 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg text-gray-800 dark:text-gray-100">
+                        {data.estadoCivil || "—"}
+                    </p>
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Nacionalidad
+                    </label>
+                    <p className="px-4 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg text-gray-800 dark:text-gray-100">
+                        {data.nacionalidad || "—"}
+                    </p>
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Sexo
+                    </label>
+                    <p className="px-4 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg text-gray-800 dark:text-gray-100">
+                        {data.sexo || "—"}
+                    </p>
+                </div>
+            </div>
+
             <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Número de Teléfono
@@ -128,14 +157,6 @@ const InformacionPacienteForm: React.FC<InformacionPacienteFormProps> = ({ data 
                 </label>
                 <p className="px-4 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg text-gray-800 dark:text-gray-100">
                     {data.porcentajeDiscapacidad !== undefined ? `${data.porcentajeDiscapacidad}%` : "—"}
-                </p>
-            </div>
-            <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Número de Carnet de Discapacidad
-                </label>
-                <p className="px-4 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg text-gray-800 dark:text-gray-100">
-                    {data.numCarne || "—"}
                 </p>
             </div>
         </div>

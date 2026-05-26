@@ -198,15 +198,15 @@ export const InformeSocialViewModal: React.FC<
               </div>
               <div>
                 <span className="font-semibold block text-sm text-gray-500 dark:text-gray-400">Estado Civil:</span>
-                <span className="text-gray-900 dark:text-gray-100 font-medium">{informe.pacienteEstadoCivil || "—"}</span>
+                <span className="text-gray-900 dark:text-gray-100 font-medium">{pacienteFull?.estadoCivil || "—"}</span>
               </div>
               <div>
                 <span className="font-semibold block text-sm text-gray-500 dark:text-gray-400">Nacionalidad:</span>
-                <span className="text-gray-900 dark:text-gray-100 font-medium">{informe.pacienteNacionalidad || "—"}</span>
+                <span className="text-gray-900 dark:text-gray-100 font-medium">{pacienteFull?.nacionalidad || "—"}</span>
               </div>
               <div>
                 <span className="font-semibold block text-sm text-gray-500 dark:text-gray-400">Sexo:</span>
-                <span className="text-gray-900 dark:text-gray-100 font-medium">{informe.pacienteSexo || "—"}</span>
+                <span className="text-gray-900 dark:text-gray-100 font-medium">{pacienteFull?.sexo || "—"}</span>
               </div>
               <div>
                 <span className="font-semibold block text-sm text-gray-500 dark:text-gray-400">Tipo de Discapacidad:</span>
@@ -299,6 +299,9 @@ export const InformeSocialViewModal: React.FC<
                       <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase dark:text-gray-400">Ingresos</th>
                       <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase dark:text-gray-400">Instrucción</th>
                       <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase dark:text-gray-400">Ocupación</th>
+                      <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase dark:text-gray-400">Cédula</th>
+                      <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase dark:text-gray-400">Teléfono</th>
+                      <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase dark:text-gray-400">Correo</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-transparent">
@@ -311,6 +314,9 @@ export const InformeSocialViewModal: React.FC<
                         <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">{familiar.ingresos !== undefined ? `$${familiar.ingresos}` : "—"}</td>
                         <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">{familiar.instruccion || "—"}</td>
                         <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">{familiar.ocupacion || "—"}</td>
+                        <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">{familiar.cedula || "—"}</td>
+                        <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">{familiar.telefono || "—"}</td>
+                        <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">{familiar.correo || "—"}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -333,11 +339,10 @@ export const InformeSocialViewModal: React.FC<
                   {["Nuclear", "Extensa", "Monoparental", "Otros"].map((tipo) => (
                     <span
                       key={tipo}
-                      className={`px-3 py-1 text-xs font-semibold rounded-full border ${
-                        informe.tipoFamilia === tipo
+                      className={`px-3 py-1 text-xs font-semibold rounded-full border ${informe.tipoFamilia === tipo
                           ? "bg-brand-50 border-brand-300 text-brand-700 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200"
                           : "bg-gray-50 border-gray-200 text-gray-400 dark:bg-white/[0.01] dark:border-gray-800 dark:text-gray-600"
-                      }`}
+                        }`}
                     >
                       {tipo} {tipo === "Otros" && informe.tipoFamiliaEspecificar ? `(${informe.tipoFamiliaEspecificar})` : ""}
                     </span>

@@ -94,13 +94,13 @@
             <td class="label">CÉDULA/PASAPORTE</td>
             <td th:text="${p.cedula}"></td>
             <td class="label">ESTADO CIVIL</td>
-            <td th:text="${i.pacienteEstadoCivil != null ? i.pacienteEstadoCivil : '—'}"></td>
+            <td th:text="${p.estadoCivil != null ? p.estadoCivil : '—'}"></td>
         </tr>
         <tr>
             <td class="label">NACIONALIDAD</td>
-            <td th:text="${i.pacienteNacionalidad != null ? i.pacienteNacionalidad : '—'}"></td>
+            <td th:text="${p.nacionalidad != null ? p.nacionalidad : '—'}"></td>
             <td class="label">SEXO</td>
-            <td th:text="${i.pacienteSexo != null ? i.pacienteSexo : '—'}"></td>
+            <td th:text="${p.sexo != null ? p.sexo : '—'}"></td>
         </tr>
         <tr>
             <td class="label">TIPO DE DISCAPACIDAD</td>
@@ -162,6 +162,9 @@
             <th>INGRESOS</th>
             <th>INSTRUCCIÓN</th>
             <th>OCUPACIÓN</th>
+            <th>CÉDULA</th>
+            <th>TELÉFONO</th>
+            <th>CORREO</th>
         </tr>
         </thead>
         <tbody>
@@ -173,9 +176,12 @@
             <td th:text="${f.ingresos != null ? '$' + f.ingresos : '—'}"></td>
             <td th:text="${f.instruccion}"></td>
             <td th:text="${f.ocupacion}"></td>
+            <td th:text="${f.cedula != null ? f.cedula : '—'}"></td>
+            <td th:text="${f.telefono != null ? f.telefono : '—'}"></td>
+            <td th:text="${f.correo != null ? f.correo : '—'}"></td>
         </tr>
         <tr th:if="${#lists.isEmpty(i.familiares)}">
-            <td colspan="7" style="text-align: center;">No hay familiares registrados</td>
+            <td colspan="10" style="text-align: center;">No hay familiares registrados</td>
         </tr>
         </tbody>
     </table>

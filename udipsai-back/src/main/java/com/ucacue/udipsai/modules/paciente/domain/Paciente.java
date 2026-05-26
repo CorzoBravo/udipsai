@@ -87,8 +87,14 @@ public class Paciente {
     @Column(name = "portador_carnet")
     private Boolean portadorCarnet = false;
 
-    @Column(name = "num_carne_discapacidad")
-    private String numCarne;
+    @Column(name = "estado_civil", length = 35)
+    private String estadoCivil;
+
+    @Column(name = "nacionalidad", length = 50)
+    private String nacionalidad;
+
+    @Column(name = "sexo", length = 20)
+    private String sexo;
 
     @Builder.Default
     @Column(name = "pertenece_a_proyecto")
