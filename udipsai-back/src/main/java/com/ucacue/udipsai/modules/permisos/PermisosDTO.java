@@ -7,7 +7,7 @@ import lombok.Setter;
 @Setter
 public class PermisosDTO {
     private Long id;
-    
+
     private Boolean pacientes;
     private Boolean pacientesCrear;
     private Boolean pacientesEditar;
@@ -72,5 +72,10 @@ public class PermisosDTO {
     private Boolean socioeconomicaCrear;
     private Boolean socioeconomicaEditar;
     private Boolean socioeconomicaEliminar;
-    
+
+    private Boolean informeSocial;
+    private Boolean informeSocialCrear;
+    private Boolean informeSocialEditar;
+    private Boolean informeSocialEliminar;
+
 }

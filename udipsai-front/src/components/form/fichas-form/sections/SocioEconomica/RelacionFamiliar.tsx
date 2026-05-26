@@ -20,10 +20,55 @@ interface RelacionFamiliarProps {
         comunicacionFamiliar: string;
         tipoHogar: string;
     };
+
     onChange: (field: string, value: any) => void;
+    onValidate?: (isValid: boolean, errors: string[]) => void;
 }
 
-const RelacionFamiliar: React.FC<RelacionFamiliarProps> = ({ data, onChange }) => {
+const validateRelacionFamiliar = (
+    data: RelacionFamiliarProps["data"]
+): string[] => {
+
+    const errors: string[] = [];
+
+    if (!data.resolucionConflictos?.trim()) {
+        errors.push("Resolución de conflictos es requerida");
+    }
+
+    if (
+        !data.cumplenReglas &&
+        !data.quienesIncumplenReglas?.trim()
+    ) {
+        errors.push("Quiénes no cumplen las reglas es requerido");
+    }
+
+    if (!data.relacionHermanos?.trim()) {
+        errors.push("Relación entre hermanos es requerida");
+    }
+
+    if (!data.relacionPadresHijos?.trim()) {
+        errors.push("Relación entre padres e hijos es requerida");
+    }
+
+    if (!data.comunicacionFamiliar?.trim()) {
+        errors.push("Comunicación familiar es requerida");
+    }
+
+    if (!data.tipoHogar?.trim()) {
+        errors.push("Tipo de hogar es requerido");
+    }
+
+    return errors;
+};
+
+const RelacionFamiliar: React.FC<RelacionFamiliarProps> = ({
+    data,
+    onChange,
+    onValidate,
+}) => {
+
+    const lastValidationRef = React.useRef("");
+
     const opcionesRelacion = [
         { value: "muyBuena", label: "Muy buena" },
         { value: "buena", label: "Buena" },
@@ -31,10 +76,11 @@ const RelacionFamiliar: React.FC<RelacionFamiliarProps> = ({ data, onChange }) =
         { value: "mala", label: "Mala" },
     ];
 
-    const opcionesHermanos = [
+const opcionesHermanos = [
         ...opcionesRelacion,
         { value: "hijoUnico", label: "Hijo único" },
     ];
+
     return (
         <div className="space-y-6">
 
@@ -42,150 +88,97 @@ const RelacionFamiliar: React.FC<RelacionFamiliarProps> = ({ data, onChange }) =
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-                {/* Opinión */}
                 <Switch
                     label="¿Se respeta la opinión de los miembros?"
                     checked={data.opinionfamiliar}
-                    onChange={(checked) => onChange("opinionfamiliar", checked)}
+                    onChange={(checked) =>
+                        onChange("opinionfamiliar", checked)
+                    }
                 />
 
-                {/* Unión */}
                 <Switch
                     label="¿La familia es unida ante problemas?"
                     checked={data.unionfamiliar}
-                    onChange={(checked) => onChange("unionfamiliar", checked)}
+                    onChange={(checked) =>
+                        onChange("unionfamiliar", checked)
+                    }
                 />
 
-                {/* Conflictos */}
                 <div className="md:col-span-2">
                     <Label>¿Cómo resuelven conflictos?</Label>
+
                     <Input
                         value={data.resolucionConflictos}
                         onChange={(e: any) =>
-                            onChange("resolucionConflictos", e.target.value)
+                            onChange(
+                                "resolucionConflictos",
+                                e.target.value
+                            )
                         }
                     />
                 </div>
 
-                {/* Cumplen reglas */}
                 <Switch
                     label="¿Cumplen las reglas del hogar?"
                     checked={data.cumplenReglas}
-                    onChange={(checked) => onChange("cumplenReglas", checked)}
+                    onChange={(checked) =>
+                        onChange("cumplenReglas", checked)
+                    }
                 />
 
-                {/* Quiénes no cumplen */}
                 {!data.cumplenReglas && (
                     <div className="md:col-span-2">
-                        <Label>¿Quiénes no cumplen las reglas?</Label>
+
+                        <Label>
+                            ¿Quiénes no cumplen las reglas?
+                        </Label>
+
                         <Input
                             value={data.quienesIncumplenReglas}
                             onChange={(e: any) =>
-                                onChange("quienesIncumplenReglas", e.target.value)
+                                onChange(
+                                    "quienesIncumplenReglas",
+                                    e.target.value
+                                )
                             }
                         />
+
                     </div>
                 )}
 
-                {/* Actividades familiares */}
                 <Switch
                     label="¿Realizan actividades familiares?"
                     checked={data.tieneActividadesFamiliares}
                     onChange={(checked) =>
-                        onChange("tieneActividadesFamiliares", checked)
+                        onChange(
+                            "tieneActividadesFamiliares",
+                            checked
+                        )
                     }
                 />
 
-                {/* Input condicional */}
                 {data.tieneActividadesFamiliares && (
                     <div className="md:col-span-2">
-                        <Label>¿Qué actividades realizan?</Label>
+
+                        <Label>
+                            ¿Qué actividades realizan?
+                        </Label>
+
                         <Input
                             value={data.actividadesCompartidas}
                             onChange={(e: any) =>
-                                onChange("actividadesCompartidas", e.target.value)
+                                onChange(
+                                    "actividadesCompartidas",
+                                    e.target.value
+                                )
                             }
                         />
+
                     </div>
                 )}
 
             </div>
-            <div className="md:col-span-2">
-                <Label>Las relaciones entre los/las hermanos/as es:</Label>
 
-                <div className="flex flex-wrap gap-4 mt-2">
-                    {opcionesHermanos.map((op) => (
-                        <label key={op.value} className="flex items-center gap-2">
-                            <input
-                                type="radio"
-                                name="relacionHermanos"
-                                value={op.value}
-                                checked={data.relacionHermanos === op.value}
-                                onChange={(e) =>
-                                    onChange("relacionHermanos", e.target.value)
-                                }
-                            />
-                            {op.label}
-                        </label>
-                    ))}
-                </div>
-            </div>
-            <div className="md:col-span-2">
-                <Label>Las relaciones entre padres e hijos/as es:</Label>
-
-                <div className="flex flex-wrap gap-4 mt-2">
-                    {opcionesRelacion.map((op) => (
-                        <label key={op.value} className="flex items-center gap-2">
-                            <input
-                                type="radio"
-                                name="relacionPadresHijos"
-                                value={op.value}
-                                checked={data.relacionPadresHijos === op.value}
-                                onChange={(e) =>
-                                    onChange("relacionPadresHijos", e.target.value)
-                                }
-                            />
-                            {op.label}
-                        </label>
-                    ))}
-                </div>
-            </div>
-            <div className="md:col-span-2">
-                <Label>La comunicación entre los miembros de la familia es:</Label>
-
-                <div className="flex flex-wrap gap-4 mt-2">
-                    {opcionesRelacion.map((op) => (
-                        <label key={op.value} className="flex items-center gap-2">
-                            <input
-                                type="radio"
-                                name="comunicacionFamiliar"
-                                value={op.value}
-                                checked={data.comunicacionFamiliar === op.value}
-                                onChange={(e) =>
-                                    onChange("comunicacionFamiliar", e.target.value)
-                                }
-                            />
-                            {op.label}
-                        </label>
-                    ))}
-                </div>
-            </div>
-            {/* Tipo de hogar */}
-            <div className="md:col-span-2">
-                <Label>Tipo de hogar</Label>
-
-                <select
-                    value={data.tipoHogar}
-                    onChange={(e) => onChange("tipoHogar", e.target.value)}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 dark:bg-gray-900 dark:border-gray-700"
-                >
-                    <option value="">Seleccione una opción</option>
-                    <option value="completo">Completo</option>
-                    <option value="incompleto">Incompleto</option>
-                    <option value="funcional">Funcional</option>
-                    <option value="disfuncional">Disfuncional</option>
-                </select>
-            </div>
         </div>
     );
 };

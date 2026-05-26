@@ -147,6 +147,15 @@ public class Permisos {
     @Column(name = "socioeconomica_eliminar")
     private Boolean socioEconomicaEliminar = false;
 
+    @Column(name = "informesocial")
+    private Boolean informeSocial = false;
+    @Column(name = "informesocial_crear")
+    private Boolean informeSocialCrear = false;
+    @Column(name = "informesocial_editar")
+    private Boolean informeSocialEditar = false;
+    @Column(name = "informesocial_eliminar")
+    private Boolean informeSocialEliminar = false;
+
     public List<SimpleGrantedAuthority> getAuthorities() {
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
 
@@ -289,7 +298,19 @@ public class Permisos {
             authorities.add(new SimpleGrantedAuthority("PERM_SOCIOECONOMICA_EDITAR"));
         if (Boolean.TRUE.equals(this.socioEconomicaEliminar))
             authorities.add(new SimpleGrantedAuthority("PERM_SOCIOECONOMICA_ELIMINAR"));
+
+        // Informe Social
+        if (Boolean.TRUE.equals(this.informeSocial))
+            authorities.add(new SimpleGrantedAuthority("PERM_INFORME_SOCIAL"));
+        if (Boolean.TRUE.equals(this.informeSocialCrear))
+            authorities.add(new SimpleGrantedAuthority("PERM_INFORME_SOCIAL_CREAR"));
+        if (Boolean.TRUE.equals(this.informeSocialEditar))
+            authorities.add(new SimpleGrantedAuthority("PERM_INFORME_SOCIAL_EDITAR"));
+        if (Boolean.TRUE.equals(this.informeSocialEliminar))
+            authorities.add(new SimpleGrantedAuthority("PERM_INFORME_SOCIAL_ELIMINAR"));
+
         return authorities;
+
     }
 
     public void updateFrom(Permisos other) {
@@ -366,6 +387,11 @@ public class Permisos {
         this.socioEconomicaCrear = other.socioEconomicaCrear;
         this.socioEconomicaEditar = other.socioEconomicaEditar;
         this.socioEconomicaEliminar = other.socioEconomicaEliminar;
+
+        this.informeSocial = other.informeSocial;
+        this.informeSocialCrear = other.informeSocialCrear;
+        this.informeSocialEditar = other.informeSocialEditar;
+        this.informeSocialEliminar = other.informeSocialEliminar;
 
     }
 }

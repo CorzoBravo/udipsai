@@ -3,8 +3,11 @@ package com.ucacue.udipsai.modules.informesocial.service;
 import com.ucacue.udipsai.common.report.ExcelGenerator;
 import com.ucacue.udipsai.common.report.PdfService;
 import com.ucacue.udipsai.modules.informesocial.dto.InformeSocialDTO;
+import com.ucacue.udipsai.modules.paciente.domain.Paciente;
+import com.ucacue.udipsai.modules.paciente.repository.PacienteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -22,18 +25,24 @@ public class InformeSocialReportService {
         @Autowired
         private PdfService pdfService;
 
+        @Autowired
+        private PacienteRepository pacienteRepository;
+
+        @Autowired
+        private com.ucacue.udipsai.infrastructure.storage.StorageService storageService;
+
         private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
 
         /**
          * EXPORTAR EXCEL
          */
-        public ByteArrayInputStream exportarExcel(String cedula)
+        public ByteArrayInputStream exportarExcel(Integer pacienteId)
                         throws IOException {
 
                 List<InformeSocialDTO> informes;
 
-                if (cedula != null && !cedula.isEmpty()) {
-                        InformeSocialDTO informe = informeService.obtenerPorPacienteCedula(cedula);
+                if (pacienteId != null) {
+                        InformeSocialDTO informe = informeService.obtenerPorPacienteId(pacienteId);
 
                         informes = (informe != null)
                                         ? List.of(informe)
@@ -162,10 +171,11 @@ public class InformeSocialReportService {
                                 });
         }
 
-        public byte[] exportarPdf(String cedula)
+        @Transactional(readOnly = true)
+        public byte[] exportarPdf(Integer pacienteId)
                         throws Exception {
 
-                InformeSocialDTO informe = informeService.obtenerPorPacienteCedula(cedula);
+                InformeSocialDTO informe = informeService.obtenerPorPacienteId(pacienteId);
 
                 if (informe == null) {
                         throw new RuntimeException(
@@ -175,8 +185,54 @@ public class InformeSocialReportService {
                 Map<String, Object> data = new HashMap<>();
                 data.put("i", informe);
 
+                Paciente paciente = pacienteRepository.findById(pacienteId)
+                                .orElseThrow(() -> new RuntimeException("Paciente no encontrado"));
+                data.put("p", paciente);
+
+                if (informe.getGenogramaUrl() != null && !informe.getGenogramaUrl().trim().isEmpty()) {
+                        try {
+                                java.nio.file.Path path = storageService.load(informe.getGenogramaUrl());
+                                if (java.nio.file.Files.exists(path)) {
+                                        if (informe.getGenogramaUrl().toLowerCase().endsWith(".pdf")) {
+                                                data.put("genogramaIsPdf", true);
+                                        } else {
+                                                byte[] bytes = java.nio.file.Files.readAllBytes(path);
+                                                String contentType = java.nio.file.Files.probeContentType(path);
+                                                if (contentType == null) {
+                                                        contentType = "image/png";
+                                                }
+                                                String base64 = java.util.Base64.getEncoder().encodeToString(bytes);
+                                                data.put("genogramaUri", "data:" + contentType + ";base64," + base64);
+                                        }
+                                }
+                        } catch (Exception e) {
+                                e.printStackTrace();
+                        }
+                }
+
+                if (informe.getEcomapaUrl() != null && !informe.getEcomapaUrl().trim().isEmpty()) {
+                        try {
+                                java.nio.file.Path path = storageService.load(informe.getEcomapaUrl());
+                                if (java.nio.file.Files.exists(path)) {
+                                        if (informe.getEcomapaUrl().toLowerCase().endsWith(".pdf")) {
+                                                data.put("ecomapaIsPdf", true);
+                                        } else {
+                                                byte[] bytes = java.nio.file.Files.readAllBytes(path);
+                                                String contentType = java.nio.file.Files.probeContentType(path);
+                                                if (contentType == null) {
+                                                        contentType = "image/png";
+                                                }
+                                                String base64 = java.util.Base64.getEncoder().encodeToString(bytes);
+                                                data.put("ecomapaUri", "data:" + contentType + ";base64," + base64);
+                                        }
+                                }
+                        } catch (Exception e) {
+                                e.printStackTrace();
+                        }
+                }
+
                 return pdfService.generatePdfFromHtml(
-                                "reportes/informe-social-detalle",
+                                "reportes/informesocial-detalle",
                                 data);
         }
 

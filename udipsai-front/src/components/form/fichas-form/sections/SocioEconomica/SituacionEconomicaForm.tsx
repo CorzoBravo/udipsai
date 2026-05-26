@@ -1,4 +1,5 @@
 import React from "react";
+import { toast } from "react-toastify";
 
 interface SituacionEconomicaFormProps {
     data: {
@@ -25,7 +26,22 @@ interface SituacionEconomicaFormProps {
     }[];
     onChangeDesglose: (field: string, value: number) => void;
     onChange: (field: string, value: any) => void;
+    onValidate?: (isValid: boolean, errors: string[]) => void;
 }
+
+const validateSituacionEconomica = (data: SituacionEconomicaFormProps["data"]): string[] => {
+    const errors: string[] = [];
+    if (!data.actividadesTiempoLibre || data.actividadesTiempoLibre.trim() === "") {
+        errors.push("Actividades de tiempo libre es requerido");
+    }
+    if (!data.condicionEconomica || data.condicionEconomica.trim() === "") {
+        errors.push("Condición económica es requerida");
+    }
+    if (!data.capacidadGastoEvaluacion || data.capacidadGastoEvaluacion.trim() === "") {
+        errors.push("Capacidad de gasto en evaluación es requerida");
+    }
+    return errors;
+};
 
 const SituacionEconomicaForm: React.FC<SituacionEconomicaFormProps> = ({
     data,
@@ -33,6 +49,7 @@ const SituacionEconomicaForm: React.FC<SituacionEconomicaFormProps> = ({
     familiares,
     onChangeDesglose,
     onChange,
+    onValidate,
 }) => {
 
     const calcularTotalIngresos = (familiares: any[]) => {
