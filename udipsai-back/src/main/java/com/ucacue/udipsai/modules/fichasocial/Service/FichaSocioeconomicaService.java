@@ -1,6 +1,7 @@
 package com.ucacue.udipsai.modules.fichasocial.Service;
 
 import com.ucacue.udipsai.modules.fichasocial.domain.FichaSocioeconomica;
+import com.ucacue.udipsai.modules.fichasocial.domain.components.DesgloseEconomico;
 import com.ucacue.udipsai.modules.fichasocial.domain.components.FichaSocioFamiliar;
 import com.ucacue.udipsai.modules.fichasocial.dto.FichaSocioeconomicaDTO;
 import com.ucacue.udipsai.modules.fichasocial.dto.FichaSocioeconomicaRequest;
@@ -77,6 +78,7 @@ public class FichaSocioeconomicaService {
 
         mapRequestToEntity(request, ficha);
         procesarFamiliares(request.getFamiliares(), ficha);
+        calcularIngresosDesglose(ficha);
 
         FichaSocioeconomica saved = fichaRepository.save(ficha);
         log.info("Ficha socioeconómica guardada exitosamente ID: {}", saved.getId());
@@ -97,6 +99,7 @@ public class FichaSocioeconomicaService {
 
         ficha.getFamiliares().clear();
         procesarFamiliares(request.getFamiliares(), ficha);
+        calcularIngresosDesglose(ficha);
 
         FichaSocioeconomica saved = fichaRepository.save(ficha);
         return convertirADTO(saved);
@@ -111,6 +114,10 @@ public class FichaSocioeconomicaService {
         ficha.setSalud(request.getSalud());
         ficha.setDesgloseEconomico(request.getDesgloseEconomico());
         ficha.setSituacionEconomica(request.getSituacionEconomica());
+        ficha.setPacienteInstruccion(request.getPacienteInstruccion());
+        ficha.setPacienteOcupacion(request.getPacienteOcupacion());
+        ficha.setPacienteEmail(request.getPacienteEmail());
+        ficha.setPacienteNumCarne(request.getPacienteNumCarne());
         ficha.setConclusiones(request.getConclusiones());
         ficha.setRecomendaciones(request.getRecomendaciones());
         ficha.setResponsable(request.getResponsable());
@@ -175,6 +182,11 @@ public class FichaSocioeconomicaService {
         dto.setDesgloseEconomico(ficha.getDesgloseEconomico());
         dto.setSituacionEconomica(ficha.getSituacionEconomica());
 
+        dto.setPacienteInstruccion(ficha.getPacienteInstruccion());
+        dto.setPacienteOcupacion(ficha.getPacienteOcupacion());
+        dto.setPacienteEmail(ficha.getPacienteEmail());
+        dto.setPacienteNumCarne(ficha.getPacienteNumCarne());
+
         dto.setConclusiones(ficha.getConclusiones());
         dto.setRecomendaciones(ficha.getRecomendaciones());
         dto.setResponsable(ficha.getResponsable());
@@ -209,6 +221,36 @@ public class FichaSocioeconomicaService {
         }
 
         return dto;
+    }
+
+    private void calcularIngresosDesglose(FichaSocioeconomica ficha) {
+        if (ficha.getDesgloseEconomico() == null) {
+            ficha.setDesgloseEconomico(new DesgloseEconomico());
+        }
+        double padre = 0.0;
+        double madre = 0.0;
+        double otrosFamiliares = 0.0;
+
+        if (ficha.getFamiliares() != null) {
+            for (FichaSocioFamiliar familiar : ficha.getFamiliares()) {
+                double ingreso = familiar.getIngresoMensual() != null ? familiar.getIngresoMensual() : 0.0;
+                String relacion = familiar.getRelacion() != null ? familiar.getRelacion().toLowerCase().trim() : "";
+                if (relacion.equals("padre") || relacion.equals("papá") || relacion.equals("papa")) {
+                    padre += ingreso;
+                } else if (relacion.equals("madre") || relacion.equals("mamá") || relacion.equals("mama")) {
+                    madre += ingreso;
+                } else {
+                    otrosFamiliares += ingreso;
+                }
+            }
+        }
+
+        ficha.getDesgloseEconomico().setIngresoPadre(padre);
+        ficha.getDesgloseEconomico().setIngresoMadre(madre);
+        ficha.getDesgloseEconomico().setIngresoFamiliares(otrosFamiliares);
+        if (ficha.getDesgloseEconomico().getIngresoOtros() == null) {
+            ficha.getDesgloseEconomico().setIngresoOtros(0.0);
+        }
     }
 
     @Transactional

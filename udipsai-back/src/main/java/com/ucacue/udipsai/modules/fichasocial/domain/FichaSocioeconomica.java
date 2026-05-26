@@ -59,6 +59,18 @@ public class FichaSocioeconomica {
     @Embedded
     private SituacionEconomica situacionEconomica;
 
+    @Column(name = "paciente_instruccion")
+    private String pacienteInstruccion;
+
+    @Column(name = "paciente_ocupacion")
+    private String pacienteOcupacion;
+
+    @Column(name = "paciente_email")
+    private String pacienteEmail;
+
+    @Column(name = "paciente_num_carne")
+    private String pacienteNumCarne;
+
     @Column(name = "conclusiones_finales", columnDefinition = "TEXT")
     private String conclusiones;
 

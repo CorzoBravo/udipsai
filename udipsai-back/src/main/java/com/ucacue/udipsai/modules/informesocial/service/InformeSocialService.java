@@ -2,7 +2,6 @@ package com.ucacue.udipsai.modules.informesocial.service;
 
 import com.ucacue.udipsai.infrastructure.storage.StorageService;
 import com.ucacue.udipsai.modules.informesocial.domain.InformeSocial;
-import com.ucacue.udipsai.modules.informesocial.domain.InformeSocialFamiliar;
 import com.ucacue.udipsai.modules.informesocial.dto.InformeSocialDTO;
 import com.ucacue.udipsai.modules.informesocial.dto.InformeSocialFamiliarDTO;
 import com.ucacue.udipsai.modules.informesocial.dto.InformeSocialRequest;
@@ -46,9 +45,6 @@ public class InformeSocialService {
         informe.setNumFicha(request.getNumFicha());
         informe.setFechaElaboracion(new java.util.Date());
 
-        informe.setPacienteEstadoCivil(request.getPacienteEstadoCivil());
-        informe.setPacienteNacionalidad(request.getPacienteNacionalidad());
-        informe.setPacienteSexo(request.getPacienteSexo());
         informe.setTipoFamilia(request.getTipoFamilia());
         informe.setTipoFamiliaEspecificar(request.getTipoFamiliaEspecificar());
 
@@ -168,9 +164,6 @@ public class InformeSocialService {
             informe.setEcomapaUrl(storageService.store(ecomapa));
         }
 
-        informe.setPacienteEstadoCivil(request.getPacienteEstadoCivil());
-        informe.setPacienteNacionalidad(request.getPacienteNacionalidad());
-        informe.setPacienteSexo(request.getPacienteSexo());
         informe.setTipoFamilia(request.getTipoFamilia());
         informe.setTipoFamiliaEspecificar(request.getTipoFamiliaEspecificar());
 
@@ -246,11 +239,6 @@ public class InformeSocialService {
         dto.setGenogramaUrl(entity.getGenogramaUrl());
         dto.setEcomapaUrl(entity.getEcomapaUrl());
 
-        if (entity.getPaciente() != null) {
-            dto.setPacienteEstadoCivil(entity.getPaciente().getEstadoCivil());
-            dto.setPacienteNacionalidad(entity.getPaciente().getNacionalidad());
-            dto.setPacienteSexo(entity.getPaciente().getSexo());
-        }
         dto.setTipoFamilia(entity.getTipoFamilia());
         dto.setTipoFamiliaEspecificar(entity.getTipoFamiliaEspecificar());
 
