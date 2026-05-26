@@ -570,6 +570,7 @@ export const PatientFichasModal: React.FC<PatientFichasModalProps> = ({
           isOpen={viewSeguimientoModalOpen}
           onClose={() => setViewSeguimientoModalOpen(false)}
           pacienteId={paciente.id}
+          modo={"ver"}
         />
       )}
     </Modal>

@@ -20,16 +20,57 @@ interface ConformacionFamiliarProps {
   ) => void;
   onAdd: () => void;
   onRemove: (index: number) => void;
+  onValidate?: (isValid: boolean, errors: string[]) => void;
 }
+
+const validateFamiliar = (familiar: Familiar): string[] => {
+  const errors: string[] = [];
+  if (!familiar.relacion || familiar.relacion.trim() === "") {
+    errors.push("Relación es requerida");
+  }
+  if (!familiar.nombresApellidos || familiar.nombresApellidos.trim() === "") {
+    errors.push("Nombres y apellidos es requerido");
+  }
+  if (!familiar.edad || familiar.edad <= 0) {
+    errors.push("Edad debe ser mayor a 0");
+  }
+  return errors;
+};
 
 const ConformacionFamiliar: React.FC<ConformacionFamiliarProps> = ({
   data,
   onChange,
   onAdd,
   onRemove,
+  onValidate,
 }) => {
-  const [openIndex, setOpenIndex] = React.useState<number | null>(0);
+  const [openIndex, setOpenIndex] = React.useState<number | null>(null);
   const relaciones = ["Padre", "Madre", "Hermano", "Hermana", "Abuelo", "Abuela", "Tío", "Tía", "Otro"];
+
+
+  React.useEffect(() => {
+    if (!onValidate) return;
+
+    if (data.length === 0) {
+      onValidate(false, ["No hay familiares registrados"]);
+      return;
+    }
+
+    const allErrors: string[] = [];
+
+    data.forEach((familiar, index) => {
+      const errors = validateFamiliar(familiar);
+
+      if (errors.length > 0) {
+        allErrors.push(
+          `Familiar #${index + 1}: ${errors.join(", ")}`
+        );
+      }
+    });
+
+    onValidate(allErrors.length === 0, allErrors);
+
+  }, [data, onValidate]);
 
   return (
     <div className="space-y-4">

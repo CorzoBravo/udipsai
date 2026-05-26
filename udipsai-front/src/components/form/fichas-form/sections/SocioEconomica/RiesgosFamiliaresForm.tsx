@@ -12,9 +12,29 @@ interface RiesgosFamiliaresFormProps {
         afectacionFamiliar: string;
     };
     onChange: (field: string, value: any) => void;
+    onValidate?: (isValid: boolean, errors: string[]) => void;
 }
 
-const RiesgosFamiliaresForm: React.FC<RiesgosFamiliaresFormProps> = ({ data, onChange }) => {
+const validateRiesgosFamiliares = (data: RiesgosFamiliaresFormProps["data"]): string[] => {
+    const errors: string[] = [];
+    if (!data.problemasSociales || data.problemasSociales.trim() === "") {
+        errors.push("Debe seleccionar al menos un problema social");
+    }
+    if (data.migroExterior) {
+        if (!data.lugarMigracion || data.lugarMigracion.trim() === "") {
+            errors.push("Lugar de migración es requerido");
+        }
+        if (!data.tiempoMigracion || data.tiempoMigracion.trim() === "") {
+            errors.push("Tiempo de migración es requerido");
+        }
+        if (!data.afectacionFamiliar || data.afectacionFamiliar.trim() === "") {
+            errors.push("Afectación familiar es requerida");
+        }
+    }
+    return errors;
+};
+
+const RiesgosFamiliaresForm: React.FC<RiesgosFamiliaresFormProps> = ({ data, onChange, onValidate }) => {
 
     const optionsProblemas = [
         { value: "violencia", label: "Violencia intrafamiliar" },

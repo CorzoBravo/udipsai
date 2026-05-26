@@ -14,6 +14,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import com.ucacue.udipsai.modules.fichasocial.domain.FichaSocioeconomica;
+import com.ucacue.udipsai.modules.fichasocial.domain.components.FichaSocioFamiliar;
+import com.ucacue.udipsai.modules.fichasocial.repository.FichaSocioeconomicaRepository;
+import com.ucacue.udipsai.modules.especialistas.repository.EspecialistaRepository;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,6 +28,8 @@ public class InformeSocialService {
     @Autowired private InformeSocialRepository informeRepository;
     @Autowired private PacienteRepository pacienteRepository;
     @Autowired private StorageService storageService;
+    @Autowired private FichaSocioeconomicaRepository fichaRepository;
+    @Autowired private EspecialistaRepository especialistaRepository;
 
     @Transactional
     public InformeSocialDTO crearInforme(InformeSocialRequest request, MultipartFile genograma, MultipartFile ecomapa) {
@@ -34,6 +40,18 @@ public class InformeSocialService {
         informe.setPaciente(paciente);
         informe.setNumFicha(request.getNumFicha());
         informe.setFechaElaboracion(new java.util.Date());
+
+        informe.setPacienteEstadoCivil(request.getPacienteEstadoCivil());
+        informe.setPacienteNacionalidad(request.getPacienteNacionalidad());
+        informe.setPacienteSexo(request.getPacienteSexo());
+        informe.setTipoFamilia(request.getTipoFamilia());
+        informe.setTipoFamiliaEspecificar(request.getTipoFamiliaEspecificar());
+
+        informe.setInformanteNombre(request.getInformanteNombre());
+        informe.setInformanteParentesco(request.getInformanteParentesco());
+        informe.setInformanteCedula(request.getInformanteCedula());
+        informe.setInformanteTelefono(request.getInformanteTelefono());
+        informe.setInformanteCorreo(request.getInformanteCorreo());
 
         
         if (genograma != null && !genograma.isEmpty()) {
@@ -56,15 +74,34 @@ public class InformeSocialService {
         informe.setElaboradoPor(request.getElaboradoPor());
 
         
+        FichaSocioeconomica ficha = fichaRepository.findByPacienteIdAndActivo(paciente.getId(), true);
+        if (ficha == null) {
+            ficha = new FichaSocioeconomica();
+            ficha.setPaciente(paciente);
+            ficha.setActivo(true);
+            ficha.setFechaElaboracion(new java.util.Date());
+            if (request.getEspecialistaId() != null) {
+                com.ucacue.udipsai.modules.especialistas.domain.Especialista esp = especialistaRepository.findById(request.getEspecialistaId()).orElse(null);
+                ficha.setEspecialista(esp);
+            }
+            ficha = fichaRepository.save(ficha);
+        }
+
         if (request.getFamiliares() != null) {
-            informe.setFamiliares(request.getFamiliares().stream().map(fDto -> {
-                InformeSocialFamiliar familiar = new InformeSocialFamiliar();
-                familiar.setNombres(fDto.getNombres());
-                familiar.setParentesco(fDto.getParentesco());
-                familiar.setIngresos(fDto.getIngresos());
-                familiar.setInforme(informe);
-                return familiar;
-            }).collect(Collectors.toList()));
+            ficha.getFamiliares().clear();
+            for (com.ucacue.udipsai.modules.informesocial.dto.InformeSocialFamiliarDTO fDto : request.getFamiliares()) {
+                FichaSocioFamiliar familiar = new FichaSocioFamiliar();
+                familiar.setRelacion(fDto.getParentesco());
+                familiar.setNombresApellidos(fDto.getNombres());
+                familiar.setEdad(fDto.getEdad());
+                familiar.setEstadoCivil(fDto.getEstadoCivil());
+                familiar.setInstruccion(fDto.getInstruccion());
+                familiar.setOcupacion(fDto.getOcupacion());
+                familiar.setIngresoMensual(fDto.getIngresos());
+                familiar.setFicha(ficha);
+                ficha.getFamiliares().add(familiar);
+            }
+            fichaRepository.save(ficha);
         }
 
         return convertirADTO(informeRepository.save(informe));
@@ -94,7 +131,15 @@ public class InformeSocialService {
         if (paciente == null) {
             return null;
         }
-        InformeSocial informe = (InformeSocial) informeRepository.findByPacienteIdAndActivoTrue(paciente.getId());
+        List<InformeSocial> informes = informeRepository.findByPacienteIdAndActivoTrue(paciente.getId());
+        InformeSocial informe = !informes.isEmpty() ? informes.get(0) : null;
+        return (informe != null) ? convertirADTO(informe) : null;
+    }
+
+    @Transactional(readOnly = true)
+    public InformeSocialDTO obtenerPorPacienteId(Integer pacienteId) {
+        List<InformeSocial> informes = informeRepository.findByPacienteIdAndActivoTrue(pacienteId);
+        InformeSocial informe = !informes.isEmpty() ? informes.get(0) : null;
         return (informe != null) ? convertirADTO(informe) : null;
     }
 
@@ -115,6 +160,18 @@ public class InformeSocialService {
             informe.setEcomapaUrl(storageService.store(ecomapa));
         }
 
+        informe.setPacienteEstadoCivil(request.getPacienteEstadoCivil());
+        informe.setPacienteNacionalidad(request.getPacienteNacionalidad());
+        informe.setPacienteSexo(request.getPacienteSexo());
+        informe.setTipoFamilia(request.getTipoFamilia());
+        informe.setTipoFamiliaEspecificar(request.getTipoFamiliaEspecificar());
+
+        informe.setInformanteNombre(request.getInformanteNombre());
+        informe.setInformanteParentesco(request.getInformanteParentesco());
+        informe.setInformanteCedula(request.getInformanteCedula());
+        informe.setInformanteTelefono(request.getInformanteTelefono());
+        informe.setInformanteCorreo(request.getInformanteCorreo());
+
         informe.setDescripcionDinamicaFamiliar(request.getDescripcionDinamicaFamiliar());
         informe.setSituacionEconomica(request.getSituacionEconomica());
         informe.setSituacionHabitabilidad(request.getSituacionHabitabilidad());
@@ -127,20 +184,34 @@ public class InformeSocialService {
         informe.setRecomendaciones(request.getRecomendaciones());
         informe.setElaboradoPor(request.getElaboradoPor());
 
+        FichaSocioeconomica ficha = fichaRepository.findByPacienteIdAndActivo(informe.getPaciente().getId(), true);
+        if (ficha == null) {
+            ficha = new FichaSocioeconomica();
+            ficha.setPaciente(informe.getPaciente());
+            ficha.setActivo(true);
+            ficha.setFechaElaboracion(new java.util.Date());
+            if (request.getEspecialistaId() != null) {
+                com.ucacue.udipsai.modules.especialistas.domain.Especialista esp = especialistaRepository.findById(request.getEspecialistaId()).orElse(null);
+                ficha.setEspecialista(esp);
+            }
+            ficha = fichaRepository.save(ficha);
+        }
+
         if (request.getFamiliares() != null) {
-            informe.getFamiliares().clear();
-            informe.setFamiliares(request.getFamiliares().stream().map(fDto -> {
-                InformeSocialFamiliar familiar = new InformeSocialFamiliar();
-                familiar.setNombres(fDto.getNombres());
-                familiar.setParentesco(fDto.getParentesco());
-                familiar.setEstadoCivil(fDto.getEstadoCivil());
+            ficha.getFamiliares().clear();
+            for (com.ucacue.udipsai.modules.informesocial.dto.InformeSocialFamiliarDTO fDto : request.getFamiliares()) {
+                FichaSocioFamiliar familiar = new FichaSocioFamiliar();
+                familiar.setRelacion(fDto.getParentesco());
+                familiar.setNombresApellidos(fDto.getNombres());
                 familiar.setEdad(fDto.getEdad());
-                familiar.setIngresos(fDto.getIngresos());
+                familiar.setEstadoCivil(fDto.getEstadoCivil());
                 familiar.setInstruccion(fDto.getInstruccion());
                 familiar.setOcupacion(fDto.getOcupacion());
-                familiar.setInforme(informe);
-                return familiar;
-            }).collect(Collectors.toList()));
+                familiar.setIngresoMensual(fDto.getIngresos());
+                familiar.setFicha(ficha);
+                ficha.getFamiliares().add(familiar);
+            }
+            fichaRepository.save(ficha);
         }
 
         return convertirADTO(informeRepository.save(informe));
@@ -161,6 +232,19 @@ public class InformeSocialService {
         dto.setFechaElaboracion(entity.getFechaElaboracion());
         dto.setGenogramaUrl(entity.getGenogramaUrl());
         dto.setEcomapaUrl(entity.getEcomapaUrl());
+
+        dto.setPacienteEstadoCivil(entity.getPacienteEstadoCivil());
+        dto.setPacienteNacionalidad(entity.getPacienteNacionalidad());
+        dto.setPacienteSexo(entity.getPacienteSexo());
+        dto.setTipoFamilia(entity.getTipoFamilia());
+        dto.setTipoFamiliaEspecificar(entity.getTipoFamiliaEspecificar());
+
+        dto.setInformanteNombre(entity.getInformanteNombre());
+        dto.setInformanteParentesco(entity.getInformanteParentesco());
+        dto.setInformanteCedula(entity.getInformanteCedula());
+        dto.setInformanteTelefono(entity.getInformanteTelefono());
+        dto.setInformanteCorreo(entity.getInformanteCorreo());
+
         dto.setDescripcionDinamicaFamiliar(entity.getDescripcionDinamicaFamiliar());
         dto.setSituacionEconomica(entity.getSituacionEconomica());
         dto.setSituacionHabitabilidad(entity.getSituacionHabitabilidad());
@@ -180,21 +264,46 @@ public class InformeSocialService {
                     entity.getPaciente().getCedula()));
         }
 
-        if (entity.getFamiliares() != null) {
-            dto.setFamiliares(entity.getFamiliares().stream().map(f -> {
-                InformeSocialFamiliarDTO fDto = new InformeSocialFamiliarDTO();
-                fDto.setId(f.getId());
-                fDto.setNombres(f.getNombres());
-                fDto.setParentesco(f.getParentesco());
-                fDto.setEstadoCivil(f.getEstadoCivil());
-                fDto.setEdad(f.getEdad());
-                fDto.setIngresos(f.getIngresos());
-                fDto.setInstruccion(f.getInstruccion());
-                fDto.setOcupacion(f.getOcupacion());
-                return fDto;
-            }).collect(Collectors.toList()));
+        if (entity.getPaciente() != null) {
+            FichaSocioeconomica ficha = fichaRepository.findByPacienteIdAndActivo(entity.getPaciente().getId(), true);
+            if (ficha != null && ficha.getFamiliares() != null) {
+                dto.setFamiliares(ficha.getFamiliares().stream().map(f -> {
+                    InformeSocialFamiliarDTO fDto = new InformeSocialFamiliarDTO();
+                    fDto.setId(f.getId() != null ? f.getId().intValue() : null);
+                    fDto.setNombres(f.getNombresApellidos());
+                    fDto.setParentesco(f.getRelacion());
+                    fDto.setEstadoCivil(f.getEstadoCivil());
+                    fDto.setEdad(f.getEdad());
+                    fDto.setIngresos(f.getIngresoMensual());
+                    fDto.setInstruccion(f.getInstruccion());
+                    fDto.setOcupacion(f.getOcupacion());
+                    return fDto;
+                }).collect(Collectors.toList()));
+            } else {
+                dto.setFamiliares(List.of());
+            }
+        } else {
+            dto.setFamiliares(List.of());
         }
 
         return dto;
+    }
+
+    @Transactional(readOnly = true)
+    public org.springframework.core.io.Resource cargarGenogramaComoRecurso(Integer pacienteId) {
+        List<InformeSocial> informes = informeRepository.findByPacienteIdAndActivoTrue(pacienteId);
+        if (!informes.isEmpty() && informes.get(0).getGenogramaUrl() != null) {
+            return storageService.loadAsResource(informes.get(0).getGenogramaUrl());
+        }
+        return null;
+    }
+
+    @Transactional(readOnly = true)
+    public org.springframework.core.io.Resource cargarEcomapaComoRecurso(Integer pacienteId) {
+        List<InformeSocial> informes = informeRepository.findByPacienteIdAndActivoTrue(pacienteId);
+        if (!informes.isEmpty() && informes.get(0).getEcomapaUrl() != null) {
+            return storageService.loadAsResource(informes.get(0).getEcomapaUrl());
+        }
+        return null;
     }
 }

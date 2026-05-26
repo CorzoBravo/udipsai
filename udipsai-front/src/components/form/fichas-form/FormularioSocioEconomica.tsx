@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import ComponentCard from "../../common/ComponentCard";
 import Button from "../../ui/button/Button";
 
@@ -8,6 +8,7 @@ import { MessageSquare, User } from "lucide-react";
 import { pacientesService, especialistasService, pasantesService } from "../../../services";
 import PatientSelector from "../../common/PatientSelector";
 import { useAuth } from "../../../context/AuthContext.tsx";
+
 
 import { fichasService } from "../../../services/fichas";
 
@@ -19,6 +20,7 @@ import CondicionesViviendaForm from "./sections/SocioEconomica/CondicionesVivien
 import ConformacionFamiliar from "./sections/SocioEconomica/ConformacionFamiliarForm";
 import SaludForm from "./sections/SocioEconomica/SaludForm";
 import SituacionEconomicaForm from "./sections/SocioEconomica/SituacionEconomicaForm";
+import Label from "../Label.tsx";
 
 
 
@@ -30,7 +32,13 @@ interface FamiliarSalud {
   discapacidad?: boolean;
   descripDiscapacidad?: string;
 }
-
+interface SectionHeaderProps {
+  title: string;
+  description?: string;
+  icon: React.ReactNode;
+  isOpen: boolean;
+  onToggle: () => void;
+}
 export interface FichaSocioeconomicaState {
   id?: number;
   activo: boolean;
@@ -341,6 +349,15 @@ export default function FormularioFichaSocioeconomica() {
   const [verSituacionEconomica, setVerSituacionEconomica] = useState(false);
   const [verConclusiones, setVerConclusiones] = useState(false);
 
+  const [validaciones, setValidaciones] = useState<Record<string, boolean>>({
+    conformacionFamiliar: false,
+    riesgosFamiliares: false,
+    vulnerabilidades: false,
+    relacionFamiliar: false,
+    condicionesVivienda: false,
+    salud: false,
+    situacionEconomica: false,
+  });
   const [selectedPatient, setSelectedPatient] = useState<{
     id: number;
     nombresApellidos: string;
@@ -366,7 +383,6 @@ export default function FormularioFichaSocioeconomica() {
         if (userRole === "ROLE_ESPECIALISTA") {
           const result = await especialistasService.filtrar({ search: userIdentity });
           especialistaData = result?.content?.[0];
-          console.log("ESPECIALISTA DATA:", especialistaData);
         } else if (userRole === "ROLE_PASANTE") {
           const result = await pasantesService.filtrar({ search: userIdentity });
           especialistaData = result?.content?.[0];
@@ -374,7 +390,6 @@ export default function FormularioFichaSocioeconomica() {
 
         if (especialistaData?.id) {
           setFormData((prev) => {
-            console.log("SET ESPECIALISTA:", especialistaData);
 
             return {
               ...prev,
@@ -447,7 +462,7 @@ export default function FormularioFichaSocioeconomica() {
     try {
       setLoading(true);
       const data = await fichasService.obtenerSocioEconomico(fichaiId);
-      const mappedFamiliares = data.familiares.map((f: any) => ({
+      const mappedFamiliares = (data.familiares || []).map((f: any) => ({
         ...f,
         salud: {
           problema: f.problemas_salud || false,
@@ -486,11 +501,11 @@ export default function FormularioFichaSocioeconomica() {
         const hasConformacionFamiliar =
           data.familiares && data.familiares.length > 0;
         const hasRiesgosFamiliares = !isSectionEmpty(
-          data.riesgosFamiliares,
+          data.riesgosSociales,
           initialFichaSocioeconomicaState.riesgosFamiliares
         );
         const hasVulnerabilidades = !isSectionEmpty(
-          data.vulnerabilidadesDetalle,
+          data.vulnerabilidad,
           initialFichaSocioeconomicaState.vulnerabilidadesDetalle
         );
         const hasDinamicaFamiliar = !isSectionEmpty(
@@ -563,7 +578,15 @@ export default function FormularioFichaSocioeconomica() {
       },
     }));
   };
-
+  const handleValidateConformacionFamiliar = useCallback(
+    (isValid: boolean, _errors: string[]) => {
+      setValidaciones((prev) => ({
+        ...prev,
+        conformacionFamiliar: isValid,
+      }));
+    },
+    []
+  );
   const handleSubmit = async () => {
     if (!formData.paciente?.id || formData.paciente.id <= 0) {
       toast.error("Debe seleccionar un paciente válido");
@@ -585,6 +608,33 @@ export default function FormularioFichaSocioeconomica() {
 
     if (!formData.fechaElaboracion) {
       toast.error("Debe establecer la fecha de elaboración");
+      return;
+    }
+
+    const seccionesRequeridas = [
+      { key: "conformacionFamiliar", nombre: "Conformación Familiar", activa: verConformacionFamiliar },
+      { key: "riesgosFamiliares", nombre: "Riesgos Familiares", activa: verRiesgosFamiliares },
+      { key: "vulnerabilidades", nombre: "Vulnerabilidades", activa: verVulnerabilidades },
+      { key: "relacionFamiliar", nombre: "Dinámica Familiar", activa: verRelacionFamiliar },
+      { key: "condicionesVivienda", nombre: "Condiciones de Vivienda", activa: verVivienda },
+      { key: "salud", nombre: "Salud", activa: verSalud },
+      { key: "situacionEconomica", nombre: "Situación Económica", activa: verSituacionEconomica },
+    ];
+
+    for (const seccion of seccionesRequeridas) {
+      if (seccion.activa && !validaciones[seccion.key]) {
+        toast.error(`Complete la sección de ${seccion.nombre}`);
+        return;
+      }
+    }
+
+    if (!formData.conclusiones || formData.conclusiones.trim() === "") {
+      toast.error("Las conclusiones son requeridas");
+      return;
+    }
+
+    if (!formData.recomendaciones || formData.recomendaciones.trim() === "") {
+      toast.error("Las recomendaciones son requeridas");
       return;
     }
 
@@ -633,6 +683,8 @@ export default function FormularioFichaSocioeconomica() {
   };
 
 
+
+
   if (showSelector) {
     return (
       <div className="space-y-6">
@@ -640,6 +692,47 @@ export default function FormularioFichaSocioeconomica() {
       </div>
     );
   }
+
+  const SectionHeader = ({
+    title,
+    description,
+    icon,
+    isOpen,
+    onToggle,
+  }: SectionHeaderProps) => {
+    return (
+      <div
+        onClick={onToggle}
+        className={`cursor-pointer group relative overflow-hidden p-6 rounded-3xl border-2 transition-all duration-500 ${isOpen
+            ? "border-brand-100 bg-brand-50/20 dark:border-gray-600 dark:bg-gray-800 scale-[1.02]"
+            : "border-gray-100 bg-white dark:border-gray-800 dark:bg-white/[0.03] dark:hover:border-gray-600"
+          }`}
+      >
+        <div className="flex items-center gap-5">
+          <div
+            className={`p-4 rounded-2xl transition-all duration-500 ${isOpen
+                ? "bg-brand-400 text-white rotate-12 dark:bg-gray-500 dark:text-gray-200"
+                : "bg-brand-50 text-brand-500 dark:bg-gray-800 dark:text-gray-300"
+              }`}
+          >
+            {icon}
+          </div>
+
+          <div className="flex-1">
+            <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100">
+              {title}
+            </h3>
+
+            {description && (
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                {description}
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-6">
@@ -650,10 +743,12 @@ export default function FormularioFichaSocioeconomica() {
             <div className="p-2 bg-brand-400 dark:bg-gray-500 rounded-full text-white font-bold dark:text-gray-200">
               <User size={20} />
             </div>
+
             <div>
               <h4 className="font-bold text-gray-800 dark:text-gray-100">
                 {selectedPatient.nombresApellidos}
               </h4>
+
               <p className="text-sm text-gray-600 dark:text-gray-300">
                 CI: {selectedPatient.cedula}
               </p>
@@ -672,39 +767,18 @@ export default function FormularioFichaSocioeconomica() {
         </div>
       )}
 
-      {/* Tarjetas */}
-      <div className="grid grid-cols-1 md:grid-cols-1cle gap-6">
-        <div
-          onClick={() => setVerInformacionPaciente(!verInformacionPaciente)}
-          className={`cursor-pointer group relative overflow-hidden p-6 rounded-3xl border-2 transition-all duration-500 ${verInformacionPaciente
-            ? "border-brand-100 bg-brand-50/20 dark:border-gray-600 dark:bg-gray-800 scale-[1.02]"
-            : "border-gray-100 bg-white dark:border-gray-800 dark:bg-white/[0.03] dark:hover:border-gray-600"
-            }`}
-        >
-          {/* Cabecera tarjeta */}
-          <div className="flex items-center gap-5">
-            <div
-              className={`p-4 rounded-2xl transition-all duration-500 ${verInformacionPaciente
-                ? "bg-brand-400 text-white rotate-12 dark:bg-gray-500 dark:text-gray-200"
-                : "bg-brand-50 text-brand-500 dark:bg-gray-800 dark:text-gray-300"
-                }`}
-            >
-              <User size={24} />
-            </div>
-            <div>
-              <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100">
-                Información del Paciente
-              </h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Datos personales y demográficos
-              </p>
-            </div>
+      <div className="grid grid-cols-1 gap-6">
+        {/* INFORMACION PACIENTE */}
+        <SectionHeader
+          title="Información del Paciente"
+          description="Datos personales y demográficos"
+          icon={<User size={24} />}
+          isOpen={verInformacionPaciente}
+          onToggle={() =>
+            setVerInformacionPaciente(!verInformacionPaciente)
+          }
+        />
 
-          </div>
-
-          {/* Sección desplegable */}
-
-        </div>
         {verInformacionPaciente && (
           <div className="mt-6 space-y-6 animate-in slide-in-from-bottom-4 duration-500">
             <ComponentCard
@@ -723,37 +797,17 @@ export default function FormularioFichaSocioeconomica() {
             </ComponentCard>
           </div>
         )}
-        <div
-          onClick={() => setVerConformacionFamiliar(!verConformacionFamiliar)}
-          className={`cursor-pointer group relative overflow-hidden p-6 rounded-3xl border-2 transition-all duration-500 ${verConformacionFamiliar
-            ? "border-brand-100 bg-brand-50/20 dark:border-gray-600 dark:bg-gray-800 scale-[1.02]"
-            : "border-gray-100 bg-white dark:border-gray-800 dark:bg-white/[0.03] dark:hover:border-gray-600"
-            }`}
-        >
-          {/* Cabecera tarjeta */}
-          <div className="flex items-center gap-5">
-            <div
-              className={`p-4 rounded-2xl transition-all duration-500 ${verConformacionFamiliar
-                ? "bg-brand-400 text-white rotate-12 dark:bg-gray-500 dark:text-gray-200"
-                : "bg-brand-50 text-brand-500 dark:bg-gray-800 dark:text-gray-300"
-                }`}
-            >
-              <User size={24} />
-            </div>
-            <div>
-              <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100">
-                Conformación Familiar
-              </h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Información sobre los miembros de la familia
-              </p>
-            </div>
 
-          </div>
-
-          {/* Sección desplegable */}
-
-        </div>
+        {/* CONFORMACION FAMILIAR */}
+        <SectionHeader
+          title="Conformación Familiar"
+          description="Información sobre los miembros de la familia"
+          icon={<User size={24} />}
+          isOpen={verConformacionFamiliar}
+          onToggle={() =>
+            setVerConformacionFamiliar(!verConformacionFamiliar)
+          }
+        />
 
         {verConformacionFamiliar && (
           <div className="mt-6 space-y-6 animate-in slide-in-from-bottom-4 duration-500">
@@ -767,16 +821,25 @@ export default function FormularioFichaSocioeconomica() {
               <ConformacionFamiliar
                 data={formData.familiares}
                 onChange={(index, field, value) => {
-                  const updated = [...formData.familiares];
-                  updated[index] = { ...updated[index], [field]: value };
+                  setFormData((prev) => {
+                    const updated = [...prev.familiares];
 
-                  setFormData({ ...formData, familiares: updated });
+                    updated[index] = {
+                      ...updated[index],
+                      [field]: value,
+                    };
+
+                    return {
+                      ...prev,
+                      familiares: updated,
+                    };
+                  });
                 }}
                 onAdd={() => {
-                  setFormData({
-                    ...formData,
+                  setFormData((prev) => ({
+                    ...prev,
                     familiares: [
-                      ...formData.familiares,
+                      ...prev.familiares,
                       {
                         relacion: "",
                         nombresApellidos: "",
@@ -787,45 +850,31 @@ export default function FormularioFichaSocioeconomica() {
                         ingresoMensual: 0,
                       },
                     ],
-                  });
+                  }));
                 }}
                 onRemove={(index) => {
-                  const updated = formData.familiares.filter((_, i) => i !== index);
-                  setFormData({ ...formData, familiares: updated });
+                  setFormData((prev) => ({
+                    ...prev,
+                    familiares: prev.familiares.filter((_, i) => i !== index),
+                  }));
                 }}
+                onValidate={handleValidateConformacionFamiliar}
               />
             </ComponentCard>
           </div>
         )}
 
-        <div
-          onClick={() => setVerRiesgosFamiliares(!verRiesgosFamiliares)}
-          className={`cursor-pointer group relative overflow-hidden p-6 rounded-3xl border-2 transition-all duration-500 ${verRiesgosFamiliares
-            ? "border-brand-100 bg-brand-50/20 dark:border-gray-600 dark:bg-gray-800 scale-[1.02]"
-            : "border-gray-100 bg-white dark:border-gray-800 dark:bg-white/[0.03] dark:hover:border-gray-600"
-            }`}
-        >
-          {/* Cabecera tarjeta */}
-          <div className="flex items-center gap-5">
-            <div
-              className={`p-4 rounded-2xl transition-all duration-500 ${verRiesgosFamiliares
-                ? "bg-brand-400 text-white rotate-12 dark:bg-gray-500 dark:text-gray-200"
-                : "bg-brand-50 text-brand-500 dark:bg-gray-800 dark:text-gray-300"
-                }`}
-            >
-              <MessageSquare size={24} />
-            </div>
-            <div>
-              <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100">
-                Riesgos Familiares
-              </h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Factores de riesgo presentes en el entorno familiar
-              </p>
-            </div>
-          </div>
-          {/* Sección desplegable */}
-        </div>
+        {/* RIESGOS */}
+        <SectionHeader
+          title="Riesgos Familiares"
+          description="Factores de riesgo presentes en el entorno familiar"
+          icon={<MessageSquare size={24} />}
+          isOpen={verRiesgosFamiliares}
+          onToggle={() =>
+            setVerRiesgosFamiliares(!verRiesgosFamiliares)
+          }
+        />
+
         {verRiesgosFamiliares && (
           <div className="mt-6 space-y-6 animate-in slide-in-from-bottom-4 duration-500">
             <ComponentCard
@@ -841,41 +890,34 @@ export default function FormularioFichaSocioeconomica() {
                   initialFichaSocioeconomicaState.riesgosFamiliares
                 }
                 onChange={(field, value) =>
-                  handleNestedChange("riesgosFamiliares", field, value)
+                  handleNestedChange(
+                    "riesgosFamiliares",
+                    field,
+                    value
+                  )
                 }
+                onValidate={(isValid) => {
+                  setValidaciones((prev) => ({
+                    ...prev,
+                    riesgosFamiliares: isValid,
+                  }));
+                }}
               />
             </ComponentCard>
           </div>
         )}
 
-        <div
-          onClick={() => setVerVulnerabilidades(!verVulnerabilidades)}
-          className={`cursor-pointer group relative overflow-hidden p-6 rounded-3xl border-2 transition-all duration-500 ${verVulnerabilidades
-            ? "border-brand-100 bg-brand-50/20 dark:border-gray-600 dark:bg-gray-800 scale-[1.02]"
-            : "border-gray-100 bg-white dark:border-gray-800 dark:bg-white/[0.03] dark:hover:border-gray-600"
-            }`}
-        >
-          {/* Cabecera tarjeta */}
-          <div className="flex items-center gap-5">
-            <div
-              className={`p-4 rounded-2xl transition-all duration-500 ${verVulnerabilidades
-                ? "bg-brand-400 text-white rotate-12 dark:bg-gray-500 dark:text-gray-200"
-                : "bg-brand-50 text-brand-500 dark:bg-gray-800 dark:text-gray-300"
-                }`}
-            >
-              <MessageSquare size={24} />
-            </div>
-            <div>
-              <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100">
-                Vulnerabilidades
-              </h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Factores de vulnerabilidad presentes en el entorno familiar
-              </p>
-            </div>
-          </div>
-          {/* Sección desplegable */}
-        </div>
+        {/* VULNERABILIDADES */}
+        <SectionHeader
+          title="Vulnerabilidades"
+          description="Factores de vulnerabilidad presentes en el entorno familiar"
+          icon={<MessageSquare size={24} />}
+          isOpen={verVulnerabilidades}
+          onToggle={() =>
+            setVerVulnerabilidades(!verVulnerabilidades)
+          }
+        />
+
         {verVulnerabilidades && (
           <div className="mt-6 space-y-6 animate-in slide-in-from-bottom-4 duration-500">
             <ComponentCard
@@ -888,41 +930,34 @@ export default function FormularioFichaSocioeconomica() {
               <VulnerabilidadesForm
                 data={formData.vulnerabilidadesDetalle}
                 onChange={(field, value) =>
-                  handleNestedChange("vulnerabilidadesDetalle", field, value)
+                  handleNestedChange(
+                    "vulnerabilidadesDetalle",
+                    field,
+                    value
+                  )
                 }
+                onValidate={(isValid) => {
+                  setValidaciones((prev) => ({
+                    ...prev,
+                    vulnerabilidades: isValid,
+                  }));
+                }}
               />
             </ComponentCard>
           </div>
         )}
 
-        <div
-          onClick={() => setVerRelacionFamiliar(!verRelacionFamiliar)}
-          className={`cursor-pointer group relative overflow-hidden p-6 rounded-3xl border-2 transition-all duration-500 ${verRelacionFamiliar
-            ? "border-brand-100 bg-brand-50/20 dark:border-gray-600 dark:bg-gray-800 scale-[1.02]"
-            : "border-gray-100 bg-white dark:border-gray-800 dark:bg-white/[0.03] dark:hover:border-gray-600"
-            }`}
-        >
-          {/* Cabecera tarjeta */}
-          <div className="flex items-center gap-5">
-            <div
-              className={`p-4 rounded-2xl transition-all duration-500 ${verRelacionFamiliar
-                ? "bg-brand-400 text-white rotate-12 dark:bg-gray-500 dark:text-gray-200"
-                : "bg-brand-50 text-brand-500 dark:bg-gray-800 dark:text-gray-300"
-                }`}
-            >
-              <MessageSquare size={24} />
-            </div>
-            <div>
-              <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100">
-                Dinámica Familiar
-              </h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Relaciones  y dinámicas dentro del núcleo familiar
-              </p>
-            </div>
-          </div>
-          {/* Sección desplegable */}
-        </div>
+        {/* DINAMICA */}
+        <SectionHeader
+          title="Dinámica Familiar"
+          description="Relaciones y dinámicas dentro del núcleo familiar"
+          icon={<MessageSquare size={24} />}
+          isOpen={verRelacionFamiliar}
+          onToggle={() =>
+            setVerRelacionFamiliar(!verRelacionFamiliar)
+          }
+        />
+
         {verRelacionFamiliar && (
           <div className="mt-6 space-y-6 animate-in slide-in-from-bottom-4 duration-500">
             <ComponentCard
@@ -932,279 +967,163 @@ export default function FormularioFichaSocioeconomica() {
               }
               bodyDisabled={!verRelacionFamiliar}
             >
-              {/* Aquí iría el formulario de dinámica familiar, similar a RiesgosFamiliaresForm */}
               <RelacionFamiliar
                 data={formData.dinamicaFamiliar}
                 onChange={(field, value) =>
-                  handleNestedChange("dinamicaFamiliar", field, value)
+                  handleNestedChange(
+                    "dinamicaFamiliar",
+                    field,
+                    value
+                  )
                 }
+                onValidate={(isValid) => {
+                  setValidaciones((prev) => ({
+                    ...prev,
+                    relacionFamiliar: isValid,
+                  }));
+                }}
               />
             </ComponentCard>
           </div>
         )}
 
-        <div
-          onClick={() => setVerVivienda(!verVivienda)}
-          className={`cursor-pointer group relative overflow-hidden p-6 rounded-3xl border-2 transition-all duration-500 ${verVivienda
-            ? "border-brand-100 bg-brand-50/20 dark:border-gray-600 dark:bg-gray-800 scale-[1.02]"
-            : "border-gray-100 bg-white dark:border-gray-800 dark:bg-white/[0.03] dark:hover:border-gray-600"
-            }`}
-        >
-          {/* Cabecera tarjeta */}
-          <div className="flex items-center gap-5">
-            <div
-              className={`p-4 rounded-2xl transition-all duration-500 ${verVivienda
-                ? "bg-brand-400 text-white rotate-12 dark:bg-gray-500 dark:text-gray-200"
-                : "bg-brand-50 text-brand-500 dark:bg-gray-800 dark:text-gray-300"
-                }`}
-            >
-              <MessageSquare size={24} />
-            </div>
-            <div>
-              <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100">
-                Condiciones de Vivienda
-              </h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Información sobre las condiciones habitacionales
-              </p>
-            </div>
-          </div>
-          {/* Sección desplegable */}
-        </div>
+        {/* VIVIENDA */}
+        <SectionHeader
+          title="Condiciones de Vivienda"
+          description="Información sobre las condiciones habitacionales"
+          icon={<MessageSquare size={24} />}
+          isOpen={verVivienda}
+          onToggle={() => setVerVivienda(!verVivienda)}
+        />
+
         {verVivienda && (
           <div className="mt-6 space-y-6 animate-in slide-in-from-bottom-4 duration-500">
             <ComponentCard
               title="Condiciones de Vivienda"
-              onHeaderClick={() => setVerVivienda(!verVivienda)}
+              onHeaderClick={() =>
+                setVerVivienda(!verVivienda)
+              }
               bodyDisabled={!verVivienda}
             >
-              {/* Aquí iría el formulario de condiciones de vivienda, similar a RiesgosFamiliaresForm */}
               <CondicionesViviendaForm
                 data={formData.vivienda}
                 onChange={(field, value) =>
                   handleNestedChange("vivienda", field, value)
                 }
+                onValidate={(isValid) => {
+                  setValidaciones((prev) => ({
+                    ...prev,
+                    condicionesVivienda: isValid,
+                  }));
+                }}
               />
             </ComponentCard>
           </div>
         )}
 
-        <div
-          onClick={() => setVerSalud(!verSalud)}
-          className={`cursor-pointer group relative overflow-hidden p-6 rounded-3xl border-2 transition-all duration-500 ${verSalud
-            ? "border-brand-100 bg-brand-50/20 dark:border-gray-600 dark:bg-gray-800 scale-[1.02]"
-            : "border-gray-100 bg-white dark:border-gray-800 dark:bg-white/[0.03] dark:hover:border-gray-600"
-            }`}
-        >
-          {/* Cabecera tarjeta */}
-          <div className="flex items-center gap-5">
-            <div
-              className={`p-4 rounded-2xl transition-all duration-500 ${verSalud
-                ? "bg-brand-400 text-white rotate-12 dark:bg-gray-500 dark:text-gray-200"
-                : "bg-brand-50 text-brand-500 dark:bg-gray-800 dark:text-gray-300"
-                }`}
-            >
-              <MessageSquare size={24} />
-            </div>
-            <div>
-              <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100">
-                Salud
-              </h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Información sobre la salud del paciente y su familia
-              </p>
-            </div>
-          </div>
-          {/* Sección desplegable */}
-        </div>
+        {/* SALUD */}
+        <SectionHeader
+          title="Salud"
+          description="Información sobre la salud del paciente y su familia"
+          icon={<MessageSquare size={24} />}
+          isOpen={verSalud}
+          onToggle={() => setVerSalud(!verSalud)}
+        />
+
         {verSalud && (
-          <div className="mt-6 space-y-6 animate-in slide-in-from-bottom-4 duration-500">
-            <ComponentCard
-              title="Salud"
-              onHeaderClick={() => setVerSalud(!verSalud)}
-              bodyDisabled={!verSalud}
-            >
-              {/* Aquí iría el formulario de salud, similar a RiesgosFamiliaresForm */}
-              <SaludForm
-                familiares={formData.familiares}
-                data={formData.salud}
-                onChange={(field, value) =>
-                  handleNestedChange("salud", field, value)
-                }
-                onChangeFamiliar={(index, field, value) => {
-                  const updated = [...formData.familiares];
+          <SaludForm
+            data={formData.salud}
+            familiares={formData.familiares}
+            onChange={(field, value) =>
+              handleNestedChange("salud", field, value)
+            }
+            onChangeFamiliar={(index, field, value) => {
+              setFormData((prev) => {
+                const updated = [...prev.familiares];
 
-                  if (!updated[index].salud) {
-                    updated[index].salud = {
-                      problema: false,
-                      enfermedad: "",
-                      catastrofica: false,
-                      enfermedadCatastrofica: "",
-                      discapacidad: false,
-                      descripDiscapacidad: "",
-                    };
-                  }
+                updated[index] = {
+                  ...updated[index],
+                  salud: {
+                    ...updated[index].salud,
+                    [field]: value,
+                  },
+                };
 
-                  (updated[index].salud as any)[field] = value;
-
-                  setFormData({
-                    ...formData,
-                    familiares: updated,
-                  });
-                }}
-              />
-            </ComponentCard>
-          </div>
+                return {
+                  ...prev,
+                  familiares: updated,
+                };
+              });
+            }}
+            onValidate={(isValid) => {
+              setValidaciones((prev) => ({
+                ...prev,
+                salud: isValid,
+              }));
+            }}
+          />
         )}
 
-        <div
-          onClick={() => setVerSituacionEconomica(!verSituacionEconomica)}
-          className={`cursor-pointer group relative overflow-hidden p-6 rounded-3xl border-2 transition-all duration-500 ${verSituacionEconomica
-            ? "border-brand-100 bg-brand-50/20 dark:border-gray-600 dark:bg-gray-800 scale-[1.02]"
-            : "border-gray-100 bg-white dark:border-gray-800 dark:bg-white/[0.03] dark:hover:border-gray-600"
-            }`}
-        >
-          {/* Cabecera tarjeta */}
-          <div className="flex items-center gap-5">
-            <div
-              className={`p-4 rounded-2xl transition-all duration-500 ${verSituacionEconomica
-                ? "bg-brand-400 text-white rotate-12 dark:bg-gray-500 dark:text-gray-200"
-                : "bg-brand-50 text-brand-500 dark:bg-gray-800 dark:text-gray-300"
-                }`}
-            >
-              <MessageSquare size={24} />
-            </div>
-            <div>
-              <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100">
-                Situación Económica
-              </h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Información sobre los ingresos, egresos y condiciones económicas
-              </p>
-            </div>
-          </div>
-          {/* Sección desplegable */}
-        </div>
+        {/* SITUACION ECONOMICA */}
+        <SectionHeader
+          title="Situación Económica"
+          description="Información sobre ingresos, egresos y condiciones económicas"
+          icon={<MessageSquare size={24} />}
+          isOpen={verSituacionEconomica}
+          onToggle={() =>
+            setVerSituacionEconomica(!verSituacionEconomica)
+          }
+        />
         {verSituacionEconomica && (
-          <div className="mt-6 space-y-6 animate-in slide-in-from-bottom-4 duration-500">
-            <ComponentCard
-              title="Situación Económica"
-              onHeaderClick={() =>
-                setVerSituacionEconomica(!verSituacionEconomica)
-              }
-              bodyDisabled={!verSituacionEconomica}
-            >
-              {/* Aquí iría el formulario de situación económica, similar a RiesgosFamiliaresForm */}
-              <SituacionEconomicaForm
-                data={formData.situacionEconomica}
-                desglose={formData.desgloseEconomico}
-                familiares={formData.familiares}
-                onChangeDesglose={(field, value) => {
-                  setFormData((prev) => ({
-                    ...prev,
-                    desgloseEconomico: {
-                      ...prev.desgloseEconomico,
-                      [field]: value,
-                    },
-                  }));
-                }}
-                onChange={(field, value) => {
-                  setFormData((prev) => ({
-                    ...prev,
-                    situacionEconomica: {
-                      ...prev.situacionEconomica,
-                      [field]: value,
-                    },
-                  }));
-                }}
-              />
-            </ComponentCard>
-          </div>
-
-        )}
-        <div
-          onClick={() => setVerConclusiones(!verConclusiones)}
-          className={`cursor-pointer group relative overflow-hidden p-6 rounded-3xl border-2 transition-all duration-500 ${verConclusiones
-            ? "border-brand-100 bg-brand-50/20 dark:border-gray-600 dark:bg-gray-800 scale-[1.02]"
-            : "border-gray-100 bg-white dark:border-gray-800 dark:bg-white/[0.03] dark:hover:border-gray-600"
-            }`}
-        >
-          <div className="flex items-center gap-5">
-            <div
-              className={`p-4 rounded-2xl transition-all duration-500 ${verConclusiones
-                ? "bg-brand-400 text-white rotate-12 dark:bg-gray-500"
-                : "bg-brand-50 text-brand-500 dark:bg-gray-800"
-                }`}
-            >
-              <MessageSquare size={24} />
-            </div>
-            <div>
-              <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100">
-                Conclusiones y Recomendaciones
-              </h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Análisis final del caso
-              </p>
-            </div>
-          </div>
-        </div>
-        {verConclusiones && (
-          <div className="mt-6 space-y-6 animate-in slide-in-from-bottom-4 duration-500">
-            <ComponentCard
-              title="Conclusiones y Recomendaciones"
-              onHeaderClick={() => setVerConclusiones(!verConclusiones)}
-              bodyDisabled={!verConclusiones}
-            >
-              <div className="space-y-6">
-
-                {/* CONCLUSIONES */}
-                <div>
-                  <label className="block text-sm mb-2 text-gray-600 dark:text-gray-300">
-                    Conclusiones
-                  </label>
-                  <textarea
-                    className="w-full px-4 py-2 rounded-lg bg-gray-50 dark:bg-gray-800"
-                    rows={4}
-                    value={formData.conclusiones}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        conclusiones: e.target.value,
-                      }))
-                    }
-                  />
-                </div>
-
-                {/* RECOMENDACIONES */}
-                <div>
-                  <label className="block text-sm mb-2 text-gray-600 dark:text-gray-300">
-                    Recomendaciones
-                  </label>
-                  <textarea
-                    className="w-full px-4 py-2 rounded-lg bg-gray-50 dark:bg-gray-800"
-                    rows={4}
-                    value={formData.recomendaciones}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        recomendaciones: e.target.value,
-                      }))
-                    }
-                  />
-                </div>
-
-              </div>
-            </ComponentCard>
-          </div>
+          <SituacionEconomicaForm
+            data={formData.situacionEconomica}
+            desglose={formData.desgloseEconomico}
+            familiares={formData.familiares}
+            onChange={(field, value) =>
+              handleNestedChange("situacionEconomica", field, value)
+            }
+            onChangeDesglose={(field: string, value: number) =>
+              setFormData((prev) => ({
+                ...prev,
+                desgloseEconomico: {
+                  ...prev.desgloseEconomico,
+                  [field]: value,
+                },
+              }))
+            }
+            onValidate={(isValid) => {
+              setValidaciones((prev) => ({
+                ...prev,
+                situacionEconomica: isValid,
+              }));
+            }}
+          />
         )}
 
-        {/* Botones (FUERA del grid) */}
+        {/* CONCLUSIONES */}
+        <SectionHeader
+          title="Conclusiones y Recomendaciones"
+          description="Análisis final del caso"
+          icon={<MessageSquare size={24} />}
+          isOpen={verConclusiones}
+          onToggle={() =>
+            setVerConclusiones(!verConclusiones)
+          }
+        />
+
+        {/* BOTONES */}
         <div className="flex justify-end gap-4">
-          <Button variant="outline" onClick={() => navigate(-1)}>
+          <Button
+            variant="outline"
+            onClick={() => navigate(-1)}
+          >
             Cancelar
           </Button>
 
-          <Button onClick={handleSubmit} disabled={loading}>
+          <Button
+            onClick={handleSubmit}
+            disabled={loading}
+          >
             {loading
               ? "Guardando..."
               : id

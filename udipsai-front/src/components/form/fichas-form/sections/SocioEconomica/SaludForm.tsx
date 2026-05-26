@@ -39,7 +39,21 @@ interface SaludFormProps {
         field: keyof FamiliarSalud,
         value: any
     ) => void;
+    onValidate?: (isValid: boolean, errors: string[]) => void;
 }
+
+const validateSaludForm = (data: SaludData): string[] => {
+    const errors: string[] = [];
+
+    if (
+        !data.lugarAtencionMedica ||
+        data.lugarAtencionMedica.trim() === ""
+    ) {
+        errors.push("Lugar de atención médica es requerido");
+    }
+
+    return errors;
+};
 
 /* =========================
    🔹 COMPONENTE
@@ -50,98 +64,171 @@ const SaludForm: React.FC<SaludFormProps> = ({
     onChange,
     familiares,
     onChangeFamiliar,
+    onValidate,
 }) => {
+
     const [openIndex, setOpenIndex] = useState<number | null>(0);
 
     /* ================= LUGAR ATENCIÓN ================= */
+
     const getValues = () =>
         data.lugarAtencionMedica
             ? data.lugarAtencionMedica.split(",").filter(Boolean)
             : [];
 
-    const handleSwitchChange = (label: string, checked: boolean) => {
+    const handleSwitchChange = (
+        label: string,
+        checked: boolean
+    ) => {
+
         let valores = getValues();
 
         if (checked) {
+
             if (label === "otros") {
-                valores.push("otros:");
+
+                if (!valores.some((v) => v.startsWith("otros"))) {
+                    valores.push("otros:");
+                }
+
             } else if (!valores.includes(label)) {
+
                 valores.push(label);
+
             }
+
         } else {
+
             valores = valores.filter((v) =>
-                label === "otros" ? !v.startsWith("otros") : v !== label
+                label === "otros"
+                    ? !v.startsWith("otros")
+                    : v !== label
             );
+
         }
 
         onChange("lugarAtencionMedica", valores.join(","));
     };
 
     const handleOtrosChange = (text: string) => {
-        const valores = getValues().filter((v) => !v.startsWith("otros"));
-        onChange("lugarAtencionMedica", [...valores, `otros:${text}`].join(","));
+
+        const valores = getValues().filter(
+            (v) => !v.startsWith("otros")
+        );
+
+        onChange(
+            "lugarAtencionMedica",
+            [...valores, `otros:${text}`].join(",")
+        );
     };
 
     const isChecked = (label: string) =>
         getValues().some((v) =>
-            label === "otros" ? v.startsWith("otros") : v === label
+            label === "otros"
+                ? v.startsWith("otros")
+                : v === label
         );
 
     const incluyeOtros = () =>
         getValues().some((v) => v.startsWith("otros"));
 
     const getOtrosTexto = () => {
-        const item = getValues().find((v) => v.startsWith("otros:"));
-        return item ? item.split(":")[1] || "" : "";
+
+        const item = getValues().find((v) =>
+            v.startsWith("otros:")
+        );
+
+        return item
+            ? item.split(":")[1] || ""
+            : "";
     };
 
     /* ================= SALUD ESTUDIANTE ================= */
+
     const [activo, setActivo] = useState(false);
 
     useEffect(() => {
-        if (data.saludEstudiante) setActivo(true);
+
+        setActivo(!!data.saludEstudiante);
+
     }, [data.saludEstudiante]);
 
     const handleToggleEnfermedad = (checked: boolean) => {
+
         setActivo(checked);
-        if (!checked) onChange("saludEstudiante", "");
+
+        if (!checked) {
+            onChange("saludEstudiante", "");
+        }
     };
 
     /* ================= AYUDAS ================= */
+
     const getValuesAyudas = () =>
         data.ayudasTecnicas
             ? data.ayudasTecnicas.split(",").filter(Boolean)
             : [];
 
-    const handleAyudasChange = (value: string, checked: boolean) => {
+    const handleAyudasChange = (
+        value: string,
+        checked: boolean
+    ) => {
+
         let valores = getValuesAyudas();
 
         if (checked) {
+
             if (value === "otros") {
-                valores.push("otros:");
+
+                if (!valores.some((v) => v.startsWith("otros"))) {
+                    valores.push("otros:");
+                }
+
             } else if (!valores.includes(value)) {
+
                 valores.push(value);
+
             }
+
         } else {
+
             valores = valores.filter((v) =>
-                value === "otros" ? !v.startsWith("otros") : v !== value
+                value === "otros"
+                    ? !v.startsWith("otros")
+                    : v !== value
             );
+
         }
 
         onChange("ayudasTecnicas", valores.join(","));
     };
 
     const incluyeOtrosAyudas = () =>
-        getValuesAyudas().some((v) => v.startsWith("otros"));
+        getValuesAyudas().some((v) =>
+            v.startsWith("otros")
+        );
 
     const getOtrosTextoAyudas = () => {
-        const item = getValuesAyudas().find((v) => v.startsWith("otros:"));
-        return item ? item.split(":")[1] || "" : "";
+
+        const item = getValuesAyudas().find((v) =>
+            v.startsWith("otros:")
+        );
+
+        return item
+            ? item.split(":")[1] || ""
+            : "";
     };
 
     const handleOtrosAyudasChange = (text: string) => {
-        const valores = getValuesAyudas().filter((v) => !v.startsWith("otros"));
-        onChange("ayudasTecnicas", [...valores, `otros:${text}`].join(","));
+
+        const valores = getValuesAyudas().filter(
+            (v) => !v.startsWith("otros")
+        );
+
+        onChange(
+            "ayudasTecnicas",
+            [...valores, `otros:${text}`].join(",")
+        );
     };
 
     /* ================= RENDER ================= */

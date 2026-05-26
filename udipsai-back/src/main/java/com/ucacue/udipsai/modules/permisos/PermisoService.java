@@ -129,6 +129,11 @@ public class PermisoService {
         dto.setSocioeconomicaEditar(entity.getSocioEconomicaEditar());
         dto.setSocioeconomicaEliminar(entity.getSocioEconomicaEliminar());
 
+        dto.setInformeSocial(entity.getInformeSocial());
+        dto.setInformeSocialCrear(entity.getInformeSocialCrear());
+        dto.setInformeSocialEditar(entity.getInformeSocialEditar());
+        dto.setInformeSocialEliminar(entity.getInformeSocialEliminar());
+
         return dto;
     }
 
@@ -249,5 +254,14 @@ public class PermisoService {
             entity.setSocioEconomicaEditar(dto.getSocioeconomicaEditar());
         if (dto.getSocioeconomicaEliminar() != null)
             entity.setSocioEconomicaEliminar(dto.getSocioeconomicaEliminar());
+
+        if (dto.getInformeSocial() != null)
+            entity.setInformeSocial(dto.getInformeSocial());
+        if (dto.getInformeSocialCrear() != null)
+            entity.setInformeSocialCrear(dto.getInformeSocialCrear());
+        if (dto.getInformeSocialEditar() != null)
+            entity.setInformeSocialEditar(dto.getInformeSocialEditar());
+        if (dto.getInformeSocialEliminar() != null)
+            entity.setInformeSocialEliminar(dto.getInformeSocialEliminar());
     }
 }
