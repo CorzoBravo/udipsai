@@ -33,7 +33,7 @@ import { PsicologiaClinicaViewModal } from "../modals/PsicologiaClinicaViewModal
 
 import { FonoaudiologiaViewModal } from "../modals/FonoaudiologiaViewModal";
 import { SocioEconomicoViewModal } from "../modals/SocioEconomicoViewModal";
-import { SeguimientoSocialViewModal } from "../modals/SeguimientoSocialViewModal"; 
+import { SeguimientoSocialViewModal } from "../modals/SeguimientoSocialViewModal";
 
 
 import { useAuth } from "../../context/AuthContext";
@@ -185,7 +185,7 @@ export default function FichasUnificadasTable() {
   const [viewSeguimientoModalOpen, setViewSeguimientoModalOpen] = useState(false);
 
   const activeTab = tabs.find((t) => t.key === activeTabKey) || tabs[0];
-  
+
   // 👇 BANDERA PARA SABER SI ESTAMOS EN SEGUIMIENTO SOCIAL 👇
   const isSeguimientoSocial = activeTabKey === "seguimiento_social";
 
@@ -263,7 +263,7 @@ export default function FichasUnificadasTable() {
     return nombreCompleto.includes(searchLower) || cedula.includes(searchLower);
   });
 
-  // 👇 AGRUPACIÓN SÓLO PARA SEGUIMIENTO SOCIAL 👇
+
   const groupedFichas = isSeguimientoSocial ? Object.values(
     filteredFichas.reduce((acc, ficha) => {
       const pId = ficha.paciente?.id || ficha.pacienteId;
@@ -275,7 +275,7 @@ export default function FichasUnificadasTable() {
           pacienteNombre: ficha.paciente?.nombresApellidos || ficha.pacienteNombre || "Sin Nombre",
           pacienteCedula: ficha.paciente?.cedula || ficha.pacienteCedula || "S/N",
           fichasCount: 0,
-          latestFicha: ficha 
+          latestFicha: ficha
         };
       } else {
         if (ficha.id > acc[pId].latestFicha.id) {
@@ -295,7 +295,8 @@ export default function FichasUnificadasTable() {
         case "historia_clinica": await fichasService.exportarExcelHistoriaClinica(); break;
         case "psicologia_educativa": await fichasService.exportarExcelPsicologiaEducativa(); break;
         case "psicologia_clinica": await fichasService.exportarExcelPsicologiaClinica(); break;
-        case "socioeconomico":await fichasService.exportarExcelSocioEconomico();break;
+        case "socioeconomico": await fichasService.exportarExcelSocioEconomico(); break;
+        case "seguimiento_social": await fichasService.exportarExcelSeguimientoSocial(); break;
         default:
           toast.warn("Exportación no disponible para esta pestaña");
           return;
@@ -311,7 +312,7 @@ export default function FichasUnificadasTable() {
       <TableActionHeader
         title={activeTab.title}
         onSearchClick={setSearchTerm}
-        onNew={() => navigate(activeTab.createPath)} 
+        onNew={() => navigate(activeTab.createPath)}
         onExport={hasPermission(activeTab.permRead) ? handleExport : undefined}
         createPermission={activeTab.permCreate} // Colocar el permiso de creación específico para cada pestaña socioeconómico
         newButtonText="Agregar"
@@ -326,11 +327,10 @@ export default function FichasUnificadasTable() {
               <button
                 key={tab.key}
                 onClick={() => handleTabChange(tab.key)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-t-lg transition-all duration-200 text-sm font-medium ${
-                  isActive
-                    ? "bg-brand-50 text-brand-600 border-b-2 border-brand-500 dark:bg-white/5 dark:text-brand-400"
-                    : "text-gray-500 hover:text-gray-700 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-white/5"
-                }`}
+                className={`flex items-center gap-2 px-4 py-2 rounded-t-lg transition-all duration-200 text-sm font-medium ${isActive
+                  ? "bg-brand-50 text-brand-600 border-b-2 border-brand-500 dark:bg-white/5 dark:text-brand-400"
+                  : "text-gray-500 hover:text-gray-700 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-white/5"
+                  }`}
               >
                 {typeof Icon === 'string' ? Icon : <Icon size={16} />}
                 {tab.label}
@@ -345,7 +345,7 @@ export default function FichasUnificadasTable() {
               <TableRow>
                 <TableCell isHeader>Nombres del Paciente</TableCell>
                 <TableCell isHeader>Cédula</TableCell>
-                
+
                 {isSeguimientoSocial && <TableCell isHeader>Fichas Creadas</TableCell>}
                 <TableCell isHeader>Estado</TableCell>
                 <TableCell isHeader>Acciones</TableCell>
@@ -397,7 +397,7 @@ export default function FichasUnificadasTable() {
                   <TableEmpty colSpan={5} message="No se encontraron registros de Seguimiento Social" />
                 )
               ) : (
-                
+
                 filteredFichas.length > 0 ? (
                   filteredFichas.map((ficha) => {
                     const nombre = ficha.paciente?.nombresApellidos || ficha.pacienteNombre || "Sin Nombre";
@@ -416,7 +416,7 @@ export default function FichasUnificadasTable() {
                         <TableCell>
                           <div className="flex justify-center gap-2">
                             {hasPermission(activeTab.permRead) && (
-                              
+
                               <Button size="sm" variant="info" onClick={() => handleViewClick(pId)} title="Ver">
                                 <Eye size={14} />
                               </Button>
@@ -452,7 +452,7 @@ export default function FichasUnificadasTable() {
           description={`¿Está seguro que desea eliminar la ficha de ${activeTab.label}? Esta acción no se puede deshacer.`}
         />
 
-  
+
         {selectedPacienteId && (
           <>
             <HistoriaClinicaViewModal isOpen={viewHistoriaModalOpen} onClose={() => setViewHistoriaModalOpen(false)} pacienteId={selectedPacienteId} />
@@ -460,8 +460,8 @@ export default function FichasUnificadasTable() {
             <PsicologiaClinicaViewModal isOpen={viewClinicaModalOpen} onClose={() => setViewClinicaModalOpen(false)} pacienteId={selectedPacienteId} />
             <FonoaudiologiaViewModal isOpen={viewFonoModalOpen} onClose={() => setViewFonoModalOpen(false)} pacienteId={selectedPacienteId} />
             <SocioEconomicoViewModal isOpen={viewSocioModalOpen} onClose={() => setViewSocioModalOpen(false)} pacienteId={selectedPacienteId} />
-            
-            
+
+
             <SeguimientoSocialViewModal isOpen={viewSeguimientoModalOpen} onClose={() => setViewSeguimientoModalOpen(false)} pacienteId={selectedPacienteId} modo={"ver"} />
           </>
         )}

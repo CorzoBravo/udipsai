@@ -1,5 +1,6 @@
 package com.ucacue.udipsai.modules.FichaSeguimientoSocial.Services;
 
+import com.ucacue.udipsai.common.report.PdfService;
 import com.ucacue.udipsai.modules.FichaSeguimientoSocial.domain.SeguimientoSocialFicha;
 import com.ucacue.udipsai.modules.FichaSeguimientoSocial.dto.SeguimientoSocialFichaDTO;
 import com.ucacue.udipsai.modules.FichaSeguimientoSocial.dto.SeguimientoSocialFichaRequest;
@@ -9,7 +10,10 @@ import com.ucacue.udipsai.modules.paciente.repository.PacienteRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -18,8 +22,9 @@ public class SeguimientoSocialFichaService {
 
     private final SeguimientoSocialFichaRepository seguimientoRepository;
     private final PacienteRepository pacienteRepository;
+    private final PdfService pdfService;
 
-    // 1. Crear un nuevo seguimiento 
+    
     // (Este no lleva readOnly porque sí modifica la base de datos)
     @Transactional
     public SeguimientoSocialFichaDTO crearSeguimiento(SeguimientoSocialFichaRequest request) {
@@ -59,7 +64,7 @@ public class SeguimientoSocialFichaService {
     // 2. Listar absolutamente todos los seguimientos (NUEVO) 
     @Transactional(readOnly = true)
     public List<SeguimientoSocialFichaDTO> listarTodos() {
-        return seguimientoRepository.findAll()
+        return seguimientoRepository.findByActivoTrue()
                 .stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
@@ -121,7 +126,7 @@ public class SeguimientoSocialFichaService {
         SeguimientoSocialFicha seguimiento = seguimientoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Seguimiento no encontrado con ID: " + id));
 
-        // Actualizamos los campos desde el request
+       
         seguimiento.setAreaAcompanamiento(request.getAreaAcompanamiento());
         seguimiento.setFecha(request.getFecha());
         seguimiento.setNombreVisitador(request.getNombreVisitador());
@@ -140,4 +145,63 @@ public class SeguimientoSocialFichaService {
         seguimiento = seguimientoRepository.save(seguimiento);
         return mapToDTO(seguimiento);
     }
+
+    @Transactional
+    public void eliminar(Integer id) {
+        SeguimientoSocialFicha seguimiento = seguimientoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Seguimiento no encontrado con ID: " + id));
+        seguimiento.setActivo(false);
+        seguimientoRepository.save(seguimiento);
+    }
+    @Transactional(readOnly = true)
+    public byte[] exportarPdf(Integer id) throws Exception {
+        // Usamos JOIN FETCH para cargar el Paciente en la misma sesión
+        // y evitar LazyInitializationException al llamar mapToDTO
+        SeguimientoSocialFicha ficha = seguimientoRepository.findByIdWithPaciente(id)
+                .orElseThrow(() -> new RuntimeException("Seguimiento no encontrado con ID: " + id));
+
+        SeguimientoSocialFichaDTO fichaDTO = mapToDTO(ficha);
+
+        Map<String, Object> variables = new HashMap<>();
+        variables.put("f", fichaDTO);
+
+        return pdfService.generatePdfFromHtml("reportes/seguimiento_social_detalle", variables);
+    }
+
+    @Transactional(readOnly = true)
+    public java.io.ByteArrayInputStream exportarExcel(Integer pacienteId) throws java.io.IOException {
+        List<SeguimientoSocialFichaDTO> fichas;
+        if (pacienteId != null) {
+            fichas = listarPorPaciente(pacienteId);
+        } else {
+            fichas = listarTodos();
+        }
+
+        String[] headers = {
+                "ID", "Paciente", "Cédula", "Fecha", "Área de Acompañamiento",
+                "N° Seguimiento", "Nombre Visitador", "Apellido Visitador",
+                "Dirección Visita", "Objetivo", "Participantes", "Actividades",
+                "Observaciones", "Estado"
+        };
+
+        return com.ucacue.udipsai.common.report.ExcelGenerator.generateExcel("Seguimientos Sociales", headers, fichas, (row, f) -> {
+            int col = 0;
+            row.createCell(col++).setCellValue(f.getId() != null ? f.getId().toString() : "N/A");
+            row.createCell(col++).setCellValue(f.getPacienteNombre() != null ? f.getPacienteNombre() : "N/A");
+            row.createCell(col++).setCellValue(f.getPacienteCedula() != null ? f.getPacienteCedula() : "N/A");
+            row.createCell(col++).setCellValue(f.getFecha() != null ? f.getFecha().toString() : "N/A");
+            row.createCell(col++).setCellValue(f.getAreaAcompanamiento() != null ? f.getAreaAcompanamiento() : "N/A");
+            row.createCell(col++).setCellValue(String.valueOf(f.getNumeroSeguimiento() != null ? f.getNumeroSeguimiento() : "N/A"));
+            row.createCell(col++).setCellValue(f.getNombreVisitador() != null ? f.getNombreVisitador() : "N/A");
+            row.createCell(col++).setCellValue(f.getApellidoVisitador() != null ? f.getApellidoVisitador() : "N/A");
+            row.createCell(col++).setCellValue(f.getDireccionVisita() != null ? f.getDireccionVisita() : "N/A");
+            row.createCell(col++).setCellValue(f.getObjetivo() != null ? f.getObjetivo() : "N/A");
+            row.createCell(col++).setCellValue(f.getParticipantes() != null ? f.getParticipantes() : "N/A");
+            row.createCell(col++).setCellValue(f.getActividades() != null ? f.getActividades() : "N/A");
+            row.createCell(col++).setCellValue(f.getObservaciones() != null ? f.getObservaciones() : "N/A");
+            row.createCell(col++).setCellValue(f.getActivo() != null && f.getActivo() ? "Activo" : "Inactivo");
+        });
+    }
+
+   
 }

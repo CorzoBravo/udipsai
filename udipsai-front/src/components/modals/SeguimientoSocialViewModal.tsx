@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { Modal } from "../ui/modal";
 import { toast } from "react-toastify";
-import { FileText, Calendar, Info, CheckCircle, Edit, ArrowLeft, Eye } from "lucide-react"; 
+import { FileText, Calendar, CheckCircle, Edit, ArrowLeft, Eye, FileDown } from "lucide-react"; 
 import { fichasService } from "../../services";
 import FormularioSeguimientoSocial, { SeguimientoSocialState } from "../form/fichas-form/FormularioSeguimientoSocial";
+import Button from "../ui/button/Button";
 
 interface SeguimientoSocialViewModalProps {
   isOpen: boolean;
@@ -21,8 +22,8 @@ export const SeguimientoSocialViewModal: React.FC<SeguimientoSocialViewModalProp
   const [seguimientos, setSeguimientos] = useState<SeguimientoSocialState[]>([]);
   const [loading, setLoading] = useState(false);
   const [fichaAEditar, setFichaAEditar] = useState<number | null>(null);
+  const [isExporting, setIsExporting] = useState<number | null>(null);
 
- 
   useEffect(() => {
     if (isOpen && pacienteId) {
       cargarFichas();
@@ -46,6 +47,32 @@ export const SeguimientoSocialViewModal: React.FC<SeguimientoSocialViewModalProp
     }
   };
 
+  const handleExportPdf = async (fichaId: number) => {
+    try {
+      setIsExporting(fichaId);
+      toast.info("Generando reporte PDF...");
+      
+      const blob = await fichasService.exportarPdfSeguimientoSocial(fichaId);
+      
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      const nombreArchivo = `seguimiento_social_${fichaId}.pdf`;
+      link.setAttribute("download", nombreArchivo);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      toast.success("Reporte PDF generado correctamente");
+    } catch (error) {
+      console.error("Error al exportar PDF:", error);
+      toast.error("Error al generar el reporte PDF");
+    } finally {
+      setIsExporting(null);
+    }
+  };
+
   const handleCloseModal = () => {
     setFichaAEditar(null);
     onClose();
@@ -54,7 +81,6 @@ export const SeguimientoSocialViewModal: React.FC<SeguimientoSocialViewModalProp
   return (
     <Modal isOpen={isOpen} onClose={handleCloseModal} className="max-w-[900px] p-0 overflow-hidden">
       
-      {/* VISTA DE EDICIÓN */}
       {fichaAEditar && modo === "editar" ? (
         <div className="bg-gray-50 dark:bg-gray-900 flex flex-col max-h-[85vh]">
           <div className="bg-white dark:bg-gray-800 p-4 border-b border-gray-100 dark:border-gray-700 flex items-center shadow-sm z-10">
@@ -72,10 +98,7 @@ export const SeguimientoSocialViewModal: React.FC<SeguimientoSocialViewModalProp
               pacienteId={pacienteId!} 
               fichaId={fichaAEditar} 
               onSuccess={() => {
-                // CORRECCIÓN CLAVE:
-                // 1. Quitamos la ficha seleccionada para volver a la lista
                 setFichaAEditar(null); 
-                // 2. Volvemos a pedir los datos al servidor para ver los cambios
                 cargarFichas(); 
                 toast.info("Historial actualizado");
               }} 
@@ -83,7 +106,6 @@ export const SeguimientoSocialViewModal: React.FC<SeguimientoSocialViewModalProp
           </div>
         </div>
       ) : (
-        /* VISTA DE LISTA (HISTORIAL) */
         <>
           <div className={modo === "editar" ? "bg-blue-600 p-6 text-white" : "bg-brand-600 p-6 text-white"}>
             <div className="flex items-center gap-3">
@@ -121,22 +143,51 @@ export const SeguimientoSocialViewModal: React.FC<SeguimientoSocialViewModalProp
                           {seg.fecha ? new Date(seg.fecha).toLocaleDateString() : 'S/F'}
                         </span>
                         
+                        {modo === "ver" && (
+                          <button
+                            onClick={() => handleExportPdf(seg.id!)}
+                            disabled={isExporting === seg.id}
+                            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-semibold transition-all duration-200 shadow-sm border
+                              ${isExporting === seg.id 
+                                ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed dark:bg-gray-800 dark:border-gray-700" 
+                                : "bg-red-50 text-red-600 border-red-200 hover:bg-red-600 hover:text-white hover:border-red-600 dark:bg-red-900/20 dark:border-red-800/50 dark:hover:bg-red-600 dark:hover:text-white"
+                              }`}
+                          >
+                            <FileDown size={16} className={isExporting === seg.id ? "animate-bounce" : ""} />
+                            {isExporting === seg.id ? "Generando..." : "Descargar PDF"}
+                          </button>
+                        )}
+                        
                         {modo === "editar" && (
                           <button
                             onClick={() => setFichaAEditar(seg.id!)}
-                            className="px-3 py-1 bg-blue-600 text-white hover:bg-blue-700 rounded-md text-sm font-semibold transition-colors"
+                            className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-600 hover:text-white rounded-lg text-sm font-semibold transition-all duration-200 shadow-sm dark:bg-blue-900/20 dark:border-blue-800/50 dark:hover:bg-blue-600 dark:hover:text-white"
                           >
+                            <Edit size={16} />
                             Modificar
                           </button>
                         )}
                       </div>
                     </div>
 
-                    <div className="p-4">
-                        <p className="text-xs font-bold text-gray-400 uppercase mb-1">Área:</p>
-                        <p className="text-gray-700 dark:text-gray-200 mb-3">{seg.areaAcompanamiento}</p>
-                        <p className="text-xs font-bold text-gray-400 uppercase mb-1">Objetivo:</p>
-                        <p className="text-gray-600 dark:text-gray-300 text-sm italic">"{seg.objetivo}"</p>
+                    <div className="p-4 bg-white dark:bg-gray-800">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="bg-brand-50/50 dark:bg-brand-900/10 p-3 rounded-lg border border-brand-100 dark:border-brand-800/30 transition-colors hover:bg-brand-50">
+                          <p className="text-[11px] font-bold text-brand-600 dark:text-brand-400 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                            <div className="w-1.5 h-1.5 rounded-full bg-brand-500"></div>
+                            Área de Acompañamiento
+                          </p>
+                          <p className="text-gray-800 dark:text-gray-200 font-medium">{seg.areaAcompanamiento || "No especificada"}</p>
+                        </div>
+                        
+                        <div className="bg-amber-50/50 dark:bg-amber-900/10 p-3 rounded-lg border border-amber-100 dark:border-amber-800/30 transition-colors hover:bg-amber-50">
+                          <p className="text-[11px] font-bold text-amber-600 dark:text-amber-500 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                            <div className="w-1.5 h-1.5 rounded-full bg-amber-500"></div>
+                            Objetivo del Seguimiento
+                          </p>
+                          <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed italic">"{seg.objetivo || "Sin objetivo definido"}"</p>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 ))}

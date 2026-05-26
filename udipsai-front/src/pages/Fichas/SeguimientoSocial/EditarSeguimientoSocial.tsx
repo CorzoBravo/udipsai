@@ -68,7 +68,15 @@ export default function EditarSeguimientoSocial() {
             <FormularioSeguimientoSocial 
               pacienteId={pacienteId!} 
               fichaId={fichaIdSeleccionada} 
-              onSuccess={() => setFichaIdSeleccionada(null)}
+              onSuccess={async () => {
+                setFichaIdSeleccionada(null);
+                try {
+                  const seguimientos = await fichasService.obtenerSeguimientoSocial(pacienteId!);
+                  setListaSeguimientos(seguimientos);
+                } catch (error) {
+                  console.error("Error al actualizar lista:", error);
+                }
+              }}
             />
           </div>
         ) : (

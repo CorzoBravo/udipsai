@@ -448,4 +448,41 @@ export const fichasService = {
       throw error;
     }
   },
+  exportarPdfSeguimientoSocial: async (id: number) => {
+    try {
+      const response = await api.get(
+        "/seguimientos-sociales/reporte/pdf",
+        {
+          params: { id },
+          responseType: "blob",
+        }
+      );
+
+      return response.data;
+    } catch (error) {
+      console.error("Error al exportar PDF Seguimiento Social:", error);
+      throw error;
+    }
+  },
+  exportarExcelSeguimientoSocial: async (pacienteId?: number | string) => {
+    try {
+      const response = await api.get("/seguimientos-sociales/reporte/excel", {
+        params: { pacienteId },
+        responseType: "blob",
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      const filename = pacienteId
+        ? `seguimiento_social_${pacienteId}.xlsx`
+        : "seguimientos_sociales.xlsx";
+      link.setAttribute("download", filename);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error("Error al exportar Excel Seguimiento Social:", error);
+      throw error;
+    }
+  },
 };
