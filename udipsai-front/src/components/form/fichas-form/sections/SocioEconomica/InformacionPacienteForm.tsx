@@ -8,6 +8,16 @@ interface InformacionPacienteFormProps {
         lugarNacimiento: string;
         edad: number;
         cedula: string;
+        numeroTelefono?: string;
+        numeroCelular?: string;
+        institucionEducativa?: {
+            nombre: string;
+        };
+        domicilio?: string;
+        portadorCarnet?: boolean;
+        tipoDiscapacidad?: string;
+        porcentajeDiscapacidad?: number;
+        numCarne?: string;
     };
     onChange: (field: string, value: any) => void;
 }
@@ -62,6 +72,70 @@ const InformacionPacienteForm: React.FC<InformacionPacienteFormProps> = ({ data 
                 </label>
                 <p className="px-4 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg text-gray-800 dark:text-gray-100">
                     {data.lugarNacimiento || "—"}
+                </p>
+            </div>
+            <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Número de Teléfono
+                </label>
+                <p className="px-4 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg text-gray-800 dark:text-gray-100">
+                    {data.numeroTelefono || "—"}
+                </p>
+            </div>
+            <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Número de Celular
+                </label>
+                <p className="px-4 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg text-gray-800 dark:text-gray-100">
+                    {data.numeroCelular || "—"}
+                </p>
+            </div>
+            <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Institución Educativa
+                </label>
+                <p className="px-4 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg text-gray-800 dark:text-gray-100">
+                    {data.institucionEducativa?.nombre || "—"}
+                </p>
+            </div>
+            <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Domicilio
+                </label>
+                <p className="px-4 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg text-gray-800 dark:text-gray-100">
+                    {data.domicilio || "—"}
+                </p>
+            </div>
+            <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Portador de Carnet de Discapacidad
+                </label>
+                <p className="px-4 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg text-gray-800 dark:text-gray-100">
+                    {data.portadorCarnet ? "Sí" : "No"}
+                </p>
+            </div>
+            <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Tipo de Discapacidad
+                </label>
+                <p className="px-4 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg text-gray-800 dark:text-gray-100">
+                    {data.tipoDiscapacidad || "—"}
+                </p>
+            </div>
+            <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Porcentaje de Discapacidad
+                </label>
+                <p className="px-4 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg text-gray-800 dark:text-gray-100">
+                    {data.porcentajeDiscapacidad !== undefined ? `${data.porcentajeDiscapacidad}%` : "—"}
+                </p>
+            </div>
+            <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Número de Carnet de Discapacidad
+                </label>
+                <p className="px-4 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg text-gray-800 dark:text-gray-100">
+                    {data.numCarne || "—"}
                 </p>
             </div>
         </div>

@@ -16,179 +16,180 @@ import java.util.Map;
 @Service
 public class InformeSocialReportService {
 
-    @Autowired
-    private InformeSocialService informeService;
+        @Autowired
+        private InformeSocialService informeService;
 
-    @Autowired
-    private PdfService pdfService;
+        @Autowired
+        private PdfService pdfService;
 
-    private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+        private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
 
-    /**
-     * EXPORTAR EXCEL
-     */
-    public ByteArrayInputStream exportarExcel(String cedula)
-            throws IOException {
+        /**
+         * EXPORTAR EXCEL
+         */
+        public ByteArrayInputStream exportarExcel(String cedula)
+                        throws IOException {
 
-        List<InformeSocialDTO> informes;
+                List<InformeSocialDTO> informes;
 
-        if (cedula != null && !cedula.isEmpty()) {
-            InformeSocialDTO informe = informeService.obtenerPorPacienteCedula(cedula);
+                if (cedula != null && !cedula.isEmpty()) {
+                        InformeSocialDTO informe = informeService.obtenerPorPacienteCedula(cedula);
 
-            informes = (informe != null)
-                    ? List.of(informe)
-                    : List.of();
-        } else {
-            informes = informeService.listarInformes();
+                        informes = (informe != null)
+                                        ? List.of(informe)
+                                        : List.of();
+                } else {
+                        informes = informeService.listarInformes();
+                }
+
+                String[] headers = {
+                                "ID",
+                                "Número Ficha",
+                                "Paciente",
+                                "Cédula",
+                                "Fecha Elaboración",
+                                "Dinámica Familiar",
+                                "Situación Económica",
+                                "Situación Habitabilidad",
+                                "Situación Laboral",
+                                "Situación Entorno",
+                                "Situación Educativo Cultural",
+                                "Situación Salud",
+                                "Situación Legal",
+                                "Valoración Profesional",
+                                "Recomendaciones",
+                                "Elaborado Por",
+                                "Familiares"
+                };
+
+                return ExcelGenerator.generateExcel(
+                                "Informes Sociales",
+                                headers,
+                                informes,
+                                (row, i) -> {
+
+                                        int col = 0;
+
+                                        row.createCell(col++)
+                                                        .setCellValue(fmt(i.getId()));
+
+                                        row.createCell(col++)
+                                                        .setCellValue(fmt(i.getNumFicha()));
+
+                                        row.createCell(col++)
+                                                        .setCellValue(
+                                                                        i.getPaciente() != null
+                                                                                        ? i.getPaciente()
+                                                                                                        .getNombresApellidos()
+                                                                                        : "N/A");
+
+                                        row.createCell(col++)
+                                                        .setCellValue(
+                                                                        i.getPaciente() != null
+                                                                                        ? i.getPaciente()
+                                                                                                        .getCedula()
+                                                                                        : "N/A");
+
+                                        row.createCell(col++)
+                                                        .setCellValue(
+                                                                        fmt(i.getFechaElaboracion()));
+
+                                        row.createCell(col++)
+                                                        .setCellValue(
+                                                                        fmt(i.getDescripcionDinamicaFamiliar()));
+
+                                        row.createCell(col++)
+                                                        .setCellValue(
+                                                                        fmt(i.getSituacionEconomica()));
+
+                                        row.createCell(col++)
+                                                        .setCellValue(
+                                                                        fmt(i.getSituacionHabitabilidad()));
+
+                                        row.createCell(col++)
+                                                        .setCellValue(
+                                                                        fmt(i.getSituacionLaboral()));
+
+                                        row.createCell(col++)
+                                                        .setCellValue(
+                                                                        fmt(i.getSituacionEntorno()));
+
+                                        row.createCell(col++)
+                                                        .setCellValue(
+                                                                        fmt(i.getSituacionEducativoCultural()));
+
+                                        row.createCell(col++)
+                                                        .setCellValue(
+                                                                        fmt(i.getSituacionSalud()));
+
+                                        row.createCell(col++)
+                                                        .setCellValue(
+                                                                        fmt(i.getSituacionLegal()));
+
+                                        row.createCell(col++)
+                                                        .setCellValue(
+                                                                        fmt(i.getValoracionProfesional()));
+
+                                        row.createCell(col++)
+                                                        .setCellValue(
+                                                                        fmt(i.getRecomendaciones()));
+
+                                        row.createCell(col++)
+                                                        .setCellValue(
+                                                                        fmt(i.getElaboradoPor()));
+
+                                        // Familiares concatenados
+                                        if (i.getFamiliares() != null &&
+                                                        !i.getFamiliares().isEmpty()) {
+
+                                                String familiares = i.getFamiliares()
+                                                                .stream()
+                                                                .map(f -> f.getNombres()
+                                                                                + " ("
+                                                                                + f.getParentesco()
+                                                                                + ")")
+                                                                .reduce(
+                                                                                (a, b) -> a + ", " + b)
+                                                                .orElse("N/A");
+
+                                                row.createCell(col++)
+                                                                .setCellValue(familiares);
+
+                                        } else {
+                                                row.createCell(col++)
+                                                                .setCellValue("N/A");
+                                        }
+                                });
         }
 
-        String[] headers = {
-                "ID",
-                "Número Ficha",
-                "Paciente",
-                "Cédula",
-                "Fecha Elaboración",
-                "Dinámica Familiar",
-                "Situación Económica",
-                "Situación Habitabilidad",
-                "Situación Laboral",
-                "Situación Entorno",
-                "Situación Educativo Cultural",
-                "Situación Salud",
-                "Situación Legal",
-                "Valoración Profesional",
-                "Recomendaciones",
-                "Elaborado Por",
-                "Familiares"
-        };
+        public byte[] exportarPdf(String cedula)
+                        throws Exception {
 
-        return ExcelGenerator.generateExcel(
-                "Informes Sociales",
-                headers,
-                informes,
-                (row, i) -> {
+                InformeSocialDTO informe = informeService.obtenerPorPacienteCedula(cedula);
 
-                    int col = 0;
+                if (informe == null) {
+                        throw new RuntimeException(
+                                        "No existe informe social para este paciente");
+                }
 
-                    row.createCell(col++)
-                            .setCellValue(fmt(i.getId()));
+                Map<String, Object> data = new HashMap<>();
+                data.put("i", informe);
 
-                    row.createCell(col++)
-                            .setCellValue(fmt(i.getNumFicha()));
-
-                    row.createCell(col++)
-                            .setCellValue(
-                                    i.getPaciente() != null
-                                            ? i.getPaciente()
-                                                    .getNombresApellidos()
-                                            : "N/A");
-
-                    row.createCell(col++)
-                            .setCellValue(
-                                    i.getPaciente() != null
-                                            ? i.getPaciente()
-                                                    .getCedula()
-                                            : "N/A");
-
-                    row.createCell(col++)
-                            .setCellValue(
-                                    fmt(i.getFechaElaboracion()));
-
-                    row.createCell(col++)
-                            .setCellValue(
-                                    fmt(i.getDescripcionDinamicaFamiliar()));
-
-                    row.createCell(col++)
-                            .setCellValue(
-                                    fmt(i.getSituacionEconomica()));
-
-                    row.createCell(col++)
-                            .setCellValue(
-                                    fmt(i.getSituacionHabitabilidad()));
-
-                    row.createCell(col++)
-                            .setCellValue(
-                                    fmt(i.getSituacionLaboral()));
-
-                    row.createCell(col++)
-                            .setCellValue(
-                                    fmt(i.getSituacionEntorno()));
-
-                    row.createCell(col++)
-                            .setCellValue(
-                                    fmt(i.getSituacionEducativoCultural()));
-
-                    row.createCell(col++)
-                            .setCellValue(
-                                    fmt(i.getSituacionSalud()));
-
-                    row.createCell(col++)
-                            .setCellValue(
-                                    fmt(i.getSituacionLegal()));
-
-                    row.createCell(col++)
-                            .setCellValue(
-                                    fmt(i.getValoracionProfesional()));
-
-                    row.createCell(col++)
-                            .setCellValue(
-                                    fmt(i.getRecomendaciones()));
-
-                    row.createCell(col++)
-                            .setCellValue(
-                                    fmt(i.getElaboradoPor()));
-
-                    // Familiares concatenados
-                    if (i.getFamiliares() != null &&
-                            !i.getFamiliares().isEmpty()) {
-
-                        String familiares = i.getFamiliares()
-                                .stream()
-                                .map(f -> f.getNombres()
-                                        + " ("
-                                        + f.getParentesco()
-                                        + ")")
-                                .reduce(
-                                        (a, b) -> a + ", " + b)
-                                .orElse("N/A");
-
-                        row.createCell(col++)
-                                .setCellValue(familiares);
-
-                    } else {
-                        row.createCell(col++)
-                                .setCellValue("N/A");
-                    }
-                });
-    }
-    public byte[] exportarPdf(String cedula)
-            throws Exception {
-
-        InformeSocialDTO informe = informeService.obtenerPorPacienteCedula(cedula);
-
-        if (informe == null) {
-            throw new RuntimeException(
-                    "No existe informe social para este paciente");
+                return pdfService.generatePdfFromHtml(
+                                "reportes/informe-social-detalle",
+                                data);
         }
 
-        Map<String, Object> data = new HashMap<>();
-        data.put("i", informe);
+        private String fmt(Object value) {
+                if (value == null) {
+                        return "N/A";
+                }
 
-        return pdfService.generatePdfFromHtml(
-                "reportes/informe-social-detalle",
-                data);
-    }
+                if (value instanceof java.util.Date) {
+                        return dateFormat.format(
+                                        (java.util.Date) value);
+                }
 
-    private String fmt(Object value) {
-        if (value == null) {
-            return "N/A";
+                return value.toString();
         }
-
-        if (value instanceof java.util.Date) {
-            return dateFormat.format(
-                    (java.util.Date) value);
-        }
-
-        return value.toString();
-    }
 }

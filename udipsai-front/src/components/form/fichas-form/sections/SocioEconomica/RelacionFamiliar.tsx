@@ -111,7 +111,7 @@ const RelacionFamiliar: React.FC<RelacionFamiliarProps> = ({ data, onChange }) =
 
             </div>
             <div className="md:col-span-2">
-                <Label>5.7. Las relaciones entre los/las hermanos/as es:</Label>
+                <Label>Las relaciones entre los/las hermanos/as es:</Label>
 
                 <div className="flex flex-wrap gap-4 mt-2">
                     {opcionesHermanos.map((op) => (
@@ -131,7 +131,7 @@ const RelacionFamiliar: React.FC<RelacionFamiliarProps> = ({ data, onChange }) =
                 </div>
             </div>
             <div className="md:col-span-2">
-                <Label>5.8. Las relaciones entre padres e hijos/as es:</Label>
+                <Label>Las relaciones entre padres e hijos/as es:</Label>
 
                 <div className="flex flex-wrap gap-4 mt-2">
                     {opcionesRelacion.map((op) => (
@@ -151,7 +151,7 @@ const RelacionFamiliar: React.FC<RelacionFamiliarProps> = ({ data, onChange }) =
                 </div>
             </div>
             <div className="md:col-span-2">
-                <Label>5.9. La comunicación entre los miembros de la familia es:</Label>
+                <Label>La comunicación entre los miembros de la familia es:</Label>
 
                 <div className="flex flex-wrap gap-4 mt-2">
                     {opcionesRelacion.map((op) => (
@@ -169,6 +169,22 @@ const RelacionFamiliar: React.FC<RelacionFamiliarProps> = ({ data, onChange }) =
                         </label>
                     ))}
                 </div>
+            </div>
+            {/* Tipo de hogar */}
+            <div className="md:col-span-2">
+                <Label>Tipo de hogar</Label>
+
+                <select
+                    value={data.tipoHogar}
+                    onChange={(e) => onChange("tipoHogar", e.target.value)}
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 dark:bg-gray-900 dark:border-gray-700"
+                >
+                    <option value="">Seleccione una opción</option>
+                    <option value="completo">Completo</option>
+                    <option value="incompleto">Incompleto</option>
+                    <option value="funcional">Funcional</option>
+                    <option value="disfuncional">Disfuncional</option>
+                </select>
             </div>
         </div>
     );

@@ -20,6 +20,8 @@ import { HistoriaClinicaViewModal } from "./HistoriaClinicaViewModal";
 import { PsicologiaEducativaViewModal } from "./PsicologiaEducativaViewModal";
 import { PsicologiaClinicaViewModal } from "./PsicologiaClinicaViewModal";
 import { FonoaudiologiaViewModal } from "./FonoaudiologiaViewModal";
+// IMPORTACIÓN DEL NUEVO MODAL DE VISTA
+import { SeguimientoSocialViewModal } from "./SeguimientoSocialViewModal";
 
 interface Paciente {
   id: number;
@@ -110,6 +112,18 @@ const FILE_TYPES = [
       view: "PERM_PACIENTES",
     },
   },
+  {
+    id: "seguimiento-social",
+    label: "Seguimiento Social",
+    internalName: "Seguimiento Social",
+    type: "ficha",
+    permissions: {
+      create: "PERM_PACIENTES_CREAR",
+      edit: "PERM_PACIENTES_EDITAR",
+      delete: "PERM_PACIENTES_ELIMINAR",
+      view: "PERM_PACIENTES",
+    },
+  },
 ];
 
 export const PatientFichasModal: React.FC<PatientFichasModalProps> = ({
@@ -134,6 +148,8 @@ export const PatientFichasModal: React.FC<PatientFichasModalProps> = ({
   const [viewEduModalOpen, setViewEduModalOpen] = useState(false);
   const [viewClinicaModalOpen, setViewClinicaModalOpen] = useState(false);
   const [viewFonoModalOpen, setViewFonoModalOpen] = useState(false);
+  // ESTADO PARA EL NUEVO MODAL DE SEGUIMIENTO
+  const [viewSeguimientoModalOpen, setViewSeguimientoModalOpen] = useState(false);
 
   const fetchResumen = async () => {
     if (!paciente) return;
@@ -185,6 +201,10 @@ export const PatientFichasModal: React.FC<PatientFichasModalProps> = ({
           case "fonoaudiologia":
             await fichasService.eliminarFonoaudiologia(itemToDelete.id);
             break;
+          // CASO PARA ELIMINAR SEGUIMIENTO SOCIAL
+          case "seguimiento-social":
+            await fichasService.eliminarSeguimientoSocial(itemToDelete.id);
+            break;
           default:
             throw new Error("Tipo de ficha no reconocido");
         }
@@ -234,6 +254,11 @@ export const PatientFichasModal: React.FC<PatientFichasModalProps> = ({
       }
       if (fileType === "fonoaudiologia") {
         setViewFonoModalOpen(true);
+        return;
+      }
+      // ACCIÓN VER PARA SEGUIMIENTO SOCIAL
+      if (fileType === "seguimiento-social") {
+        setViewSeguimientoModalOpen(true);
         return;
       }
       if (type === "documento") {
@@ -298,6 +323,11 @@ export const PatientFichasModal: React.FC<PatientFichasModalProps> = ({
             }
             return;
         }
+        // SEGUIMIENTO SOCIAL: Exportación (Opcional, si el back lo soporta)
+        if (fileType === "seguimiento-social") {
+            toast.info("Exportación de seguimiento social no disponible por el momento");
+            return;
+        }
     }
 
     if (action === "Eliminar") {
@@ -315,6 +345,7 @@ export const PatientFichasModal: React.FC<PatientFichasModalProps> = ({
              onClose();
              return;
         }
+        // NAVEGACIÓN A EDICIÓN DE SEGUIMIENTO SOCIAL (y otros)
         navigate(`/fichas/${fileType}/editar/${paciente.id}`);
         onClose();
       } else {
@@ -530,6 +561,14 @@ export const PatientFichasModal: React.FC<PatientFichasModalProps> = ({
         <FonoaudiologiaViewModal
           isOpen={viewFonoModalOpen}
           onClose={() => setViewFonoModalOpen(false)}
+          pacienteId={paciente.id}
+        />
+      )}
+      {/* RENDERIZADO DEL MODAL DE SEGUIMIENTO SOCIAL */}
+      {viewSeguimientoModalOpen && (
+        <SeguimientoSocialViewModal
+          isOpen={viewSeguimientoModalOpen}
+          onClose={() => setViewSeguimientoModalOpen(false)}
           pacienteId={paciente.id}
         />
       )}

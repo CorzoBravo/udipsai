@@ -9,6 +9,8 @@ import {
   Brain,
   Ear,
   Eye,
+  Home,
+  ClipboardList,
 } from "lucide-react";
 
 import {
@@ -31,21 +33,23 @@ import { PsicologiaClinicaViewModal } from "../modals/PsicologiaClinicaViewModal
 
 import { FonoaudiologiaViewModal } from "../modals/FonoaudiologiaViewModal";
 import { SocioEconomicoViewModal } from "../modals/SocioEconomicoViewModal";
+import { SeguimientoSocialViewModal } from "../modals/SeguimientoSocialViewModal"; 
 
 
 import { useAuth } from "../../context/AuthContext";
 import { fichasService } from "../../services/fichas";
 
-
-
 interface FichaListDTO {
   id: number;
-  paciente: {
+  paciente?: {
     id: number;
     nombresApellidos: string;
     cedula: string;
     email: string;
   };
+  pacienteId?: number;
+  pacienteNombre?: string;
+  pacienteCedula?: string;
   activo: boolean;
 }
 
@@ -54,7 +58,8 @@ type TabKey =
   | "psicologia_educativa"
   | "psicologia_clinica"
   | "fonoaudiologia"
-  | "socioeconomico";
+  | "socioeconomico"
+  | "seguimiento_social";
 
 interface TabConfig {
   key: TabKey;
@@ -74,6 +79,7 @@ interface TabConfig {
 export default function FichasUnificadasTable() {
   const navigate = useNavigate();
   const { hasPermission } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const tabs: TabConfig[] = [
     {
@@ -135,7 +141,7 @@ export default function FichasUnificadasTable() {
     {
       key: "socioeconomico",
       label: "Socioeconómico",
-      icon: Ear,
+      icon: Home,
       fetch: fichasService.listarSocioEconomico,
       delete: fichasService.eliminarSocioEconomico,
       editPath: "/fichas/socioeconomico/editar",
@@ -145,32 +151,43 @@ export default function FichasUnificadasTable() {
       permDelete: "PERM_SOCIOECONOMICA_ELIMINAR",
       permRead: "PERM_SOCIOECONOMICA",
       title: "Socioeconómico",
+    },
+    {
+      key: "seguimiento_social",
+      label: "Seguimiento Social",
+      icon: ClipboardList,
+      fetch: fichasService.listarSeguimientoSocial,
+      delete: fichasService.eliminarSeguimientoSocial,
+      editPath: "/fichas/seguimiento-social/editar",
+      createPath: "/fichas/seguimiento-social/nuevo",
+      permEdit: "PERM_PACIENTES_EDITAR",
+      permCreate: "PERM_PACIENTES_CREAR",
+      permDelete: "PERM_PACIENTES_ELIMINAR",
+      permRead: "PERM_PACIENTES",
+      title: "Seguimiento Social",
     }
   ];
 
-  const [searchParams, setSearchParams] = useSearchParams();
   const initialTab = (searchParams.get("tab") as TabKey) || "historia_clinica";
-
-  const [activeTabKey, setActiveTabKey] = useState<TabKey>(
-    tabs.some((t) => t.key === initialTab) ? initialTab : "historia_clinica",
-  );
-
+  const [activeTabKey, setActiveTabKey] = useState<TabKey>(initialTab);
   const [fichas, setFichas] = useState<FichaListDTO[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [fichaToDelete, setFichaToDelete] = useState<number | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  const [selectedPacienteId, setSelectedPacienteId] = useState<number | null>(
-    null,
-  );
+  const [selectedPacienteId, setSelectedPacienteId] = useState<number | null>(null);
   const [viewHistoriaModalOpen, setViewHistoriaModalOpen] = useState(false);
   const [viewEduModalOpen, setViewEduModalOpen] = useState(false);
   const [viewClinicaModalOpen, setViewClinicaModalOpen] = useState(false);
   const [viewFonoModalOpen, setViewFonoModalOpen] = useState(false);
   const [viewSocioModalOpen, setViewSocioModalOpen] = useState(false);
+  const [viewSeguimientoModalOpen, setViewSeguimientoModalOpen] = useState(false);
 
   const activeTab = tabs.find((t) => t.key === activeTabKey) || tabs[0];
+  
+  // 👇 BANDERA PARA SABER SI ESTAMOS EN SEGUIMIENTO SOCIAL 👇
+  const isSeguimientoSocial = activeTabKey === "seguimiento_social";
 
   const handleTabChange = (key: TabKey) => {
     setActiveTabKey(key);
@@ -186,7 +203,7 @@ export default function FichasUnificadasTable() {
     try {
       setLoading(true);
       const data = await activeTab.fetch();
-      setFichas(data);
+      setFichas(data || []);
     } catch (error) {
       console.error(`Error loading fichas for ${activeTab.label}:`, error);
       toast.error(`Error al cargar las fichas de ${activeTab.label}`);
@@ -224,56 +241,61 @@ export default function FichasUnificadasTable() {
     return activo ? "success" : "error";
   };
 
-  const handleViewClick = (pacienteId: number) => {
+  const handleViewClick = (pacienteId: number | undefined) => {
+    if (!pacienteId) return;
     setSelectedPacienteId(pacienteId);
+    // Este Switch sigue abriendo el modal correcto según la pestaña
     switch (activeTabKey) {
-      case "historia_clinica":
-        setViewHistoriaModalOpen(true);
-        break;
-      case "psicologia_educativa":
-        setViewEduModalOpen(true);
-        break;
-      case "psicologia_clinica":
-        setViewClinicaModalOpen(true);
-        break;
-      case "fonoaudiologia":
-        setViewFonoModalOpen(true);
-        break;
-      case "socioeconomico":
-        setViewSocioModalOpen(true);
-        break;
+      case "historia_clinica": setViewHistoriaModalOpen(true); break;
+      case "psicologia_educativa": setViewEduModalOpen(true); break;
+      case "psicologia_clinica": setViewClinicaModalOpen(true); break;
+      case "fonoaudiologia": setViewFonoModalOpen(true); break;
+      case "socioeconomico": setViewSocioModalOpen(true); break;
+      case "seguimiento_social": setViewSeguimientoModalOpen(true); break;
     }
   };
 
+  // Filtro de búsqueda común para todas las pestañas
   const filteredFichas = fichas.filter((ficha) => {
     const searchLower = searchTerm.toLowerCase();
-
-    const nombreCompleto = ficha.paciente?.nombresApellidos
-      ? ficha.paciente.nombresApellidos.toLowerCase()
-      : "";
-    const cedula = ficha.paciente?.cedula
-      ? ficha.paciente.cedula.toLowerCase()
-      : "";
-
+    const nombreCompleto = (ficha.paciente?.nombresApellidos || ficha.pacienteNombre || "").toLowerCase();
+    const cedula = (ficha.paciente?.cedula || ficha.pacienteCedula || "").toLowerCase();
     return nombreCompleto.includes(searchLower) || cedula.includes(searchLower);
   });
+
+  // 👇 AGRUPACIÓN SÓLO PARA SEGUIMIENTO SOCIAL 👇
+  const groupedFichas = isSeguimientoSocial ? Object.values(
+    filteredFichas.reduce((acc, ficha) => {
+      const pId = ficha.paciente?.id || ficha.pacienteId;
+      if (!pId) return acc;
+
+      if (!acc[pId]) {
+        acc[pId] = {
+          pacienteId: pId,
+          pacienteNombre: ficha.paciente?.nombresApellidos || ficha.pacienteNombre || "Sin Nombre",
+          pacienteCedula: ficha.paciente?.cedula || ficha.pacienteCedula || "S/N",
+          fichasCount: 0,
+          latestFicha: ficha 
+        };
+      } else {
+        if (ficha.id > acc[pId].latestFicha.id) {
+          acc[pId].latestFicha = ficha;
+        }
+      }
+      acc[pId].fichasCount += 1;
+      return acc;
+    }, {} as Record<number, { pacienteId: number, pacienteNombre: string, pacienteCedula: string, fichasCount: number, latestFicha: FichaListDTO }>)
+  ) : [];
 
   const handleExport = async () => {
     try {
       toast.info("Generando reporte Excel...");
       switch (activeTabKey) {
-        case "fonoaudiologia":
-          await fichasService.exportarExcelFonoaudiologia();
-          break;
-        case "historia_clinica":
-          await fichasService.exportarExcelHistoriaClinica();
-          break;
-        case "psicologia_educativa":
-          await fichasService.exportarExcelPsicologiaEducativa();
-          break;
-        case "psicologia_clinica":
-          await fichasService.exportarExcelPsicologiaClinica();
-          break;
+        case "fonoaudiologia": await fichasService.exportarExcelFonoaudiologia(); break;
+        case "historia_clinica": await fichasService.exportarExcelHistoriaClinica(); break;
+        case "psicologia_educativa": await fichasService.exportarExcelPsicologiaEducativa(); break;
+        case "psicologia_clinica": await fichasService.exportarExcelPsicologiaClinica(); break;
+        case "socioeconomico":await fichasService.exportarExcelSocioEconomico();break;
         default:
           toast.warn("Exportación no disponible para esta pestaña");
           return;
@@ -289,7 +311,7 @@ export default function FichasUnificadasTable() {
       <TableActionHeader
         title={activeTab.title}
         onSearchClick={setSearchTerm}
-        onNew={() => navigate(activeTab.createPath)}
+        onNew={() => navigate(activeTab.createPath)} 
         onExport={hasPermission(activeTab.permRead) ? handleExport : undefined}
         createPermission={activeTab.permCreate} // Colocar el permiso de creación específico para cada pestaña socioeconómico
         newButtonText="Agregar"
@@ -304,15 +326,13 @@ export default function FichasUnificadasTable() {
               <button
                 key={tab.key}
                 onClick={() => handleTabChange(tab.key)}
-                className={`
-                  flex items-center gap-2 px-4 py-2 rounded-t-lg transition-all duration-200 text-sm font-medium
-                  ${isActive
+                className={`flex items-center gap-2 px-4 py-2 rounded-t-lg transition-all duration-200 text-sm font-medium ${
+                  isActive
                     ? "bg-brand-50 text-brand-600 border-b-2 border-brand-500 dark:bg-white/5 dark:text-brand-400"
                     : "text-gray-500 hover:text-gray-700 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-white/5"
-                  }
-                `}
+                }`}
               >
-                <Icon size={16} />
+                {typeof Icon === 'string' ? Icon : <Icon size={16} />}
                 {tab.label}
               </button>
             );
@@ -325,69 +345,100 @@ export default function FichasUnificadasTable() {
               <TableRow>
                 <TableCell isHeader>Nombres del Paciente</TableCell>
                 <TableCell isHeader>Cédula</TableCell>
+                
+                {isSeguimientoSocial && <TableCell isHeader>Fichas Creadas</TableCell>}
                 <TableCell isHeader>Estado</TableCell>
                 <TableCell isHeader>Acciones</TableCell>
               </TableRow>
             </TableHeader>
             <TableBody className="relative min-h-[400px]">
               {loading ? (
-                <TableLoading
-                  colSpan={4}
-                  message={`Cargando ${activeTab.label}...`}
-                />
-              ) : filteredFichas.length > 0 ? (
-                filteredFichas.map((ficha) => (
-                  <TableRow key={ficha.id}>
-                    <TableCell>
-                      {ficha.paciente?.nombresApellidos || "Sin Nombre"}
-                    </TableCell>
-                    <TableCell>{ficha.paciente?.cedula || "S/N"}</TableCell>
-                    <TableCell>
-                      <Badge size="sm" color={getEstadoBadge(ficha.activo)}>
-                        {ficha.activo ? "Activo" : "Inactivo"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex justify-center gap-2">
-                        {hasPermission(activeTab.permRead) && (
-                          <Button
-                            size="sm"
-                            variant="info"
-                            onClick={() => handleViewClick(ficha.paciente.id)}
-                            title="Ver"
-                          >
-                            <Eye size={14} />
-                          </Button>
-                        )}
-                        {hasPermission(activeTab.permEdit) && (
-                          <Button
-                            size="sm"
-                            variant="warning"
-                            onClick={() => handleEditClick(ficha.paciente.id)}
-                            title="Editar"
-                          >
-                            <Pencil size={14} />
-                          </Button>
-                        )}
-                        {hasPermission(activeTab.permDelete) && (
-                          <Button
-                            size="sm"
-                            variant="danger"
-                            onClick={() => handleDeleteClick(ficha.id)}
-                            title="Eliminar"
-                          >
-                            <Trash size={14} />
-                          </Button>
-                        )}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
+                <TableLoading colSpan={isSeguimientoSocial ? 5 : 4} message={`Cargando ${activeTab.label}...`} />
+              ) : isSeguimientoSocial ? (
+                // --- RENDERIZADO EXCLUSIVO PARA SEGUIMIENTO SOCIAL (AGRUPADO) ---
+                groupedFichas.length > 0 ? (
+                  groupedFichas.map((group) => (
+                    <TableRow key={group.pacienteId}>
+                      <TableCell>{group.pacienteNombre}</TableCell>
+                      <TableCell>{group.pacienteCedula}</TableCell>
+                      <TableCell>
+                        <Badge size="sm" color="info">
+                          {group.fichasCount} {group.fichasCount === 1 ? 'Ficha' : 'Fichas'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge size="sm" color={getEstadoBadge(group.latestFicha.activo)}>
+                          {group.latestFicha.activo ? "Activo" : "Inactivo"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex justify-center gap-2">
+                          {hasPermission(activeTab.permRead) && (
+                            // El botón ver abre tu SeguimientoSocialViewModal
+                            <Button size="sm" variant="info" onClick={() => handleViewClick(group.pacienteId)} title="Ver Historial">
+                              <Eye size={14} />
+                            </Button>
+                          )}
+                          {hasPermission(activeTab.permEdit) && (
+                            <Button size="sm" variant="warning" onClick={() => handleEditClick(group.latestFicha.id)} title="Editar Ficha Reciente">
+                              <Pencil size={14} />
+                            </Button>
+                          )}
+                          {hasPermission(activeTab.permDelete) && (
+                            <Button size="sm" variant="danger" onClick={() => handleDeleteClick(group.latestFicha.id)} title="Eliminar Ficha Reciente">
+                              <Trash size={14} />
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableEmpty colSpan={5} message="No se encontraron registros de Seguimiento Social" />
+                )
               ) : (
-                <TableEmpty
-                  colSpan={4}
-                  message={`No se encontraron registros de ${activeTab.label}`}
-                />
+                
+                filteredFichas.length > 0 ? (
+                  filteredFichas.map((ficha) => {
+                    const nombre = ficha.paciente?.nombresApellidos || ficha.pacienteNombre || "Sin Nombre";
+                    const cedula = ficha.paciente?.cedula || ficha.pacienteCedula || "S/N";
+                    const pId = ficha.paciente?.id || ficha.pacienteId;
+
+                    return (
+                      <TableRow key={ficha.id}>
+                        <TableCell>{nombre}</TableCell>
+                        <TableCell>{cedula}</TableCell>
+                        <TableCell>
+                          <Badge size="sm" color={getEstadoBadge(ficha.activo)}>
+                            {ficha.activo ? "Activo" : "Inactivo"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex justify-center gap-2">
+                            {hasPermission(activeTab.permRead) && (
+                              
+                              <Button size="sm" variant="info" onClick={() => handleViewClick(pId)} title="Ver">
+                                <Eye size={14} />
+                              </Button>
+                            )}
+                            {hasPermission(activeTab.permEdit) && (
+                              <Button size="sm" variant="warning" onClick={() => handleEditClick(ficha.id)} title="Editar">
+                                <Pencil size={14} />
+                              </Button>
+                            )}
+                            {hasPermission(activeTab.permDelete) && (
+                              <Button size="sm" variant="danger" onClick={() => handleDeleteClick(ficha.id)} title="Eliminar">
+                                <Trash size={14} />
+                              </Button>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
+                ) : (
+                  <TableEmpty colSpan={4} message={`No se encontraron registros de ${activeTab.label}`} />
+                )
               )}
             </TableBody>
           </Table>
@@ -398,36 +449,20 @@ export default function FichasUnificadasTable() {
           onClose={() => setShowDeleteModal(false)}
           onConfirm={confirmDelete}
           title="Confirmar Eliminación"
-          description={`¿Está seguro que desea eliminar esta ficha de ${activeTab.label}? Esta acción no se puede deshacer.`}
+          description={`¿Está seguro que desea eliminar la ficha de ${activeTab.label}? Esta acción no se puede deshacer.`}
         />
 
+  
         {selectedPacienteId && (
           <>
-            <HistoriaClinicaViewModal
-              isOpen={viewHistoriaModalOpen}
-              onClose={() => setViewHistoriaModalOpen(false)}
-              pacienteId={selectedPacienteId}
-            />
-            <PsicologiaEducativaViewModal
-              isOpen={viewEduModalOpen}
-              onClose={() => setViewEduModalOpen(false)}
-              pacienteId={selectedPacienteId}
-            />
-            <PsicologiaClinicaViewModal
-              isOpen={viewClinicaModalOpen}
-              onClose={() => setViewClinicaModalOpen(false)}
-              pacienteId={selectedPacienteId}
-            />
-            <FonoaudiologiaViewModal
-              isOpen={viewFonoModalOpen}
-              onClose={() => setViewFonoModalOpen(false)}
-              pacienteId={selectedPacienteId}
-            />
-            <SocioEconomicoViewModal
-              isOpen={viewSocioModalOpen}
-              onClose={() => setViewSocioModalOpen(false)}
-              pacienteId={selectedPacienteId}
-            />
+            <HistoriaClinicaViewModal isOpen={viewHistoriaModalOpen} onClose={() => setViewHistoriaModalOpen(false)} pacienteId={selectedPacienteId} />
+            <PsicologiaEducativaViewModal isOpen={viewEduModalOpen} onClose={() => setViewEduModalOpen(false)} pacienteId={selectedPacienteId} />
+            <PsicologiaClinicaViewModal isOpen={viewClinicaModalOpen} onClose={() => setViewClinicaModalOpen(false)} pacienteId={selectedPacienteId} />
+            <FonoaudiologiaViewModal isOpen={viewFonoModalOpen} onClose={() => setViewFonoModalOpen(false)} pacienteId={selectedPacienteId} />
+            <SocioEconomicoViewModal isOpen={viewSocioModalOpen} onClose={() => setViewSocioModalOpen(false)} pacienteId={selectedPacienteId} />
+            
+            
+            <SeguimientoSocialViewModal isOpen={viewSeguimientoModalOpen} onClose={() => setViewSeguimientoModalOpen(false)} pacienteId={selectedPacienteId} modo={"ver"} />
           </>
         )}
       </div>

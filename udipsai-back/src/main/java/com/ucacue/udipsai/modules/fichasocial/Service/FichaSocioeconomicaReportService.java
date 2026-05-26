@@ -124,7 +124,7 @@ public class FichaSocioeconomicaReportService {
         data.put("f", ficha);
 
         return pdfService.generatePdfFromHtml(
-                "reportes/ficha-social-detalle",
+                "reportes/fichasocial-detalle",
                 data);
     }
 
