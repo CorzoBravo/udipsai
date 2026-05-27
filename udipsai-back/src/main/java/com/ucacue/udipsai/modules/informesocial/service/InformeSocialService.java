@@ -271,56 +271,6 @@ public class InformeSocialService {
         return dto;
     }
 
-    private void procesarFamiliaresConMerge(List<com.ucacue.udipsai.modules.informesocial.dto.InformeSocialFamiliarDTO> familiaresDto, FichaSocioeconomica ficha) {
-        if (familiaresDto == null) {
-            ficha.getFamiliares().clear();
-            return;
-        }
-
-        java.util.Map<Long, FichaSocioFamiliar> familiarMap = new java.util.HashMap<>();
-        for (FichaSocioFamiliar f : ficha.getFamiliares()) {
-            if (f.getId() != null) {
-                familiarMap.put(f.getId(), f);
-            }
-        }
-
-        java.util.List<FichaSocioFamiliar> familiaresActualizados = new java.util.ArrayList<>();
-        for (com.ucacue.udipsai.modules.informesocial.dto.InformeSocialFamiliarDTO fDto : familiaresDto) {
-            FichaSocioFamiliar familiar;
-
-            if (fDto.getId() != null && familiarMap.containsKey(fDto.getId().longValue())) {
-                familiar = familiarMap.get(fDto.getId().longValue());
-                familiar.setRelacion(fDto.getParentesco());
-                familiar.setNombresApellidos(fDto.getNombres());
-                familiar.setEdad(fDto.getEdad());
-                familiar.setEstadoCivil(fDto.getEstadoCivil());
-                familiar.setInstruccion(fDto.getInstruccion());
-                familiar.setOcupacion(fDto.getOcupacion());
-                familiar.setIngresoMensual(fDto.getIngresos());
-                familiar.setCedula(fDto.getCedula());
-                familiar.setNumeroTelefono(fDto.getTelefono());
-                familiar.setCorreoElectronico(fDto.getCorreo());
-            } else {
-                familiar = new FichaSocioFamiliar();
-                familiar.setRelacion(fDto.getParentesco());
-                familiar.setNombresApellidos(fDto.getNombres());
-                familiar.setEdad(fDto.getEdad());
-                familiar.setEstadoCivil(fDto.getEstadoCivil());
-                familiar.setInstruccion(fDto.getInstruccion());
-                familiar.setOcupacion(fDto.getOcupacion());
-                familiar.setIngresoMensual(fDto.getIngresos());
-                familiar.setCedula(fDto.getCedula());
-                familiar.setNumeroTelefono(fDto.getTelefono());
-                familiar.setCorreoElectronico(fDto.getCorreo());
-                familiar.setFicha(ficha);
-            }
-            familiaresActualizados.add(familiar);
-        }
-
-        ficha.getFamiliares().clear();
-        ficha.getFamiliares().addAll(familiaresActualizados);
-    }
-
     @Transactional(readOnly = true)
     public org.springframework.core.io.Resource cargarGenogramaComoRecurso(Integer pacienteId) {
         List<InformeSocial> informes = informeRepository.findByPacienteIdAndActivoTrue(pacienteId);
