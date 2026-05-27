@@ -31,6 +31,7 @@ public class InformeSocialService {
     @Autowired
     private FichaSocioeconomicaRepository fichaRepository;
     @Transactional
+    
     public InformeSocialDTO crearInforme(InformeSocialRequest request, MultipartFile genograma, MultipartFile ecomapa) {
         Paciente paciente = pacienteRepository.findById(request.getPacienteId())
                 .orElseThrow(() -> new RuntimeException("Paciente no encontrado"));
@@ -73,17 +74,18 @@ public class InformeSocialService {
         informe.setRecomendaciones(request.getRecomendaciones());
         informe.setElaboradoPor(request.getElaboradoPor());
 
-        procesarFamiliaresConMerge(request.getFamiliares(), ficha);
-        fichaRepository.save(ficha);
-
-        return convertirADTO(informeRepository.save(informe));
+        InformeSocial saved = informeRepository.save(informe);
+        return convertirADTO(saved, ficha);
     }
 
     @Transactional(readOnly = true)
     public List<InformeSocialDTO> listarInformes() {
         return informeRepository.findAll().stream()
                 .filter(i -> Boolean.TRUE.equals(i.getActivo()))
-                .map(this::convertirADTO)
+                .map(i -> {
+                    FichaSocioeconomica ficha = fichaRepository.findByPacienteIdAndActivo(i.getPaciente().getId(), true);
+                    return convertirADTO(i, ficha);
+                })
                 .collect(Collectors.toList());
     }
 
@@ -94,7 +96,8 @@ public class InformeSocialService {
         if (!Boolean.TRUE.equals(informe.getActivo())) {
             throw new RuntimeException("El informe social está inactivo");
         }
-        return convertirADTO(informe);
+        FichaSocioeconomica ficha = fichaRepository.findByPacienteIdAndActivo(informe.getPaciente().getId(), true);
+        return convertirADTO(informe, ficha);
     }
 
     @Transactional(readOnly = true)
@@ -105,14 +108,22 @@ public class InformeSocialService {
         }
         List<InformeSocial> informes = informeRepository.findByPacienteIdAndActivoTrue(paciente.getId());
         InformeSocial informe = !informes.isEmpty() ? informes.get(0) : null;
-        return (informe != null) ? convertirADTO(informe) : null;
+        if (informe != null) {
+            FichaSocioeconomica ficha = fichaRepository.findByPacienteIdAndActivo(paciente.getId(), true);
+            return convertirADTO(informe, ficha);
+        }
+        return null;
     }
 
     @Transactional(readOnly = true)
     public InformeSocialDTO obtenerPorPacienteId(Integer pacienteId) {
         List<InformeSocial> informes = informeRepository.findByPacienteIdAndActivoTrue(pacienteId);
         InformeSocial informe = !informes.isEmpty() ? informes.get(0) : null;
-        return (informe != null) ? convertirADTO(informe) : null;
+        if (informe != null) {
+            FichaSocioeconomica ficha = fichaRepository.findByPacienteIdAndActivo(pacienteId, true);
+            return convertirADTO(informe, ficha);
+        }
+        return null;
     }
 
     @Transactional
@@ -158,10 +169,8 @@ public class InformeSocialService {
         informe.setRecomendaciones(request.getRecomendaciones());
         informe.setElaboradoPor(request.getElaboradoPor());
 
-        procesarFamiliaresConMerge(request.getFamiliares(), ficha);
-        fichaRepository.save(ficha);
-
-        return convertirADTO(informeRepository.save(informe));
+        InformeSocial saved = informeRepository.save(informe);
+        return convertirADTO(saved, ficha);
     }
 
     @Transactional
@@ -196,10 +205,10 @@ public class InformeSocialService {
         familiar.setCorreoElectronico(familiarDTO.getCorreo());
 
         fichaRepository.save(ficha);
-        return convertirADTO(informe);
+        return convertirADTO(informe, ficha);
     }
 
-    private InformeSocialDTO convertirADTO(InformeSocial entity) {
+    private InformeSocialDTO convertirADTO(InformeSocial entity, FichaSocioeconomica ficha) {
         InformeSocialDTO dto = new InformeSocialDTO();
         dto.setId(entity.getId());
         dto.setNumFicha(entity.getNumFicha());
@@ -236,7 +245,6 @@ public class InformeSocialService {
         }
 
         if (entity.getPaciente() != null) {
-            FichaSocioeconomica ficha = fichaRepository.findByPacienteIdAndActivo(entity.getPaciente().getId(), true);
             if (ficha != null && ficha.getFamiliares() != null) {
                 dto.setFamiliares(ficha.getFamiliares().stream().map(f -> {
                     InformeSocialFamiliarDTO fDto = new InformeSocialFamiliarDTO();
