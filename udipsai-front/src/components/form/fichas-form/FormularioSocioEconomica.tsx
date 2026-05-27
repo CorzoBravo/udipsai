@@ -775,10 +775,10 @@ export default function FormularioFichaSocioeconomica() {
       if (error.response?.status === 409) {
         toast.error("Este paciente ya tiene una ficha activa.");
       } else {
+        const serverMessage = error.response?.data?.message;
         toast.error(
-          isEdit
-            ? "Error al actualizar la ficha"
-            : "Error al crear la ficha"
+          serverMessage ||
+            (isEdit ? "Error al actualizar la ficha" : "Error al crear la ficha")
         );
       }
       console.error("Error saving ficha:", error);
