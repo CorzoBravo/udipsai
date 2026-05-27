@@ -69,7 +69,7 @@ public class InformeSocialController {
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(informeService.crearInforme(request, genograma, ecomapa));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
+            throw new IllegalArgumentException(e.getMessage(), e);
         }
     }
 
@@ -84,7 +84,7 @@ public class InformeSocialController {
             InformeSocialRequest request = objectMapper.readValue(informeJson, InformeSocialRequest.class);
             return ResponseEntity.ok(informeService.actualizarInforme(id, request, genograma, ecomapa));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
+            throw new IllegalArgumentException(e.getMessage(), e);
         }
     }
 

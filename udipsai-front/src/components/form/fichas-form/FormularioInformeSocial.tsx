@@ -467,11 +467,12 @@ export default function FormularioInformeSocial() {
       navigate("/fichas");
     } catch (error: any) {
       console.error("ERROR COMPLETO:", error?.response?.data);
-
+      const serverMessage = error?.response?.data?.message;
       toast.error(
-        isEdit
-          ? "Error al actualizar el informe"
-          : "Error al crear el informe"
+        serverMessage ||
+          (isEdit
+            ? "Error al actualizar el informe"
+            : "Error al crear el informe")
       );
     } finally {
       setLoading(false);

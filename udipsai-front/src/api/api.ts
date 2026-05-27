@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: (import.meta.env.VITE_API_URL || 'http://http://100.80.174.43/:8081') + '/api',
+  baseURL: (import.meta.env.VITE_API_URL || 'http://100.80.174.43:8081') + '/api',
 });
 
 api.interceptors.request.use(
@@ -82,8 +82,10 @@ api.interceptors.response.use(
     }
 
     if (error.response?.status !== 401) {
-      const errorMessage = error.response?.data?.message || 'Ocurrió un error inesperado';
-      console.log(errorMessage);
+      const errorMessage = error.response?.data?.message;
+      if (errorMessage) {
+        console.log(errorMessage);
+      }
     }
 
     return Promise.reject(error);
