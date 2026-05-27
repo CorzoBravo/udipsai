@@ -77,7 +77,7 @@ public class FichaSocioeconomicaService {
         ficha.setActivo(true);
 
         mapRequestToEntity(request, ficha);
-        procesarFamiliares(request.getFamiliares(), ficha);
+        procesarFamiliaresConMerge(request.getFamiliares(), ficha);
         calcularIngresosDesglose(ficha);
 
         FichaSocioeconomica saved = fichaRepository.save(ficha);
@@ -119,37 +119,6 @@ public class FichaSocioeconomicaService {
         ficha.setConclusiones(request.getConclusiones());
         ficha.setRecomendaciones(request.getRecomendaciones());
         ficha.setResponsable(request.getResponsable());
-    }
-
-    private void procesarFamiliares(List<FamiliarDTO> familiaresDto, FichaSocioeconomica ficha) {
-        if (familiaresDto != null) {
-            for (FamiliarDTO fDto : familiaresDto) {
-                FichaSocioFamiliar familiar = new FichaSocioFamiliar();
-                familiar.setRelacion(fDto.getRelacion());
-                familiar.setNombresApellidos(fDto.getNombresApellidos());
-                familiar.setEdad(fDto.getEdad());
-                familiar.setEstadoCivil(fDto.getEstadoCivil());
-                familiar.setInstruccion(fDto.getInstruccion());
-                familiar.setOcupacion(fDto.getOcupacion());
-                familiar.setIngresoMensual(fDto.getIngresoMensual());
-
-                familiar.setProblemasSaludFamiliar(fDto.getProblemas_salud());
-                familiar.setDescripProblemasSaludFamiliar(
-                        fDto.getDescripProblemasSaludFamiliar());
-
-                familiar.setEnfermedadCatastrofica(fDto.getEnfermedad_catastrofica());
-                familiar.setDescripEnfermedadCatastrofica(
-                        fDto.getDescripEnfermedadCatastrofica());
-
-                familiar.setDiscapacidad(fDto.getDiscapacidad());
-                familiar.setDescripDiscapacidad(
-                        fDto.getDescripDiscapacidad());
-
-                familiar.setFicha(ficha);
-
-                ficha.getFamiliares().add(familiar);
-            }
-        }
     }
 
     private void procesarFamiliaresConMerge(List<FamiliarDTO> familiaresDto, FichaSocioeconomica ficha) {

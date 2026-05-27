@@ -16,8 +16,6 @@ import org.springframework.web.multipart.MultipartFile;
 import com.ucacue.udipsai.modules.fichasocial.domain.FichaSocioeconomica;
 import com.ucacue.udipsai.modules.fichasocial.domain.components.FichaSocioFamiliar;
 import com.ucacue.udipsai.modules.fichasocial.repository.FichaSocioeconomicaRepository;
-import com.ucacue.udipsai.modules.especialistas.repository.EspecialistaRepository;
-
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -32,9 +30,6 @@ public class InformeSocialService {
     private StorageService storageService;
     @Autowired
     private FichaSocioeconomicaRepository fichaRepository;
-    @Autowired
-    private EspecialistaRepository especialistaRepository;
-
     @Transactional
     public InformeSocialDTO crearInforme(InformeSocialRequest request, MultipartFile genograma, MultipartFile ecomapa) {
         Paciente paciente = pacienteRepository.findById(request.getPacienteId())
