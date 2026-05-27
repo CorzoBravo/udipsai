@@ -96,9 +96,7 @@ public class FichaSocioeconomicaService {
         }
 
         mapRequestToEntity(request, ficha);
-
-        ficha.getFamiliares().clear();
-        procesarFamiliares(request.getFamiliares(), ficha);
+        procesarFamiliaresConMerge(request.getFamiliares(), ficha);
         calcularIngresosDesglose(ficha);
 
         FichaSocioeconomica saved = fichaRepository.save(ficha);
@@ -154,6 +152,69 @@ public class FichaSocioeconomicaService {
         }
     }
 
+    private void procesarFamiliaresConMerge(List<FamiliarDTO> familiaresDto, FichaSocioeconomica ficha) {
+        if (familiaresDto == null) {
+            ficha.getFamiliares().clear();
+            return;
+        }
+
+        java.util.Map<Long, FichaSocioFamiliar> familiarMap = new java.util.HashMap<>();
+        for (FichaSocioFamiliar f : ficha.getFamiliares()) {
+            if (f.getId() != null) {
+                familiarMap.put(f.getId(), f);
+            }
+        }
+
+        java.util.List<FichaSocioFamiliar> familiaresActualizados = new java.util.ArrayList<>();
+        for (FamiliarDTO fDto : familiaresDto) {
+            FichaSocioFamiliar familiar;
+
+            if (fDto.getId() != null && familiarMap.containsKey(fDto.getId().longValue())) {
+                familiar = familiarMap.get(fDto.getId().longValue());
+                familiar.setRelacion(fDto.getRelacion());
+                familiar.setNombresApellidos(fDto.getNombresApellidos());
+                familiar.setEdad(fDto.getEdad());
+                familiar.setEstadoCivil(fDto.getEstadoCivil());
+                familiar.setInstruccion(fDto.getInstruccion());
+                familiar.setOcupacion(fDto.getOcupacion());
+                familiar.setIngresoMensual(fDto.getIngresoMensual());
+
+                familiar.setProblemasSaludFamiliar(fDto.getProblemas_salud());
+                familiar.setDescripProblemasSaludFamiliar(fDto.getDescripProblemasSaludFamiliar());
+
+                familiar.setEnfermedadCatastrofica(fDto.getEnfermedad_catastrofica());
+                familiar.setDescripEnfermedadCatastrofica(fDto.getDescripEnfermedadCatastrofica());
+
+                familiar.setDiscapacidad(fDto.getDiscapacidad());
+                familiar.setDescripDiscapacidad(fDto.getDescripDiscapacidad());
+            } else {
+                familiar = new FichaSocioFamiliar();
+                familiar.setRelacion(fDto.getRelacion());
+                familiar.setNombresApellidos(fDto.getNombresApellidos());
+                familiar.setEdad(fDto.getEdad());
+                familiar.setEstadoCivil(fDto.getEstadoCivil());
+                familiar.setInstruccion(fDto.getInstruccion());
+                familiar.setOcupacion(fDto.getOcupacion());
+                familiar.setIngresoMensual(fDto.getIngresoMensual());
+
+                familiar.setProblemasSaludFamiliar(fDto.getProblemas_salud());
+                familiar.setDescripProblemasSaludFamiliar(fDto.getDescripProblemasSaludFamiliar());
+
+                familiar.setEnfermedadCatastrofica(fDto.getEnfermedad_catastrofica());
+                familiar.setDescripEnfermedadCatastrofica(fDto.getDescripEnfermedadCatastrofica());
+
+                familiar.setDiscapacidad(fDto.getDiscapacidad());
+                familiar.setDescripDiscapacidad(fDto.getDescripDiscapacidad());
+
+                familiar.setFicha(ficha);
+            }
+            familiaresActualizados.add(familiar);
+        }
+
+        ficha.getFamiliares().clear();
+        ficha.getFamiliares().addAll(familiaresActualizados);
+    }
+
     private FichaSocioeconomicaDTO convertirADTO(FichaSocioeconomica ficha) {
         FichaSocioeconomicaDTO dto = new FichaSocioeconomicaDTO();
         dto.setId(ficha.getId());
@@ -194,6 +255,7 @@ public class FichaSocioeconomicaService {
         if (ficha.getFamiliares() != null) {
             dto.setFamiliares(ficha.getFamiliares().stream().map(f -> {
                 FamiliarDTO fDto = new FamiliarDTO();
+                fDto.setId(f.getId() != null ? f.getId().intValue() : null);
                 fDto.setRelacion(f.getRelacion());
                 fDto.setNombresApellidos(f.getNombresApellidos());
                 fDto.setEdad(f.getEdad());
@@ -216,6 +278,7 @@ public class FichaSocioeconomicaService {
                         Boolean.TRUE.equals(f.getDiscapacidad()));
                 fDto.setDescripDiscapacidad(
                         f.getDescripDiscapacidad());
+
                 return fDto;
             }).collect(Collectors.toList()));
         }

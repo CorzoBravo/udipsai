@@ -40,6 +40,11 @@ public class InformeSocialService {
         Paciente paciente = pacienteRepository.findById(request.getPacienteId())
                 .orElseThrow(() -> new RuntimeException("Paciente no encontrado"));
 
+        FichaSocioeconomica ficha = fichaRepository.findByPacienteIdAndActivo(paciente.getId(), true);
+        if (ficha == null) {
+            throw new RuntimeException("No existe ficha socioeconómica activa. Cree una ficha primero en el módulo de fichas socioeconómicas");
+        }
+
         InformeSocial informe = new InformeSocial();
         informe.setPaciente(paciente);
         informe.setNumFicha(request.getNumFicha());
@@ -73,40 +78,8 @@ public class InformeSocialService {
         informe.setRecomendaciones(request.getRecomendaciones());
         informe.setElaboradoPor(request.getElaboradoPor());
 
-        FichaSocioeconomica ficha = fichaRepository.findByPacienteIdAndActivo(paciente.getId(), true);
-        if (ficha == null) {
-            ficha = new FichaSocioeconomica();
-            ficha.setPaciente(paciente);
-            ficha.setActivo(true);
-            ficha.setFechaElaboracion(new java.util.Date());
-            if (request.getEspecialistaId() != null) {
-                com.ucacue.udipsai.modules.especialistas.domain.Especialista esp = especialistaRepository
-                        .findById(request.getEspecialistaId()).orElse(null);
-                ficha.setEspecialista(esp);
-            }
-            ficha = fichaRepository.save(ficha);
-        }
-
-        if (request.getFamiliares() != null) {
-            ficha.getFamiliares().clear();
-            for (com.ucacue.udipsai.modules.informesocial.dto.InformeSocialFamiliarDTO fDto : request.getFamiliares()) {
-                FichaSocioFamiliar familiar = new FichaSocioFamiliar();
-                familiar.setRelacion(fDto.getParentesco());
-                familiar.setNombresApellidos(fDto.getNombres());
-                familiar.setEdad(fDto.getEdad());
-                familiar.setEstadoCivil(fDto.getEstadoCivil());
-                familiar.setInstruccion(fDto.getInstruccion());
-                familiar.setOcupacion(fDto.getOcupacion());
-                familiar.setIngresoMensual(fDto.getIngresos());
-                familiar.setCedula(fDto.getCedula());
-                familiar.setNumeroTelefono(fDto.getTelefono());
-                familiar.setCorreoElectronico(fDto.getCorreo());
-                familiar.setFicha(ficha);
-                familiar.setFicha(ficha);
-                ficha.getFamiliares().add(familiar);
-            }
-            fichaRepository.save(ficha);
-        }
+        procesarFamiliaresConMerge(request.getFamiliares(), ficha);
+        fichaRepository.save(ficha);
 
         return convertirADTO(informeRepository.save(informe));
     }
@@ -157,6 +130,11 @@ public class InformeSocialService {
             throw new RuntimeException("No se puede editar un informe inactivo");
         }
 
+        FichaSocioeconomica ficha = fichaRepository.findByPacienteIdAndActivo(informe.getPaciente().getId(), true);
+        if (ficha == null) {
+            throw new RuntimeException("No existe ficha socioeconómica activa para este paciente");
+        }
+
         if (genograma != null && !genograma.isEmpty()) {
             informe.setGenogramaUrl(storageService.store(genograma));
         }
@@ -185,40 +163,8 @@ public class InformeSocialService {
         informe.setRecomendaciones(request.getRecomendaciones());
         informe.setElaboradoPor(request.getElaboradoPor());
 
-        FichaSocioeconomica ficha = fichaRepository.findByPacienteIdAndActivo(informe.getPaciente().getId(), true);
-        if (ficha == null) {
-            ficha = new FichaSocioeconomica();
-            ficha.setPaciente(informe.getPaciente());
-            ficha.setActivo(true);
-            ficha.setFechaElaboracion(new java.util.Date());
-            if (request.getEspecialistaId() != null) {
-                com.ucacue.udipsai.modules.especialistas.domain.Especialista esp = especialistaRepository
-                        .findById(request.getEspecialistaId()).orElse(null);
-                ficha.setEspecialista(esp);
-            }
-            ficha = fichaRepository.save(ficha);
-        }
-
-        if (request.getFamiliares() != null) {
-            ficha.getFamiliares().clear();
-            for (com.ucacue.udipsai.modules.informesocial.dto.InformeSocialFamiliarDTO fDto : request.getFamiliares()) {
-                FichaSocioFamiliar familiar = new FichaSocioFamiliar();
-                familiar.setRelacion(fDto.getParentesco());
-                familiar.setNombresApellidos(fDto.getNombres());
-                familiar.setIngresoMensual(fDto.getIngresos());
-                familiar.setCedula(fDto.getCedula());
-                familiar.setNumeroTelefono(fDto.getTelefono());
-                familiar.setCorreoElectronico(fDto.getCorreo());
-                familiar.setFicha(ficha);
-                familiar.setEstadoCivil(fDto.getEstadoCivil());
-                familiar.setInstruccion(fDto.getInstruccion());
-                familiar.setOcupacion(fDto.getOcupacion());
-                familiar.setIngresoMensual(fDto.getIngresos());
-                familiar.setFicha(ficha);
-                ficha.getFamiliares().add(familiar);
-            }
-            fichaRepository.save(ficha);
-        }
+        procesarFamiliaresConMerge(request.getFamiliares(), ficha);
+        fichaRepository.save(ficha);
 
         return convertirADTO(informeRepository.save(informe));
     }
@@ -229,6 +175,33 @@ public class InformeSocialService {
             informe.setActivo(false);
             informeRepository.save(informe);
         });
+    }
+
+    @Transactional
+    public InformeSocialDTO actualizarFamiliarEspecifico(Integer informeId, Integer familiarId, InformeSocialFamiliarDTO familiarDTO) {
+        InformeSocial informe = informeRepository.findById(informeId)
+                .orElseThrow(() -> new RuntimeException("Informe social no encontrado"));
+
+        if (!Boolean.TRUE.equals(informe.getActivo())) {
+            throw new RuntimeException("No se puede editar un informe inactivo");
+        }
+
+        FichaSocioeconomica ficha = fichaRepository.findByPacienteIdAndActivo(informe.getPaciente().getId(), true);
+        if (ficha == null) {
+            throw new RuntimeException("No existe ficha activa para este paciente");
+        }
+
+        FichaSocioFamiliar familiar = ficha.getFamiliares().stream()
+                .filter(f -> f.getId().equals(familiarId.longValue()))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Familiar no encontrado"));
+
+        familiar.setCedula(familiarDTO.getCedula());
+        familiar.setNumeroTelefono(familiarDTO.getTelefono());
+        familiar.setCorreoElectronico(familiarDTO.getCorreo());
+
+        fichaRepository.save(ficha);
+        return convertirADTO(informe);
     }
 
     private InformeSocialDTO convertirADTO(InformeSocial entity) {
@@ -293,6 +266,56 @@ public class InformeSocialService {
         }
 
         return dto;
+    }
+
+    private void procesarFamiliaresConMerge(List<com.ucacue.udipsai.modules.informesocial.dto.InformeSocialFamiliarDTO> familiaresDto, FichaSocioeconomica ficha) {
+        if (familiaresDto == null) {
+            ficha.getFamiliares().clear();
+            return;
+        }
+
+        java.util.Map<Long, FichaSocioFamiliar> familiarMap = new java.util.HashMap<>();
+        for (FichaSocioFamiliar f : ficha.getFamiliares()) {
+            if (f.getId() != null) {
+                familiarMap.put(f.getId(), f);
+            }
+        }
+
+        java.util.List<FichaSocioFamiliar> familiaresActualizados = new java.util.ArrayList<>();
+        for (com.ucacue.udipsai.modules.informesocial.dto.InformeSocialFamiliarDTO fDto : familiaresDto) {
+            FichaSocioFamiliar familiar;
+
+            if (fDto.getId() != null && familiarMap.containsKey(fDto.getId().longValue())) {
+                familiar = familiarMap.get(fDto.getId().longValue());
+                familiar.setRelacion(fDto.getParentesco());
+                familiar.setNombresApellidos(fDto.getNombres());
+                familiar.setEdad(fDto.getEdad());
+                familiar.setEstadoCivil(fDto.getEstadoCivil());
+                familiar.setInstruccion(fDto.getInstruccion());
+                familiar.setOcupacion(fDto.getOcupacion());
+                familiar.setIngresoMensual(fDto.getIngresos());
+                familiar.setCedula(fDto.getCedula());
+                familiar.setNumeroTelefono(fDto.getTelefono());
+                familiar.setCorreoElectronico(fDto.getCorreo());
+            } else {
+                familiar = new FichaSocioFamiliar();
+                familiar.setRelacion(fDto.getParentesco());
+                familiar.setNombresApellidos(fDto.getNombres());
+                familiar.setEdad(fDto.getEdad());
+                familiar.setEstadoCivil(fDto.getEstadoCivil());
+                familiar.setInstruccion(fDto.getInstruccion());
+                familiar.setOcupacion(fDto.getOcupacion());
+                familiar.setIngresoMensual(fDto.getIngresos());
+                familiar.setCedula(fDto.getCedula());
+                familiar.setNumeroTelefono(fDto.getTelefono());
+                familiar.setCorreoElectronico(fDto.getCorreo());
+                familiar.setFicha(ficha);
+            }
+            familiaresActualizados.add(familiar);
+        }
+
+        ficha.getFamiliares().clear();
+        ficha.getFamiliares().addAll(familiaresActualizados);
     }
 
     @Transactional(readOnly = true)
