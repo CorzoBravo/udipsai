@@ -4,6 +4,7 @@ import lombok.Data;
 
 @Data
 public class FamiliarDTO {
+    private Integer id;
     private String relacion;
     private String nombresApellidos;
     private Integer edad;

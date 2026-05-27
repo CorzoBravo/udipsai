@@ -3,6 +3,7 @@ package com.ucacue.udipsai.modules.informesocial.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ucacue.udipsai.modules.informesocial.dto.InformeSocialDTO;
 import com.ucacue.udipsai.modules.informesocial.dto.InformeSocialRequest;
+import com.ucacue.udipsai.modules.informesocial.dto.InformeSocialFamiliarDTO;
 import com.ucacue.udipsai.modules.informesocial.service.InformeSocialReportService;
 import com.ucacue.udipsai.modules.informesocial.service.InformeSocialService;
 
@@ -91,6 +92,14 @@ public class InformeSocialController {
     public ResponseEntity<Void> eliminar(@PathVariable Integer id) {
         informeService.eliminarInforme(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{informeId}/familiares/{familiarId}")
+    public ResponseEntity<InformeSocialDTO> actualizarFamiliar(
+            @PathVariable Integer informeId,
+            @PathVariable Integer familiarId,
+            @RequestBody InformeSocialFamiliarDTO familiarDTO) {
+        return ResponseEntity.ok(informeService.actualizarFamiliarEspecifico(informeId, familiarId, familiarDTO));
     }
 
     @GetMapping("/reporte/excel")
