@@ -5,7 +5,7 @@ interface Familiar {
   relacion: string;
   nombresApellidos: string;
   edad: number;
-  estadocivil: string;
+  estadoCivil: string;
   instruccion: string;
   ocupacion: string;
   ingresoMensual: number;
@@ -241,17 +241,25 @@ const ConformacionFamiliar: React.FC<ConformacionFamiliarProps> = ({
 
                   {/* ESTADO CIVIL */}
                   <div className="flex flex-col">
-                    <label className="text-xs font-semibold text-gray-500 mb-1">
+                    <label className="text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">
                       EST. CIVIL
                     </label>
-                    <input
-                      placeholder="Soltero, Casado..."
-                      value={familiar.estadocivil || ""}
+                    <select
+                      value={familiar.estadoCivil || ""}
                       onChange={(e) =>
-                        onChange(index, "estadocivil", e.target.value)
+                        onChange(index, "estadoCivil", e.target.value)
                       }
-                      className="border p-2 rounded"
-                    />
+                      className="border p-2 rounded w-full text-sm text-gray-700 
+             dark:text-gray-200 dark:bg-gray-800
+             focus:outline-none focus:ring-2 focus:ring-brand-400"
+                    >
+                      <option value="">Seleccione</option>
+                      <option value="Soltero/a">Soltero/a</option>
+                      <option value="Casado/a">Casado/a</option>
+                      <option value="Divorciado/a">Divorciado/a</option>
+                      <option value="Viudo/a">Viudo/a</option>
+                      <option value="Unión de Hecho">Unión de Hecho</option>
+                    </select>
                   </div>
 
                   {/* INSTRUCCIÓN */}

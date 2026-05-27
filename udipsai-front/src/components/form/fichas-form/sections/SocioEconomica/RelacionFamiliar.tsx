@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import Label from "../../../Label";
 import Input from "../../../input/InputField";
 import Switch from "../../../switch/Switch";
@@ -28,7 +28,6 @@ interface RelacionFamiliarProps {
 const validateRelacionFamiliar = (
     data: RelacionFamiliarProps["data"]
 ): string[] => {
-
     const errors: string[] = [];
 
     if (!data.resolucionConflictos?.trim()) {
@@ -54,10 +53,6 @@ const validateRelacionFamiliar = (
         errors.push("Comunicación familiar es requerida");
     }
 
-    if (!data.tipoHogar?.trim()) {
-        errors.push("Tipo de hogar es requerido");
-    }
-
     return errors;
 };
 
@@ -66,8 +61,16 @@ const RelacionFamiliar: React.FC<RelacionFamiliarProps> = ({
     onChange,
     onValidate,
 }) => {
-
     const lastValidationRef = React.useRef("");
+
+    useEffect(() => {
+        const errors = validateRelacionFamiliar(data);
+        const serialized = JSON.stringify(errors);
+        if (serialized !== lastValidationRef.current) {
+            lastValidationRef.current = serialized;
+            onValidate?.(errors.length === 0, errors);
+        }
+    }, [data, onValidate]);
 
     const opcionesRelacion = [
         { value: "muyBuena", label: "Muy buena" },
@@ -76,18 +79,16 @@ const RelacionFamiliar: React.FC<RelacionFamiliarProps> = ({
         { value: "mala", label: "Mala" },
     ];
 
-const opcionesHermanos = [
+    const opcionesHermanos = [
         ...opcionesRelacion,
         { value: "hijoUnico", label: "Hijo único" },
     ];
 
     return (
         <div className="space-y-6">
-
             <Label>Relación Familiar</Label>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
                 <Switch
                     label="¿Se respeta la opinión de los miembros?"
                     checked={data.opinionfamiliar}
@@ -106,7 +107,6 @@ const opcionesHermanos = [
 
                 <div className="md:col-span-2">
                     <Label>¿Cómo resuelven conflictos?</Label>
-
                     <Input
                         value={data.resolucionConflictos}
                         onChange={(e: any) =>
@@ -128,11 +128,9 @@ const opcionesHermanos = [
 
                 {!data.cumplenReglas && (
                     <div className="md:col-span-2">
-
                         <Label>
                             ¿Quiénes no cumplen las reglas?
                         </Label>
-
                         <Input
                             value={data.quienesIncumplenReglas}
                             onChange={(e: any) =>
@@ -142,7 +140,6 @@ const opcionesHermanos = [
                                 )
                             }
                         />
-
                     </div>
                 )}
 
@@ -159,11 +156,9 @@ const opcionesHermanos = [
 
                 {data.tieneActividadesFamiliares && (
                     <div className="md:col-span-2">
-
                         <Label>
                             ¿Qué actividades realizan?
                         </Label>
-
                         <Input
                             value={data.actividadesCompartidas}
                             onChange={(e: any) =>
@@ -173,12 +168,69 @@ const opcionesHermanos = [
                                 )
                             }
                         />
-
                     </div>
                 )}
 
-            </div>
+                {/* Relaciones hermanos */}
+                <div className="md:col-span-2 space-y-2 border-t pt-4 dark:border-gray-800">
+                    <Label>Las relaciones entre los/las hermanos/as es:</Label>
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mt-1">
+                        {opcionesHermanos.map((op) => (
+                            <label key={op.value} className="flex items-center gap-2 cursor-pointer p-3 border rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800">
+                                <input
+                                    type="radio"
+                                    name="relacionHermanos"
+                                    value={op.value}
+                                    checked={data.relacionHermanos === op.value}
+                                    onChange={() => onChange("relacionHermanos", op.value)}
+                                    className="text-brand-500 focus:ring-brand-500"
+                                />
+                                <span className="text-gray-700 dark:text-gray-300 font-medium text-sm">{op.label}</span>
+                            </label>
+                        ))}
+                    </div>
+                </div>
 
+                {/* Relaciones padres-hijos */}
+                <div className="md:col-span-2 space-y-2 border-t pt-4 dark:border-gray-800">
+                    <Label>Las relaciones entre padres e hijos/as es:</Label>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-1">
+                        {opcionesRelacion.map((op) => (
+                            <label key={op.value} className="flex items-center gap-2 cursor-pointer p-3 border rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800">
+                                <input
+                                    type="radio"
+                                    name="relacionPadresHijos"
+                                    value={op.value}
+                                    checked={data.relacionPadresHijos === op.value}
+                                    onChange={() => onChange("relacionPadresHijos", op.value)}
+                                    className="text-brand-500 focus:ring-brand-500"
+                                />
+                                <span className="text-gray-700 dark:text-gray-300 font-medium text-sm">{op.label}</span>
+                            </label>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Comunicación familiar */}
+                <div className="md:col-span-2 space-y-2 border-t pt-4 dark:border-gray-800">
+                    <Label>La comunicación entre los miembros de la familia es:</Label>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-1">
+                        {opcionesRelacion.map((op) => (
+                            <label key={op.value} className="flex items-center gap-2 cursor-pointer p-3 border rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800">
+                                <input
+                                    type="radio"
+                                    name="comunicacionFamiliar"
+                                    value={op.value}
+                                    checked={data.comunicacionFamiliar === op.value}
+                                    onChange={() => onChange("comunicacionFamiliar", op.value)}
+                                    className="text-brand-500 focus:ring-brand-500"
+                                />
+                                <span className="text-gray-700 dark:text-gray-300 font-medium text-sm">{op.label}</span>
+                            </label>
+                        ))}
+                    </div>
+                </div>
+            </div>
         </div>
     );
 };

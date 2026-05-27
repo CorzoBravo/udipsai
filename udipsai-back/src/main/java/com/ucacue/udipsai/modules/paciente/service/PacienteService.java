@@ -298,6 +298,8 @@ public class PacienteService {
         paciente.setEstadoCivil(request.getEstadoCivil());
         paciente.setNacionalidad(request.getNacionalidad());
         paciente.setSexo(request.getSexo());
+        paciente.setEmail(request.getEmail());
+        paciente.setOcupacion(request.getOcupacion());
         paciente.setPerteneceAProyecto(request.getPerteneceAProyecto());
         paciente.setDiagnostico(request.getDiagnostico());
         paciente.setMotivoConsulta(request.getMotivoConsulta());
@@ -349,6 +351,8 @@ public class PacienteService {
                 .estadoCivil(paciente.getEstadoCivil())
                 .nacionalidad(paciente.getNacionalidad())
                 .sexo(paciente.getSexo())
+                .email(paciente.getEmail())
+                .ocupacion(paciente.getOcupacion())
                 .perteneceAProyecto(paciente.getPerteneceAProyecto())
                 .diagnostico(paciente.getDiagnostico())
                 .motivoConsulta(paciente.getMotivoConsulta())

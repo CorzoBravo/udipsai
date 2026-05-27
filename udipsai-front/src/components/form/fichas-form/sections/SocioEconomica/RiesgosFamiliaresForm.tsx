@@ -35,6 +35,18 @@ const validateRiesgosFamiliares = (data: RiesgosFamiliaresFormProps["data"]): st
 };
 
 const RiesgosFamiliaresForm: React.FC<RiesgosFamiliaresFormProps> = ({ data, onChange, onValidate }) => {
+    const lastValidationRef = React.useRef("");
+
+    React.useEffect(() => {
+        if (onValidate) {
+            const errors = validateRiesgosFamiliares(data);
+            const serialized = JSON.stringify(errors);
+            if (serialized !== lastValidationRef.current) {
+                lastValidationRef.current = serialized;
+                onValidate(errors.length === 0, errors);
+            }
+        }
+    }, [data, onValidate]);
 
     const optionsProblemas = [
         { value: "violencia", label: "Violencia intrafamiliar" },

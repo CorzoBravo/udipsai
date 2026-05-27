@@ -259,6 +259,11 @@ export const fichasService = {
     return res.data;
   },
 
+  obtenerSocioEconomicoPorId: async (id: number | string) => {
+    const res = await api.get(`/fichas-socioeconomicas/${id}`);
+    return res.data;
+  },
+
   crearSocioEconomico: async (data: any) => {
     const res = await api.post("/fichas-socioeconomicas/crearFicha", data);
     return res.data;
@@ -282,6 +287,11 @@ export const fichasService = {
 
   obtenerInformeSocial: async (id: number | string) => {
     const res = await api.get(`/informes-sociales/paciente/id/${id}`);
+    return res.data;
+  },
+
+  obtenerInformeSocialPorId: async (id: number | string) => {
+    const res = await api.get(`/informes-sociales/${id}`);
     return res.data;
   },
 

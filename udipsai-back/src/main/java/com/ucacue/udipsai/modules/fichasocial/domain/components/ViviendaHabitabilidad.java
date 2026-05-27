@@ -40,4 +40,19 @@ public class ViviendaHabitabilidad {
 
     @Column(name = "energia_electrica_focos")
     private String detalleElectricidad; 
+
+    @Column(name = "tiene_electricidad")
+    private Boolean tieneElectricidad;
+
+    @Column(name = "num_focos")
+    private Integer numeroFocos;
+
+    @Column(name = "otros_detalles_electricidad", columnDefinition = "TEXT")
+    private String otrosDetallesElectricidad;
+
+    @Column(name = "tiene_internet")
+    private Boolean tieneInternet;
+
+    @Column(name = "tiene_ducha")
+    private Boolean tieneDucha;
 }

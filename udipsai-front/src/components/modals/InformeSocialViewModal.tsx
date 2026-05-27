@@ -340,8 +340,8 @@ export const InformeSocialViewModal: React.FC<
                     <span
                       key={tipo}
                       className={`px-3 py-1 text-xs font-semibold rounded-full border ${informe.tipoFamilia === tipo
-                          ? "bg-brand-50 border-brand-300 text-brand-700 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200"
-                          : "bg-gray-50 border-gray-200 text-gray-400 dark:bg-white/[0.01] dark:border-gray-800 dark:text-gray-600"
+                        ? "bg-brand-50 border-brand-300 text-brand-700 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200"
+                        : "bg-gray-50 border-gray-200 text-gray-400 dark:bg-white/[0.01] dark:border-gray-800 dark:text-gray-600"
                         }`}
                     >
                       {tipo} {tipo === "Otros" && informe.tipoFamiliaEspecificar ? `(${informe.tipoFamiliaEspecificar})` : ""}

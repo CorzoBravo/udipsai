@@ -25,6 +25,8 @@ public class PacienteRequest {
     private String estadoCivil;
     private String nacionalidad;
     private String sexo;
+    private String email;
+    private String ocupacion;
     private Boolean perteneceAProyecto;
     private String proyecto;
     private String diagnostico;

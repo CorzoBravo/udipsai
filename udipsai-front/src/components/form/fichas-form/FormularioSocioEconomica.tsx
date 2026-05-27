@@ -61,6 +61,9 @@ export interface FichaSocioeconomicaState {
     estadoCivil?: string;
     nacionalidad?: string;
     sexo?: string;
+    nivelEducativo?: string;
+    email?: string;
+    ocupacion?: string;
   };
 
   especialista: {
@@ -72,7 +75,7 @@ export interface FichaSocioeconomicaState {
     relacion: string;
     nombresApellidos: string;
     edad: number;
-    estadocivil: string;
+    estadoCivil: string;
     instruccion: string;
     ocupacion: string;
     ingresoMensual: number;
@@ -128,6 +131,11 @@ export interface FichaSocioeconomicaState {
     tipoSanitario: string;
     procedenciaAgua: string;
     detalleElectricidad: string;
+    tieneElectricidad?: boolean;
+    numeroFocos?: number;
+    otrosDetallesElectricidad?: string;
+    tieneInternet?: boolean;
+    tieneDucha?: boolean;
   };
 
   salud: {
@@ -161,6 +169,7 @@ export interface FichaSocioeconomicaState {
   pacienteOcupacion?: string;
   pacienteEmail?: string;
   pacienteNumCarne?: string;
+  responsable?: string;
 }
 
 const getFechaActual = (): string => {
@@ -189,6 +198,9 @@ export const initialFichaSocioeconomicaState: FichaSocioeconomicaState = {
     estadoCivil: "",
     nacionalidad: "",
     sexo: "",
+    nivelEducativo: "",
+    email: "",
+    ocupacion: "",
   },
   especialista: {
     id: 0,
@@ -241,6 +253,11 @@ export const initialFichaSocioeconomicaState: FichaSocioeconomicaState = {
     tipoSanitario: "",
     procedenciaAgua: "",
     detalleElectricidad: "",
+    tieneElectricidad: false,
+    numeroFocos: 0,
+    otrosDetallesElectricidad: "",
+    tieneInternet: false,
+    tieneDucha: false,
   },
   salud: {
     lugarAtencionMedica: "",
@@ -269,6 +286,7 @@ export const initialFichaSocioeconomicaState: FichaSocioeconomicaState = {
   pacienteOcupacion: "",
   pacienteEmail: "",
   pacienteNumCarne: "",
+  responsable: "",
 };
 const buildRequest = (data: FichaSocioeconomicaState) => {
   return {
@@ -300,7 +318,14 @@ const buildRequest = (data: FichaSocioeconomicaState) => {
     },
 
     dinamicaFamiliar: data.dinamicaFamiliar,
-    vivienda: data.vivienda,
+    vivienda: {
+      ...data.vivienda,
+      tieneElectricidad: data.vivienda.tieneElectricidad || false,
+      numeroFocos: Number(data.vivienda.numeroFocos) || 0,
+      otrosDetallesElectricidad: data.vivienda.otrosDetallesElectricidad || "",
+      tieneInternet: data.vivienda.tieneInternet || false,
+      tieneDucha: data.vivienda.tieneDucha || false,
+    },
     salud: data.salud,
 
     situacionEconomica: {
@@ -316,17 +341,17 @@ const buildRequest = (data: FichaSocioeconomicaState) => {
     pacienteInstruccion: data.pacienteInstruccion,
     pacienteOcupacion: data.pacienteOcupacion,
     pacienteEmail: data.pacienteEmail,
-    pacienteNumCarne: data.pacienteNumCarne,
+    pacienteNumCarne: data.paciente.cedula,
 
     conclusiones: data.conclusiones,
     recomendaciones: data.recomendaciones,
-    responsable: data.especialista.nombresApellidos,
+    responsable: data.responsable || "",
 
     familiares: data.familiares.map((f) => ({
       relacion: f.relacion,
       nombresApellidos: f.nombresApellidos,
       edad: f.edad,
-      estadoCivil: f.estadocivil,
+      estadoCivil: f.estadoCivil,
       instruccion: f.instruccion,
       ocupacion: f.ocupacion,
       ingresoMensual: f.ingresoMensual,
@@ -459,6 +484,9 @@ export default function FormularioFichaSocioeconomica() {
         setFormData((prev) => ({
           ...prev,
           paciente: paciente,
+          pacienteInstruccion: paciente.nivelEducativo || "",
+          pacienteOcupacion: paciente.ocupacion || "",
+          pacienteEmail: paciente.email || "",
         }));
         setShowSelector(false);
       }
@@ -486,7 +514,20 @@ export default function FormularioFichaSocioeconomica() {
   const loadFicha = async (fichaiId: string) => {
     try {
       setLoading(true);
-      const data = await fichasService.obtenerSocioEconomico(fichaiId);
+      const data = await fichasService.obtenerSocioEconomicoPorId(fichaiId);
+      
+      let fullPaciente = data?.paciente;
+      if (data && data.paciente && data.paciente.id) {
+        try {
+          const pData = await pacientesService.obtenerPorId(data.paciente.id);
+          if (pData) {
+            fullPaciente = pData;
+          }
+        } catch (error) {
+          console.error("Error al obtener paciente completo:", error);
+        }
+      }
+
       const mappedFamiliares = (data.familiares || []).map((f: any) => ({
         ...f,
         salud: {
@@ -502,17 +543,53 @@ export default function FormularioFichaSocioeconomica() {
       }));
 
       if (data) {
+        if (fullPaciente) {
+          setSelectedPatient(fullPaciente);
+        }
         const loadedData = {
           ...data,
-          paciente: data.paciente,
-          riesgosFamiliares: data.riesgosSociales,
-          vulnerabilidadesDetalle: data.vulnerabilidad,
-          familiares: mappedFamiliares,
+          paciente: {
+            ...initialFichaSocioeconomicaState.paciente,
+            ...fullPaciente,
+          },
+          riesgosFamiliares: {
+            ...initialFichaSocioeconomicaState.riesgosFamiliares,
+            ...data.riesgosSociales,
+          },
+          vulnerabilidadesDetalle: {
+            ...initialFichaSocioeconomicaState.vulnerabilidadesDetalle,
+            ...data.vulnerabilidad,
+          },
+          dinamicaFamiliar: {
+            ...initialFichaSocioeconomicaState.dinamicaFamiliar,
+            ...data.dinamicaFamiliar,
+          },
+          vivienda: {
+            ...initialFichaSocioeconomicaState.vivienda,
+            ...data.vivienda,
+          },
+          salud: {
+            ...initialFichaSocioeconomicaState.salud,
+            ...data.salud,
+          },
           situacionEconomica: {
+            ...initialFichaSocioeconomicaState.situacionEconomica,
             ...data.situacionEconomica,
             capacidadGastoEvaluacion:
               data.situacionEconomica?.capacidadGastoEvaluacion || "",
           },
+          desgloseEconomico: {
+            ...initialFichaSocioeconomicaState.desgloseEconomico,
+            ...data.desgloseEconomico,
+          },
+          familiares: mappedFamiliares,
+          pacienteInstruccion: data.pacienteInstruccion || fullPaciente?.nivelEducativo || "",
+          pacienteOcupacion: data.pacienteOcupacion || fullPaciente?.ocupacion || "",
+          pacienteEmail: data.pacienteEmail || fullPaciente?.email || "",
+          pacienteNumCarne: data.pacienteNumCarne || "",
+          responsable: data.responsable || "",
+          conclusiones: data.conclusiones || "",
+          recomendaciones: data.recomendaciones || "",
         };
         setFormData((prev) => ({
           ...loadedData,
@@ -717,6 +794,9 @@ export default function FormularioFichaSocioeconomica() {
         ...prev.paciente,
         ...patient,
       },
+      pacienteInstruccion: patient.nivelEducativo || "",
+      pacienteOcupacion: patient.ocupacion || "",
+      pacienteEmail: patient.email || "",
     }));
     setSelectedPatient(patient);
     setShowSelector(false);
@@ -833,7 +913,8 @@ export default function FormularioFichaSocioeconomica() {
                 pacienteInstruccion={formData.pacienteInstruccion}
                 pacienteOcupacion={formData.pacienteOcupacion}
                 pacienteEmail={formData.pacienteEmail}
-                pacienteNumCarne={formData.pacienteNumCarne}
+                responsable={formData.responsable}
+                familiares={formData.familiares}
                 onChangePaciente={(field, value) => {
                   setFormData((prev) => ({
                     ...prev,
@@ -894,7 +975,7 @@ export default function FormularioFichaSocioeconomica() {
                         relacion: "",
                         nombresApellidos: "",
                         edad: 0,
-                        estadocivil: "",
+                        estadoCivil: "",
                         instruccion: "",
                         ocupacion: "",
                         ingresoMensual: 0,
@@ -947,10 +1028,13 @@ export default function FormularioFichaSocioeconomica() {
                   )
                 }
                 onValidate={(isValid) => {
-                  setValidaciones((prev) => ({
-                    ...prev,
-                    riesgosFamiliares: isValid,
-                  }));
+                  setValidaciones((prev) => {
+                    if (prev.riesgosFamiliares === isValid) return prev;
+                    return {
+                      ...prev,
+                      riesgosFamiliares: isValid,
+                    };
+                  });
                 }}
               />
             </ComponentCard>
@@ -987,10 +1071,13 @@ export default function FormularioFichaSocioeconomica() {
                   )
                 }
                 onValidate={(isValid) => {
-                  setValidaciones((prev) => ({
-                    ...prev,
-                    vulnerabilidades: isValid,
-                  }));
+                  setValidaciones((prev) => {
+                    if (prev.vulnerabilidades === isValid) return prev;
+                    return {
+                      ...prev,
+                      vulnerabilidades: isValid,
+                    };
+                  });
                 }}
               />
             </ComponentCard>
@@ -1027,10 +1114,13 @@ export default function FormularioFichaSocioeconomica() {
                   )
                 }
                 onValidate={(isValid) => {
-                  setValidaciones((prev) => ({
-                    ...prev,
-                    relacionFamiliar: isValid,
-                  }));
+                  setValidaciones((prev) => {
+                    if (prev.relacionFamiliar === isValid) return prev;
+                    return {
+                      ...prev,
+                      relacionFamiliar: isValid,
+                    };
+                  });
                 }}
               />
             </ComponentCard>
@@ -1095,10 +1185,13 @@ export default function FormularioFichaSocioeconomica() {
                   handleNestedChange("vivienda", field, value)
                 }
                 onValidate={(isValid) => {
-                  setValidaciones((prev) => ({
-                    ...prev,
-                    condicionesVivienda: isValid,
-                  }));
+                  setValidaciones((prev) => {
+                    if (prev.condicionesVivienda === isValid) return prev;
+                    return {
+                      ...prev,
+                      condicionesVivienda: isValid,
+                    };
+                  });
                 }}
               />
             </ComponentCard>
@@ -1140,10 +1233,13 @@ export default function FormularioFichaSocioeconomica() {
               });
             }}
             onValidate={(isValid) => {
-              setValidaciones((prev) => ({
-                ...prev,
-                salud: isValid,
-              }));
+              setValidaciones((prev) => {
+                if (prev.salud === isValid) return prev;
+                return {
+                  ...prev,
+                  salud: isValid,
+                };
+              });
             }}
           />
         )}
@@ -1297,10 +1393,13 @@ export default function FormularioFichaSocioeconomica() {
               }))
             }
             onValidate={(isValid) => {
-              setValidaciones((prev) => ({
-                ...prev,
-                situacionEconomica: isValid,
-              }));
+              setValidaciones((prev) => {
+                if (prev.situacionEconomica === isValid) return prev;
+                return {
+                  ...prev,
+                  situacionEconomica: isValid,
+                };
+              });
             }}
           />
         )}

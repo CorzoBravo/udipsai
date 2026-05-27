@@ -46,6 +46,12 @@ public class FichaSocioeconomicaController {
         return (dto != null) ? ResponseEntity.ok(dto) : ResponseEntity.notFound().build();
     }
 
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('PERM_SOCIOECONOMICA')")
+    public ResponseEntity<FichaSocioeconomicaDTO> obtenerPorId(@PathVariable Integer id) {
+        return ResponseEntity.ok(fichaService.obtenerPorId(id));
+    }
+
     @PostMapping("/crearFicha")
     @PreAuthorize("hasAuthority('PERM_SOCIOECONOMICA_CREAR') and @asignacionSecurity.checkPasanteAcceso(#request.pacienteId)")
 

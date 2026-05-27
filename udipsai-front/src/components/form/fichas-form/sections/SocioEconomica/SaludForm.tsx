@@ -66,6 +66,18 @@ const SaludForm: React.FC<SaludFormProps> = ({
     onChangeFamiliar,
     onValidate,
 }) => {
+    const lastValidationRef = React.useRef("");
+
+    React.useEffect(() => {
+        if (onValidate) {
+            const errors = validateSaludForm(data);
+            const serialized = JSON.stringify(errors);
+            if (serialized !== lastValidationRef.current) {
+                lastValidationRef.current = serialized;
+                onValidate(errors.length === 0, errors);
+            }
+        }
+    }, [data, onValidate]);
 
     const [openIndex, setOpenIndex] = useState<number | null>(0);
 

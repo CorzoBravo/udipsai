@@ -268,18 +268,6 @@ export const SocioEconomicoViewModal: React.FC<SocioEconomicoProps> = ({
                 </span>
               </div>
               <div>
-                <span className="font-semibold text-gray-700 dark:text-gray-300">Estado Civil:</span>{" "}
-                <span className="text-gray-600 dark:text-gray-400">{data.paciente?.estadoCivil || "N/A"}</span>
-              </div>
-              <div>
-                <span className="font-semibold text-gray-700 dark:text-gray-300">Nacionalidad:</span>{" "}
-                <span className="text-gray-600 dark:text-gray-400">{data.paciente?.nacionalidad || "N/A"}</span>
-              </div>
-              <div>
-                <span className="font-semibold text-gray-700 dark:text-gray-300">Sexo:</span>{" "}
-                <span className="text-gray-600 dark:text-gray-400">{data.paciente?.sexo || "N/A"}</span>
-              </div>
-              <div>
                 <span className="font-semibold text-gray-700 dark:text-gray-300">Instrucción:</span>{" "}
                 <span className="text-gray-600 dark:text-gray-400">{data.pacienteInstruccion || "N/A"}</span>
               </div>
@@ -321,11 +309,15 @@ export const SocioEconomicoViewModal: React.FC<SocioEconomicoProps> = ({
                       </span>
                     </div>
                     <div>
-                      <span className="font-semibold text-gray-700 dark:text-gray-300">N° Carné:</span>{" "}
-                      <span className="text-gray-600 dark:text-gray-400">{data.pacienteNumCarne || "N/A"}</span>
+                      <span className="font-semibold text-gray-700 dark:text-gray-300">N° Carné (Cédula):</span>{" "}
+                      <span className="text-gray-600 dark:text-gray-400">{data.paciente?.cedula || "N/A"}</span>
                     </div>
                   </>
                 )}
+              </div>
+              <div className="md:col-span-2 border-t border-gray-50 dark:border-gray-800 pt-3">
+                <span className="font-semibold text-gray-700 dark:text-gray-300">Persona que Proporciona la Información (Responsable):</span>{" "}
+                <span className="text-gray-600 dark:text-gray-400 font-medium text-brand-600 dark:text-brand-400">{data.responsable || "N/A"}</span>
               </div>
             </div>
           </section>
@@ -357,7 +349,7 @@ export const SocioEconomicoViewModal: React.FC<SocioEconomicoProps> = ({
                         <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">{fam.relacion || "-"}</td>
                         <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">{fam.nombresApellidos || "-"}</td>
                         <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">{fam.edad || "-"}</td>
-                        <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">{fam.estadocivil || "-"}</td>
+                        <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">{fam.estadoCivil || "-"}</td>
                         <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">{fam.instruccion || "-"}</td>
                         <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">{fam.ocupacion || "-"}</td>
                         <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">
@@ -843,13 +835,41 @@ export const SocioEconomicoViewModal: React.FC<SocioEconomicoProps> = ({
                   </div>
                 </div>
 
-                <div>
-                  <span className="font-semibold block text-gray-700 dark:text-gray-300 mb-1">
-                    Electricidad / Telecomunicaciones:
+                <div className="flex items-center gap-4 mt-1">
+                  <span className="font-semibold text-gray-700 dark:text-gray-300">
+                    ¿Tiene ducha?:
                   </span>
-                  <p className="text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800/30 p-2.5 rounded-xl border border-gray-100 dark:border-gray-800 mt-1">
-                    {data.vivienda?.detalleElectricidad || "N/A"}
-                  </p>
+                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${data.vivienda?.tieneDucha ? "bg-green-100 text-green-800 dark:bg-green-950/30 dark:text-green-400" : "bg-red-100 text-red-800 dark:bg-red-950/30 dark:text-red-400"}`}>
+                    {data.vivienda?.tieneDucha ? "SÍ" : "NO"}
+                  </span>
+                </div>
+
+                <div className="md:col-span-2 pt-3 border-t border-gray-100 dark:border-gray-800 mt-2">
+                  <span className="font-semibold block text-gray-700 dark:text-gray-300 mb-2">
+                    Electricidad y Telecomunicaciones:
+                  </span>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 bg-gray-50 dark:bg-gray-800/30 p-3.5 rounded-2xl border border-gray-100 dark:border-gray-800">
+                    <div>
+                      <span className="text-xs text-gray-400 block uppercase font-medium mb-1">Tiene Electricidad</span>
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${data.vivienda?.tieneElectricidad ? "bg-green-100 text-green-800 dark:bg-green-950/30 dark:text-green-400" : "bg-red-100 text-red-800 dark:bg-red-950/30 dark:text-red-400"}`}>
+                        {data.vivienda?.tieneElectricidad ? "SÍ" : "NO"}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-xs text-gray-400 block uppercase font-medium mb-1">Tiene Internet</span>
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${data.vivienda?.tieneInternet ? "bg-green-100 text-green-800 dark:bg-green-950/30 dark:text-green-400" : "bg-red-100 text-red-800 dark:bg-red-950/30 dark:text-red-400"}`}>
+                        {data.vivienda?.tieneInternet ? "SÍ" : "NO"}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-xs text-gray-400 block uppercase font-medium mb-1">Número de Focos</span>
+                      <span className="text-gray-800 dark:text-gray-200 font-semibold">{data.vivienda?.numeroFocos ?? 0}</span>
+                    </div>
+                    <div>
+                      <span className="text-xs text-gray-400 block uppercase font-medium mb-1">Otros detalles</span>
+                      <span className="text-gray-800 dark:text-gray-200 font-medium">{data.vivienda?.otrosDetallesElectricidad || "—"}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1225,6 +1245,28 @@ export const SocioEconomicoViewModal: React.FC<SocioEconomicoProps> = ({
               })()}
             </div>
           </section>
+
+          {/* FIRMAS */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50 dark:bg-gray-800/40 p-5 rounded-2xl border border-gray-100 dark:border-gray-800 mt-6 shadow-sm">
+            <div className="text-center p-5 border border-dashed border-gray-200 dark:border-gray-700 rounded-2xl bg-white dark:bg-gray-900">
+              <div className="h-16 flex items-end justify-center mb-3">
+                <span className="text-xs text-gray-400 italic">Firma del Responsable (Familiar)</span>
+              </div>
+              <div className="border-t border-gray-200 dark:border-gray-700 pt-3">
+                <span className="font-bold text-gray-800 dark:text-gray-200 block text-sm">{data.responsable || "N/A"}</span>
+                <span className="text-xs text-gray-400 uppercase font-semibold tracking-wider">Persona que proporciona la información</span>
+              </div>
+            </div>
+            <div className="text-center p-5 border border-dashed border-gray-200 dark:border-gray-700 rounded-2xl bg-white dark:bg-gray-900">
+              <div className="h-16 flex items-end justify-center mb-3">
+                <span className="text-xs text-gray-400 italic">Firma del Especialista</span>
+              </div>
+              <div className="border-t border-gray-200 dark:border-gray-700 pt-3">
+                <span className="font-bold text-gray-800 dark:text-gray-200 block text-sm">{data.especialista?.nombresApellidos || "N/A"}</span>
+                <span className="text-xs text-gray-400 uppercase font-semibold tracking-wider">Especialista responsable</span>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </Modal>

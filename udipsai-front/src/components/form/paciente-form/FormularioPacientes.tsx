@@ -52,6 +52,8 @@ export default function FormularioPacientes() {
     estadoCivil: "",
     nacionalidad: "",
     sexo: "",
+    email: "",
+    ocupacion: "",
     activo: true,
   });
 
@@ -94,6 +96,8 @@ export default function FormularioPacientes() {
             estadoCivil: data.estadoCivil || "",
             nacionalidad: data.nacionalidad || "",
             sexo: data.sexo || "",
+            email: data.email || "",
+            ocupacion: data.ocupacion || "",
             institucionEducativaId: data.institucionEducativa?.id || 0,
             sedeId: data.sede?.id || 0,
           });
@@ -577,6 +581,26 @@ export default function FormularioPacientes() {
                 placeholder="Seleccione el sexo"
                 onChange={(value) => handleSelectChange("sexo", value)}
                 value={formData.sexo || ""}
+              />
+            </div>
+            <div>
+              <Label htmlFor="email">Correo Electrónico</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="Ingrese el correo electrónico"
+                value={formData.email}
+                onChange={handleChange}
+              />
+            </div>
+            <div>
+              <Label htmlFor="ocupacion">Ocupación</Label>
+              <Input
+                id="ocupacion"
+                type="text"
+                placeholder="Ingrese la ocupación"
+                value={formData.ocupacion}
+                onChange={handleChange}
               />
             </div>
           </div>

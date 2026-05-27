@@ -124,6 +124,12 @@ public class Paciente {
     @Column(name = "nivel_educativo")
     private String nivelEducativo;
 
+    @Column(name = "email")
+    private String email;
+
+    @Column(name = "ocupacion")
+    private String ocupacion;
+
     @Column(name = "anio_educacion")
     private String anioEducacion;
 

@@ -28,6 +28,9 @@ export type Paciente = {
   estadoCivil?: string;
   nacionalidad?: string;
   sexo?: string;
+  nivelEducativo?: string;
+  email?: string;
+  ocupacion?: string;
 };
 
 export interface PacienteCriteria {

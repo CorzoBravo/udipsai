@@ -1,5 +1,4 @@
 import React from "react";
-
 import Input from "../../../input/InputField";
 
 interface InformacionPacienteFormProps {
@@ -12,21 +11,19 @@ interface InformacionPacienteFormProps {
         cedula: string;
         numeroTelefono?: string;
         numeroCelular?: string;
-        institucionEducativa?: {
-            nombre: string;
-        };
         domicilio?: string;
         portadorCarnet?: boolean;
         tipoDiscapacidad?: string;
         porcentajeDiscapacidad?: number;
-        estadoCivil?: string;
-        nacionalidad?: string;
-        sexo?: string;
     };
     pacienteInstruccion?: string;
     pacienteOcupacion?: string;
     pacienteEmail?: string;
-    pacienteNumCarne?: string;
+    responsable?: string;
+    familiares?: {
+        nombresApellidos: string;
+        relacion: string;
+    }[];
     onChangePaciente: (field: string, value: any) => void;
     onChange: (field: string, value: any) => void;
 }
@@ -36,7 +33,8 @@ const InformacionPacienteForm: React.FC<InformacionPacienteFormProps> = ({
     pacienteInstruccion = "",
     pacienteOcupacion = "",
     pacienteEmail = "",
-    pacienteNumCarne = "",
+    responsable = "",
+    familiares = [],
     onChangePaciente,
 }) => {
     return (
@@ -47,7 +45,7 @@ const InformacionPacienteForm: React.FC<InformacionPacienteFormProps> = ({
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Nombre Completo
                     </label>
-                    <p className="px-4 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg text-gray-800 dark:text-gray-100">
+                    <p className="px-4 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg text-gray-800 dark:text-gray-100 font-medium">
                         {data.nombresApellidos || "—"}
                     </p>
                 </div>
@@ -55,7 +53,7 @@ const InformacionPacienteForm: React.FC<InformacionPacienteFormProps> = ({
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Cédula
                     </label>
-                    <p className="px-4 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg text-gray-800 dark:text-gray-100">
+                    <p className="px-4 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg text-gray-800 dark:text-gray-100 font-medium">
                         {data.cedula || "—"}
                     </p>
                 </div>
@@ -103,33 +101,7 @@ const InformacionPacienteForm: React.FC<InformacionPacienteFormProps> = ({
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Estado Civil
-                    </label>
-                    <p className="px-4 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg text-gray-800 dark:text-gray-100">
-                        {data.estadoCivil || "—"}
-                    </p>
-                </div>
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Nacionalidad
-                    </label>
-                    <p className="px-4 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg text-gray-800 dark:text-gray-100">
-                        {data.nacionalidad || "—"}
-                    </p>
-                </div>
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Sexo
-                    </label>
-                    <p className="px-4 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg text-gray-800 dark:text-gray-100">
-                        {data.sexo || "—"}
-                    </p>
-                </div>
-            </div>
-
+            {/* Fila 4: Instrucción & Ocupación */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -153,6 +125,7 @@ const InformacionPacienteForm: React.FC<InformacionPacienteFormProps> = ({
                 </div>
             </div>
 
+            {/* Fila 5: Teléfonos */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -172,14 +145,7 @@ const InformacionPacienteForm: React.FC<InformacionPacienteFormProps> = ({
                 </div>
             </div>
 
-            <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Institución Educativa
-                </label>
-                <p className="px-4 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg text-gray-800 dark:text-gray-100">
-                    {data.institucionEducativa?.nombre || "—"}
-                </p>
-            </div>
+            {/* Domicilio */}
             <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Domicilio
@@ -188,46 +154,68 @@ const InformacionPacienteForm: React.FC<InformacionPacienteFormProps> = ({
                     {data.domicilio || "—"}
                 </p>
             </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+            {/* Fila 6: Responsable de la información */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-gray-100 dark:border-gray-800 pt-4">
                 <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Portador de Carnet de Discapacidad
+                        Responsable de la Información (Familiar)
+                    </label>
+                    <select
+                        value={familiares?.some(f => `${f.nombresApellidos} (${f.relacion})` === responsable) ? responsable : ""}
+                        onChange={(e) => onChangePaciente("responsable", e.target.value)}
+                        className="w-full px-4 py-2 border rounded-lg bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100"
+                    >
+                        <option value="">Seleccionar de la lista de familiares...</option>
+                        {familiares?.map((f, i) => (
+                            <option key={i} value={`${f.nombresApellidos} (${f.relacion})`}>
+                                {f.nombresApellidos} ({f.relacion})
+                            </option>
+                        ))}
+                    </select>
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Nombre / Relación del Responsable
+                    </label>
+                    <Input
+                        value={responsable}
+                        onChange={(e: any) => onChangePaciente("responsable", e.target.value)}
+                        placeholder="Escriba nombre y relación (Ej: Juan Pérez (Padre))"
+                    />
+                </div>
+            </div>
+
+            {/* Discapacidad */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-t border-gray-100 dark:border-gray-800 pt-4">
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Presenta Discapacidad
                     </label>
                     <p className="px-4 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg text-gray-800 dark:text-gray-100">
                         {data.portadorCarnet ? "Sí" : "No"}
                     </p>
                 </div>
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        N° Carné de Discapacidad
-                    </label>
-                    <Input
-                        value={pacienteNumCarne}
-                        onChange={(e: any) => onChangePaciente("pacienteNumCarne", e.target.value)}
-                        placeholder="N° Carné"
-                        disabled={!data.portadorCarnet}
-                    />
-                </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Tipo de Discapacidad
-                    </label>
-                    <p className="px-4 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg text-gray-800 dark:text-gray-100">
-                        {data.tipoDiscapacidad || "—"}
-                    </p>
-                </div>
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Porcentaje de Discapacidad
-                    </label>
-                    <p className="px-4 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg text-gray-800 dark:text-gray-100">
-                        {data.porcentajeDiscapacidad !== undefined ? `${data.porcentajeDiscapacidad}%` : "—"}
-                    </p>
-                </div>
+                {data.portadorCarnet && (
+                    <>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Tipo de Discapacidad
+                            </label>
+                            <p className="px-4 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg text-gray-800 dark:text-gray-100">
+                                {data.tipoDiscapacidad || "—"}
+                            </p>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Porcentaje de Discapacidad
+                            </label>
+                            <p className="px-4 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg text-gray-800 dark:text-gray-100">
+                                {data.porcentajeDiscapacidad !== undefined ? `${data.porcentajeDiscapacidad}%` : "—"}
+                            </p>
+                        </div>
+                    </>
+                )}
             </div>
         </div>
     );

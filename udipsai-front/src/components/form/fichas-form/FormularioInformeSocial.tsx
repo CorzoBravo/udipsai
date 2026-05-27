@@ -36,7 +36,7 @@ export interface FamiliarItem {
   relacion: string;
   nombresApellidos: string;
   edad: number;
-  estadocivil: string;
+  estadoCivil: string;
   instruccion: string;
   ocupacion: string;
   ingresoMensual: number;
@@ -133,7 +133,7 @@ const buildRequest = (data: InformeSocialState) => {
       nombres: f.nombresApellidos,
       parentesco: f.relacion,
       edad: f.edad,
-      estadoCivil: f.estadocivil,
+      estadoCivil: f.estadoCivil,
       instruccion: f.instruccion,
       ocupacion: f.ocupacion,
       ingresos: f.ingresoMensual,
@@ -285,7 +285,7 @@ export default function FormularioInformeSocial() {
   const loadInforme = async (informeId: string) => {
     try {
       setLoading(true);
-      const data = await fichasService.obtenerInformeSocial(informeId);
+      const data = await fichasService.obtenerInformeSocialPorId(informeId);
 
       if (data) {
         let genogramaObjUrl = undefined;
@@ -311,7 +311,7 @@ export default function FormularioInformeSocial() {
           nombresApellidos: f.nombres || "",
           relacion: f.parentesco || "",
           edad: f.edad || 0,
-          estadocivil: f.estadoCivil || "",
+          estadoCivil: f.estadoCivil || "",
           instruccion: f.instruccion || "",
           ocupacion: f.ocupacion || "",
           ingresoMensual: f.ingresos || 0,
@@ -380,7 +380,7 @@ export default function FormularioInformeSocial() {
           nombresApellidos: f.nombresApellidos || "",
           relacion: f.relacion || "",
           edad: f.edad || 0,
-          estadocivil: f.estadoCivil || "",
+          estadoCivil: f.estadoCivil || "",
           instruccion: f.instruccion || "",
           ocupacion: f.ocupacion || "",
           ingresoMensual: f.ingresoMensual || 0,
@@ -870,7 +870,7 @@ export default function FormularioInformeSocial() {
                     relacion: "",
                     nombresApellidos: "",
                     edad: 0,
-                    estadocivil: "",
+                    estadoCivil: "",
                     instruccion: "",
                     ocupacion: "",
                     ingresoMensual: 0,
@@ -915,8 +915,8 @@ export default function FormularioInformeSocial() {
                   <label
                     key={tipo}
                     className={`flex items-center gap-2 p-3 rounded-xl border cursor-pointer transition-all ${formData.tipoFamilia === tipo
-                        ? "border-brand-500 bg-brand-50/20 text-brand-700 dark:border-gray-500 dark:bg-gray-800 dark:text-gray-200"
-                        : "border-gray-200 bg-white hover:bg-gray-50 dark:border-gray-800 dark:bg-white/[0.03] text-gray-700 dark:text-gray-300"
+                      ? "border-brand-500 bg-brand-50/20 text-brand-700 dark:border-gray-500 dark:bg-gray-800 dark:text-gray-200"
+                      : "border-gray-200 bg-white hover:bg-gray-50 dark:border-gray-800 dark:bg-white/[0.03] text-gray-700 dark:text-gray-300"
                       }`}
                   >
                     <input

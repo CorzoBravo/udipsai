@@ -56,6 +56,8 @@ public class PacienteDTO {
     private String estadoCivil;
     private String nacionalidad;
     private String sexo;
+    private String email;
+    private String ocupacion;
     private String diagnostico;
     private String motivoConsulta;
     private String observaciones;

@@ -50,6 +50,14 @@ public class FichaSocioeconomicaService {
         return (ficha != null) ? convertirADTO(ficha) : null;
     }
 
+    @Transactional(readOnly = true)
+    public FichaSocioeconomicaDTO obtenerPorId(Integer id) {
+        log.info("Consultando ficha socioeconómica por ID: {}", id);
+        FichaSocioeconomica ficha = fichaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Ficha no encontrada"));
+        return convertirADTO(ficha);
+    }
+
     @Transactional
     public FichaSocioeconomicaDTO crearFicha(FichaSocioeconomicaRequest request) {
         log.info("Creando ficha socioeconómica para Paciente ID: {}", request.getPacienteId());
@@ -117,7 +125,13 @@ public class FichaSocioeconomicaService {
         ficha.setPacienteInstruccion(request.getPacienteInstruccion());
         ficha.setPacienteOcupacion(request.getPacienteOcupacion());
         ficha.setPacienteEmail(request.getPacienteEmail());
-        ficha.setPacienteNumCarne(request.getPacienteNumCarne());
+        
+        if (request.getPacienteNumCarne() == null || request.getPacienteNumCarne().trim().isEmpty()) {
+            ficha.setPacienteNumCarne(ficha.getPaciente() != null ? ficha.getPaciente().getCedula() : null);
+        } else {
+            ficha.setPacienteNumCarne(request.getPacienteNumCarne());
+        }
+
         ficha.setConclusiones(request.getConclusiones());
         ficha.setRecomendaciones(request.getRecomendaciones());
         ficha.setResponsable(request.getResponsable());
@@ -161,12 +175,23 @@ public class FichaSocioeconomicaService {
         dto.setFechaElaboracion(ficha.getFechaElaboracion());
 
         if (ficha.getPaciente() != null) {
-            dto.setPaciente(new PacienteFichaDTO(
-                    ficha.getPaciente().getId(),
-                    ficha.getPaciente().getNombresApellidos(),
-                    ficha.getPaciente().getCedula()));
-
+            Paciente p = ficha.getPaciente();
+            PacienteFichaDTO pDto = new PacienteFichaDTO(p.getId(), p.getNombresApellidos(), p.getCedula());
+            pDto.setFechaNacimiento(p.getFechaNacimiento());
+            pDto.setLugarNacimiento(p.getLugarNacimiento());
+            pDto.setDomicilio(p.getDomicilio());
+            pDto.setNumeroTelefono(p.getNumeroTelefono());
+            pDto.setNumeroCelular(p.getNumeroCelular());
+            pDto.setTieneDiscapacidad(p.getTieneDiscapacidad());
+            pDto.setTipoDiscapacidad(p.getTipoDiscapacidad());
+            pDto.setPorcentajeDiscapacidad(p.getPorcentajeDiscapacidad());
+            pDto.setPortadorCarnet(p.getPortadorCarnet());
+            pDto.setNivelEducativo(p.getNivelEducativo());
+            pDto.setEmail(p.getEmail());
+            pDto.setOcupacion(p.getOcupacion());
+            dto.setPaciente(pDto);
         }
+
         if (ficha.getEspecialista() != null) {
             EspecialistaDTO espDto = new EspecialistaDTO();
             espDto.setId(ficha.getEspecialista().getId());

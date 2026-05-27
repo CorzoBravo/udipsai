@@ -20,6 +20,12 @@ interface CondicionesViviendaFormProps {
         tipoSanitario: string;
         procedenciaAgua: string;
         detalleElectricidad: string;
+
+        tieneElectricidad?: boolean;
+        numeroFocos?: number;
+        otrosDetallesElectricidad?: string;
+        tieneInternet?: boolean;
+        tieneDucha?: boolean;
     };
     onChange: (field: string, value: any) => void;
     onValidate?: (isValid: boolean, errors: string[]) => void;
@@ -39,16 +45,16 @@ const validateCondicionesVivienda = (data: CondicionesViviendaFormProps["data"])
   if (!data.materialTecho || data.materialTecho.trim() === "") {
     errors.push("Material de techo es requerido");
   }
-  if (!data.numeroCuartos || data.numeroCuartos <= 0) {
+  if (data.numeroCuartos === undefined || data.numeroCuartos < 0) {
     errors.push("Número de cuartos es requerido");
   }
-  if (!data.numeroDormitorios || data.numeroDormitorios <= 0) {
+  if (data.numeroDormitorios === undefined || data.numeroDormitorios < 0) {
     errors.push("Número de dormitorios es requerido");
   }
-  if (!data.numeroCamas || data.numeroCamas <= 0) {
+  if (data.numeroCamas === undefined || data.numeroCamas < 0) {
     errors.push("Número de camas es requerido");
   }
-  if (!data.numeroSanitarios || data.numeroSanitarios <= 0) {
+  if (data.numeroSanitarios === undefined || data.numeroSanitarios < 0) {
     errors.push("Número de sanitarios es requerido");
   }
   if (!data.tipoSanitario || data.tipoSanitario.trim() === "") {
@@ -57,13 +63,23 @@ const validateCondicionesVivienda = (data: CondicionesViviendaFormProps["data"])
   if (!data.procedenciaAgua || data.procedenciaAgua.trim() === "") {
     errors.push("Procedencia de agua es requerida");
   }
-  if (!data.detalleElectricidad || data.detalleElectricidad.trim() === "") {
-    errors.push("Detalle de electricidad es requerido");
-  }
   return errors;
 };
 
 const CondicionesViviendaForm: React.FC<CondicionesViviendaFormProps> = ({ data, onChange, onValidate }) => {
+    const lastValidationRef = React.useRef("");
+
+    React.useEffect(() => {
+        if (onValidate) {
+            const errors = validateCondicionesVivienda(data);
+            const serialized = JSON.stringify(errors);
+            if (serialized !== lastValidationRef.current) {
+                lastValidationRef.current = serialized;
+                onValidate(errors.length === 0, errors);
+            }
+        }
+    }, [data, onValidate]);
+
     const handleMultiChange = (field: string, value: string, checked: boolean) => {
         const actuales = getValues(field);
 
@@ -363,16 +379,112 @@ const CondicionesViviendaForm: React.FC<CondicionesViviendaFormProps> = ({ data,
                     </div>
                 </div>
 
-                {/* Electricidad */}
-                <div className="md:col-span-2">
-                    <Label>Electricidad (detalles: focos, internet, etc.)</Label>
-                    <Input
-                        value={data.detalleElectricidad}
-                        onChange={(e: any) =>
-                            onChange("detalleElectricidad", e.target.value)
-                        }
-                        placeholder="Ej: 3 focos, internet, ducha eléctrica"
-                    />
+                {/* Ducha */}
+                <div>
+                    <Label>¿Tiene ducha?</Label>
+                    <div className="flex gap-4 mt-2.5">
+                        <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
+                            <input 
+                                type="radio" 
+                                name="tieneDucha"
+                                checked={data.tieneDucha === true}
+                                onChange={() => onChange("tieneDucha", true)}
+                                className="text-brand-500 focus:ring-brand-500"
+                            />
+                            Sí
+                        </label>
+                        <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
+                            <input 
+                                type="radio" 
+                                name="tieneDucha"
+                                checked={data.tieneDucha === false}
+                                onChange={() => onChange("tieneDucha", false)}
+                                className="text-brand-500 focus:ring-brand-500"
+                            />
+                            No
+                        </label>
+                    </div>
+                </div>
+
+                {/* Electricidad y Telecomunicaciones */}
+                <div className="md:col-span-2 border-t border-gray-100 dark:border-gray-800/60 pt-4 space-y-4">
+                    <Label className="text-base font-bold text-gray-800 dark:text-white">Electricidad y Telecomunicaciones</Label>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <Label>¿Tiene Electricidad?</Label>
+                            <div className="flex gap-4 mt-2">
+                                <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
+                                    <input 
+                                        type="radio" 
+                                        name="tieneElectricidad"
+                                        checked={data.tieneElectricidad === true}
+                                        onChange={() => onChange("tieneElectricidad", true)}
+                                        className="text-brand-500 focus:ring-brand-500"
+                                    />
+                                    Sí
+                                </label>
+                                <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
+                                    <input 
+                                        type="radio" 
+                                        name="tieneElectricidad"
+                                        checked={data.tieneElectricidad === false}
+                                        onChange={() => onChange("tieneElectricidad", false)}
+                                        className="text-brand-500 focus:ring-brand-500"
+                                    />
+                                    No
+                                </label>
+                            </div>
+                        </div>
+
+                        <div>
+                            <Label>¿Tiene Internet?</Label>
+                            <div className="flex gap-4 mt-2">
+                                <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
+                                    <input 
+                                        type="radio" 
+                                        name="tieneInternet"
+                                        checked={data.tieneInternet === true}
+                                        onChange={() => onChange("tieneInternet", true)}
+                                        className="text-brand-500 focus:ring-brand-500"
+                                    />
+                                    Sí
+                                </label>
+                                <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
+                                    <input 
+                                        type="radio" 
+                                        name="tieneInternet"
+                                        checked={data.tieneInternet === false}
+                                        onChange={() => onChange("tieneInternet", false)}
+                                        className="text-brand-500 focus:ring-brand-500"
+                                    />
+                                    No
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <Label>Número de focos/puntos de luz</Label>
+                            <Input
+                                type="number"
+                                min="0"
+                                value={data.numeroFocos !== undefined ? data.numeroFocos : 0}
+                                onChange={(e: any) => onChange("numeroFocos", Number(e.target.value))}
+                                placeholder="Ej: 5"
+                            />
+                        </div>
+
+                        <div>
+                            <Label>Especifique otros detalles</Label>
+                            <Input
+                                value={data.otrosDetallesElectricidad || ""}
+                                onChange={(e: any) => onChange("otrosDetallesElectricidad", e.target.value)}
+                                placeholder="Ej: ducha eléctrica, acondicionador de aire"
+                            />
+                        </div>
+                    </div>
                 </div>
 
             </div>

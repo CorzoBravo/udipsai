@@ -88,12 +88,17 @@
             <td style="border: none; padding: 4px 0;" colspan="2">
                 <span class="label">PRESENTA DISCAPACIDAD:</span> 
                 <span th:text="${f.paciente?.tieneDiscapacidad ? 'SI (X) NO ( )' : 'SI ( ) NO (X)'}"></span>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                &#160;&#160;&#160;&#160;&#160;&#160;
                 <span class="label">TIPO:</span> <span th:text="${f.paciente?.tipoDiscapacidad ?: 'N/A'}"></span>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                &#160;&#160;&#160;&#160;&#160;&#160;
                 <span class="label">PORCENTAJE:</span> <span th:text="${f.paciente?.porcentajeDiscapacidad != null ? f.paciente.porcentajeDiscapacidad + '%' : 'N/A'}"></span>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                <span class="label">N° CARNÉ:</span> <span th:text="${f.pacienteNumCarne ?: 'N/A'}"></span>
+                &#160;&#160;&#160;&#160;&#160;&#160;
+                <span class="label">N° CARNÉ:</span> <span th:text="${f.paciente?.cedula ?: 'N/A'}"></span>
+            </td>
+        </tr>
+        <tr style="border: none;">
+            <td style="border: none; padding: 4px 0;" colspan="2">
+                <span class="label">PERSONA QUE PROPORCIONA LA INFORMACIÓN (RESPONSABLE):</span> <span th:text="${f.responsable ?: 'N/A'}"></span>
             </td>
         </tr>
     </table>
@@ -161,10 +166,10 @@
     <div style="margin-top: 10px;">
         <span class="label">¿Algún miembro de la familia migró al exterior?</span>
         <span th:text="${f.riesgosSociales?.migroExterior ? 'SI (X) NO ( )' : 'SI ( ) NO (X)'}"></span>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-        <span class="label">Lugar:</span> <span class="text-line" th:text="${f.riesgosSociales?.lugarMigracion ?: '___________________'}"></span>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-        <span class="label">Años:</span> <span class="text-line" th:text="${f.riesgosSociales?.tiempoMigracion ?: '_______'}"></span>
+        &#160;&#160;&#160;&#160;&#160;&#160;
+        <span class="label">Lugar:</span> <span class="text-line" th:text="${f.riesgosSociales?.lugarMigracion ?: #strings.repeat('_', 19)}"></span>
+        &#160;&#160;&#160;&#160;&#160;&#160;
+        <span class="label">Años:</span> <span class="text-line" th:text="${f.riesgosSociales?.tiempoMigracion ?: #strings.repeat('_', 7)}"></span>
     </div>
     <div style="margin-top: 5px;">
         <span class="label">Describa brevemente, ¿Cómo afectó a la familia?</span>
@@ -176,17 +181,17 @@
 <div class="section">
     <div class="section-title">4. Situación de Vulnerabilidad</div>
     <div style="margin-bottom: 5px;">
-        <span th:text="${f.vulnerabilidad?.movilidadHumana ? '(X)' : '( )'}"></span> Movilidad humana &nbsp;&nbsp;&nbsp;&nbsp;
-        <span th:text="${f.vulnerabilidad?.enfermedadCatastrofica ? '(X)' : '( )'}"></span> Enfermedades catastróficas &nbsp;&nbsp;&nbsp;&nbsp;
-        <span th:text="${f.vulnerabilidad?.embarazoAdolescente ? '(X)' : '( )'}"></span> Embarazo adolescente &nbsp;&nbsp;&nbsp;&nbsp;
+        <span th:text="${f.vulnerabilidad?.movilidadHumana ? '(X)' : '( )'}"></span> Movilidad humana &#160;&#160;&#160;&#160;
+        <span th:text="${f.vulnerabilidad?.enfermedadCatastrofica ? '(X)' : '( )'}"></span> Enfermedades catastróficas &#160;&#160;&#160;&#160;
+        <span th:text="${f.vulnerabilidad?.embarazoAdolescente ? '(X)' : '( )'}"></span> Embarazo adolescente &#160;&#160;&#160;&#160;
         <span th:text="${f.vulnerabilidad?.abusoSexual ? '(X)' : '( )'}"></span> Abuso sexual
     </div>
     <div style="margin-top: 5px;">
-        <span th:text="${f.vulnerabilidad?.agresionFisica ? '(X)' : '( )'}"></span> Agresión física &nbsp;&nbsp;&nbsp;&nbsp;
-        <span class="label">¿En dónde?</span> <span class="text-line" th:text="${f.vulnerabilidad?.lugarAgresion != null and #strings.contains(f.vulnerabilidad.lugarAgresion, 'fisica:') ? #strings.substringBefore(#strings.substringAfter(f.vulnerabilidad.lugarAgresion, 'fisica:'), ',') : '___________'}"></span>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-        <span th:text="${f.vulnerabilidad?.agresionPsicologica ? '(X)' : '( )'}"></span> Agresión psicológica &nbsp;&nbsp;&nbsp;&nbsp;
-        <span class="label">¿En dónde?</span> <span class="text-line" th:text="${f.vulnerabilidad?.lugarAgresion != null and #strings.contains(f.vulnerabilidad.lugarAgresion, 'psicologica:') ? #strings.substringAfter(f.vulnerabilidad.lugarAgresion, 'psicologica:') : '___________'}"></span>
+        <span th:text="${f.vulnerabilidad?.agresionFisica ? '(X)' : '( )'}"></span> Agresión física &#160;&#160;&#160;&#160;
+        <span class="label">¿En dónde?</span> <span class="text-line" th:text="${f.vulnerabilidad?.lugarAgresion != null and #strings.contains(f.vulnerabilidad.lugarAgresion, 'fisica:') ? #strings.substringBefore(#strings.substringAfter(f.vulnerabilidad.lugarAgresion, 'fisica:'), ',') : #strings.repeat('_', 11)}"></span>
+        &#160;&#160;&#160;&#160;&#160;&#160;
+        <span th:text="${f.vulnerabilidad?.agresionPsicologica ? '(X)' : '( )'}"></span> Agresión psicológica &#160;&#160;&#160;&#160;
+        <span class="label">¿En dónde?</span> <span class="text-line" th:text="${f.vulnerabilidad?.lugarAgresion != null and #strings.contains(f.vulnerabilidad.lugarAgresion, 'psicologica:') ? #strings.substringAfter(f.vulnerabilidad.lugarAgresion, 'psicologica:') : #strings.repeat('_', 11)}"></span>
     </div>
 </div>
 
@@ -207,28 +212,28 @@
         </li>
         <li>
             ¿La familia comparte actividades del hogar? <span th:text="${f.dinamicaFamiliar?.tieneActividadesFamiliares ? 'SI (X) NO ( )' : 'SI ( ) NO (X)'}"></span>
-            &nbsp;&nbsp;&nbsp;&nbsp; <span class="label">¿Cuáles?</span> <span class="text-line" th:text="${f.dinamicaFamiliar?.actividadesCompartidas ?: '___________'}"></span>
+            &#160;&#160;&#160;&#160; <span class="label">¿Cuáles?</span> <span class="text-line" th:text="${f.dinamicaFamiliar?.actividadesCompartidas ?: #strings.repeat('_', 11)}"></span>
         </li>
         <li>
             Las relaciones entre los/las hermanos/as es:
-            <span th:text="${f.dinamicaFamiliar?.relacionHermanos == 'muyBuena' ? 'Muy buena (X)' : 'Muy buena ( )'}"></span> &nbsp;&nbsp;
-            <span th:text="${f.dinamicaFamiliar?.relacionHermanos == 'buena' ? 'Buena (X)' : 'Buena ( )'}"></span> &nbsp;&nbsp;
-            <span th:text="${f.dinamicaFamiliar?.relacionHermanos == 'regular' ? 'Regular (X)' : 'Regular ( )'}"></span> &nbsp;&nbsp;
-            <span th:text="${f.dinamicaFamiliar?.relacionHermanos == 'mala' ? 'Mala (X)' : 'Mala ( )'}"></span> &nbsp;&nbsp;
+            <span th:text="${f.dinamicaFamiliar?.relacionHermanos == 'muyBuena' ? 'Muy buena (X)' : 'Muy buena ( )'}"></span> &#160;&#160;
+            <span th:text="${f.dinamicaFamiliar?.relacionHermanos == 'buena' ? 'Buena (X)' : 'Buena ( )'}"></span> &#160;&#160;
+            <span th:text="${f.dinamicaFamiliar?.relacionHermanos == 'regular' ? 'Regular (X)' : 'Regular ( )'}"></span> &#160;&#160;
+            <span th:text="${f.dinamicaFamiliar?.relacionHermanos == 'mala' ? 'Mala (X)' : 'Mala ( )'}"></span> &#160;&#160;
             <span th:text="${f.dinamicaFamiliar?.relacionHermanos == 'hijoUnico' ? 'Hijo único (X)' : 'Hijo único ( )'}"></span>
         </li>
         <li>
             Las relaciones entre padres e hijos/as es:
-            <span th:text="${f.dinamicaFamiliar?.relacionPadresHijos == 'muyBuena' ? 'Muy buena (X)' : 'Muy buena ( )'}"></span> &nbsp;&nbsp;
-            <span th:text="${f.dinamicaFamiliar?.relacionPadresHijos == 'buena' ? 'Buena (X)' : 'Buena ( )'}"></span> &nbsp;&nbsp;
-            <span th:text="${f.dinamicaFamiliar?.relacionPadresHijos == 'regular' ? 'Regular (X)' : 'Regular ( )'}"></span> &nbsp;&nbsp;
+            <span th:text="${f.dinamicaFamiliar?.relacionPadresHijos == 'muyBuena' ? 'Muy buena (X)' : 'Muy buena ( )'}"></span> &#160;&#160;
+            <span th:text="${f.dinamicaFamiliar?.relacionPadresHijos == 'buena' ? 'Buena (X)' : 'Buena ( )'}"></span> &#160;&#160;
+            <span th:text="${f.dinamicaFamiliar?.relacionPadresHijos == 'regular' ? 'Regular (X)' : 'Regular ( )'}"></span> &#160;&#160;
             <span th:text="${f.dinamicaFamiliar?.relacionPadresHijos == 'mala' ? 'Mala (X)' : 'Mala ( )'}"></span>
         </li>
         <li>
             La comunicación entre los miembros de la familia es:
-            <span th:text="${f.dinamicaFamiliar?.comunicacionFamiliar == 'muyBuena' ? 'Muy buena (X)' : 'Muy buena ( )'}"></span> &nbsp;&nbsp;
-            <span th:text="${f.dinamicaFamiliar?.comunicacionFamiliar == 'buena' ? 'Buena (X)' : 'Buena ( )'}"></span> &nbsp;&nbsp;
-            <span th:text="${f.dinamicaFamiliar?.comunicacionFamiliar == 'regular' ? 'Regular (X)' : 'Regular ( )'}"></span> &nbsp;&nbsp;
+            <span th:text="${f.dinamicaFamiliar?.comunicacionFamiliar == 'muyBuena' ? 'Muy buena (X)' : 'Muy buena ( )'}"></span> &#160;&#160;
+            <span th:text="${f.dinamicaFamiliar?.comunicacionFamiliar == 'buena' ? 'Buena (X)' : 'Buena ( )'}"></span> &#160;&#160;
+            <span th:text="${f.dinamicaFamiliar?.comunicacionFamiliar == 'regular' ? 'Regular (X)' : 'Regular ( )'}"></span> &#160;&#160;
             <span th:text="${f.dinamicaFamiliar?.comunicacionFamiliar == 'mala' ? 'Mala (X)' : 'Mala ( )'}"></span>
         </li>
     </ol>
@@ -238,9 +243,9 @@
 <div class="section">
     <div class="section-title">6. Tipo de Hogar</div>
     <div style="padding: 5px;">
-        <span th:text="${f.dinamicaFamiliar?.tipoHogar == 'Completo' ? 'Completo (X)' : 'Completo ( )'}"></span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-        <span th:text="${f.dinamicaFamiliar?.tipoHogar == 'Incompleto' ? 'Incompleto (X)' : 'Incompleto ( )'}"></span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-        <span th:text="${f.dinamicaFamiliar?.tipoHogar == 'Funcional' ? 'Funcional (X)' : 'Funcional ( )'}"></span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <span th:text="${f.dinamicaFamiliar?.tipoHogar == 'Completo' ? 'Completo (X)' : 'Completo ( )'}"></span> &#160;&#160;&#160;&#160;&#160;&#160;
+        <span th:text="${f.dinamicaFamiliar?.tipoHogar == 'Incompleto' ? 'Incompleto (X)' : 'Incompleto ( )'}"></span> &#160;&#160;&#160;&#160;&#160;&#160;
+        <span th:text="${f.dinamicaFamiliar?.tipoHogar == 'Funcional' ? 'Funcional (X)' : 'Funcional ( )'}"></span> &#160;&#160;&#160;&#160;&#160;&#160;
         <span th:text="${f.dinamicaFamiliar?.tipoHogar == 'Disfuncional' ? 'Disfuncional (X)' : 'Disfuncional ( )'}"></span>
     </div>
 </div>
@@ -315,11 +320,14 @@
                 <div th:text="${#strings.contains(f.vivienda?.tipoSanitario ?: '', 'letrina') ? '(X) Letrina' : '( ) Letrina'}"></div>
                 <div th:text="${#strings.contains(f.vivienda?.tipoSanitario ?: '', 'airelibre') ? '(X) Aire libre' : '( ) Aire libre'}"></div>
                 <div th:text="${#strings.contains(f.vivienda?.tipoSanitario ?: '', 'pozo') ? '(X) P. Séptico' : '( ) P. Séptico'}"></div>
+                <div style="margin-top: 5px; border-top: 1px solid #eee; padding-top: 3px;" th:text="${f.vivienda?.tieneDucha ? '(X) Ducha' : '( ) Ducha'}"></div>
             </td>
             <td>
-                <div th:text="${f.vivienda?.detalleElectricidad != null and #strings.contains(f.vivienda.detalleElectricidad, 'internet') ? '(X) Internet' : '( ) Internet'}"></div>
-                <div style="margin-top: 5px;">Detalles:</div>
-                <div th:text="${f.vivienda?.detalleElectricidad ?: ''}"></div>
+                <div th:text="${f.vivienda?.tieneElectricidad ? '(X) Electricidad' : '( ) Electricidad'}"></div>
+                <div th:text="${f.vivienda?.tieneInternet ? '(X) Internet' : '( ) Internet'}"></div>
+                <div style="margin-top: 5px;">N° Focos: <strong th:text="${f.vivienda?.numeroFocos ?: 0}"></strong></div>
+                <div style="margin-top: 5px; font-weight: bold;">Otros:</div>
+                <div th:text="${f.vivienda?.otrosDetallesElectricidad ?: ''}"></div>
             </td>
         </tr>
         </tbody>
@@ -360,17 +368,17 @@
     <div style="margin-top: 10px;">
         <span class="label">PROBLEMAS DE SALUD DEL ESTUDIANTE:</span> 
         <span th:text="${#strings.isEmpty(f.salud?.saludEstudiante) ? 'SI ( ) NO (X)' : 'SI (X) NO ( )'}"></span>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-        <span class="label">Especifique tipo de enfermedad:</span> <span class="text-line" th:text="${f.salud?.saludEstudiante ?: '____________________________'}"></span>
+        &#160;&#160;&#160;&#160;&#160;&#160;
+        <span class="label">Especifique tipo de enfermedad:</span> <span class="text-line" th:text="${f.salud?.saludEstudiante ?: #strings.repeat('_', 28)}"></span>
     </div>
     
     <div style="margin-top: 10px;">
         <span class="label">REQUIERE AYUDAS TÉCNICAS:</span>
-        <span th:text="${#strings.contains(f.salud?.ayudasTecnicas ?: '', 'audifonos') ? 'AUDIFONOS (X)' : 'AUDIFONOS ( )'}"></span> &nbsp;&nbsp;
-        <span th:text="${#strings.contains(f.salud?.ayudasTecnicas ?: '', 'lentes') ? 'LENTES (X)' : 'LENTES ( )'}"></span> &nbsp;&nbsp;
-        <span th:text="${#strings.contains(f.salud?.ayudasTecnicas ?: '', 'jaws') ? 'JAWS (X)' : 'JAWS ( )'}"></span> &nbsp;&nbsp;
-        <span th:text="${#strings.contains(f.salud?.ayudasTecnicas ?: '', 'silla') ? 'SILLA DE RUEDAS (X)' : 'SILLA DE RUEDAS ( )'}"></span> &nbsp;&nbsp;
-        <span class="label">OTROS:</span> <span class="text-line" th:text="${#strings.contains(f.salud?.ayudasTecnicas ?: '', 'otros:') ? #strings.substringAfter(f.salud.ayudasTecnicas, 'otros:') : '_________________'}"></span>
+        <span th:text="${#strings.contains(f.salud?.ayudasTecnicas ?: '', 'audifonos') ? 'AUDIFONOS (X)' : 'AUDIFONOS ( )'}"></span> &#160;&#160;
+        <span th:text="${#strings.contains(f.salud?.ayudasTecnicas ?: '', 'lentes') ? 'LENTES (X)' : 'LENTES ( )'}"></span> &#160;&#160;
+        <span th:text="${#strings.contains(f.salud?.ayudasTecnicas ?: '', 'jaws') ? 'JAWS (X)' : 'JAWS ( )'}"></span> &#160;&#160;
+        <span th:text="${#strings.contains(f.salud?.ayudasTecnicas ?: '', 'silla') ? 'SILLA DE RUEDAS (X)' : 'SILLA DE RUEDAS ( )'}"></span> &#160;&#160;
+        <span class="label">OTROS:</span> <span class="text-line" th:text="${#strings.contains(f.salud?.ayudasTecnicas ?: '', 'otros:') ? #strings.substringAfter(f.salud.ayudasTecnicas, 'otros:') : #strings.repeat('_', 17)}"></span>
     </div>
 
     <!-- SALUD DE FAMILIARES DENTRO DE LA SECCIÓN 8 -->
@@ -378,32 +386,32 @@
         <span class="label">PROBLEMAS DE SALUD DE FAMILIAR:</span>
         <div th:each="fam : ${f.familiares}" th:if="${fam.problemas_salud}">
             - <span class="label">Parentesco:</span> <span th:text="${fam.relacion}"></span> 
-            &nbsp;&nbsp; <span class="label">Nombre:</span> <span th:text="${fam.nombresApellidos}"></span> 
-            &nbsp;&nbsp; <span class="label">Enfermedad:</span> <span th:text="${fam.descripProblemasSaludFamiliar}"></span>
+            &#160;&#160; <span class="label">Nombre:</span> <span th:text="${fam.nombresApellidos}"></span> 
+            &#160;&#160; <span class="label">Enfermedad:</span> <span th:text="${fam.descripProblemasSaludFamiliar}"></span>
         </div>
-        <div th:if="${#lists.isEmpty(f.familiares) or !#lists.any(f.familiares, 'problemas_salud')}">SI ( ) NO (X)</div>
+        <div th:if="${#lists.isEmpty(f.familiares) or f.familiares.?[problemas_salud].isEmpty()}">SI ( ) NO (X)</div>
     </div>
 
     <div style="margin-top: 10px;">
         <span class="label">ENFERMEDAD CATASTRÓFICA DE MIEMBRO DE FAMILIA:</span>
         <div th:each="fam : ${f.familiares}" th:if="${fam.enfermedad_catastrofica}">
             - <span class="label">Parentesco:</span> <span th:text="${fam.relacion}"></span> 
-            &nbsp;&nbsp; <span class="label">Nombre:</span> <span th:text="${fam.nombresApellidos}"></span> 
-            &nbsp;&nbsp; <span class="label">Enfermedad:</span> <span th:text="${fam.descripEnfermedadCatastrofica}"></span>
+            &#160;&#160; <span class="label">Nombre:</span> <span th:text="${fam.nombresApellidos}"></span> 
+            &#160;&#160; <span class="label">Enfermedad:</span> <span th:text="${fam.descripEnfermedadCatastrofica}"></span>
         </div>
-        <div th:if="${#lists.isEmpty(f.familiares) or !#lists.any(f.familiares, 'enfermedad_catastrofica')}">SI ( ) NO (X)</div>
+        <div th:if="${#lists.isEmpty(f.familiares) or f.familiares.?[enfermedad_catastrofica].isEmpty()}">SI ( ) NO (X)</div>
     </div>
 
     <div style="margin-top: 10px;">
         <span class="label">DISCAPACIDAD MIEMBRO DE LA FAMILIA:</span>
         <div th:each="fam : ${f.familiares}" th:if="${fam.discapacidad}">
             - <span class="label">Parentesco:</span> <span th:text="${fam.relacion}"></span> 
-            &nbsp;&nbsp; <span class="label">Nombre:</span> <span th:text="${fam.nombresApellidos}"></span> 
-            &nbsp;&nbsp; <span class="label">Tipo:</span> <span th:text="${fam.descripDiscapacidad != null and #strings.contains(fam.descripDiscapacidad, '|') ? #strings.substringBefore(fam.descripDiscapacidad, '|') : ''}"></span> 
-            &nbsp;&nbsp; <span class="label">Porcentaje:</span> <span th:text="${fam.descripDiscapacidad != null and #strings.contains(fam.descripDiscapacidad, '|') ? #strings.substringBefore(#strings.substringAfter(fam.descripDiscapacidad, '|'), '|') : ''}"></span> 
-            &nbsp;&nbsp; <span class="label">N° Carné:</span> <span th:text="${fam.descripDiscapacidad != null and #strings.contains(fam.descripDiscapacidad, 'Carnet:') ? #strings.substringAfter(fam.descripDiscapacidad, 'Carnet:') : ''}"></span>
+            &#160;&#160; <span class="label">Nombre:</span> <span th:text="${fam.nombresApellidos}"></span> 
+            &#160;&#160; <span class="label">Tipo:</span> <span th:text="${fam.descripDiscapacidad != null and #strings.contains(fam.descripDiscapacidad, '|') ? #strings.substringBefore(fam.descripDiscapacidad, '|') : ''}"></span> 
+            &#160;&#160; <span class="label">Porcentaje:</span> <span th:text="${fam.descripDiscapacidad != null and #strings.contains(fam.descripDiscapacidad, '|') ? #strings.substringBefore(#strings.substringAfter(fam.descripDiscapacidad, '|'), '|') : ''}"></span> 
+            &#160;&#160; <span class="label">N° Carné:</span> <span th:text="${fam.descripDiscapacidad != null and #strings.contains(fam.descripDiscapacidad, 'Carnet:') ? #strings.substringAfter(fam.descripDiscapacidad, 'Carnet:') : ''}"></span>
         </div>
-        <div th:if="${#lists.isEmpty(f.familiares) or !#lists.any(f.familiares, 'discapacidad')}">SI ( ) NO (X)</div>
+        <div th:if="${#lists.isEmpty(f.familiares) or f.familiares.?[discapacidad].isEmpty()}">SI ( ) NO (X)</div>
     </div>
 </div>
 
@@ -411,19 +419,19 @@
 <div class="section">
     <div class="section-title">9. Uso del Tiempo Libre</div>
     <div style="padding: 5px;">
-        <span th:text="${f.situacionEconomica?.actividadesTiempoLibre != null and #strings.contains(f.situacionEconomica.actividadesTiempoLibre, 'Deporte') ? 'Deporte (X)' : 'Deporte ( )'}"></span> &nbsp;&nbsp;&nbsp;&nbsp;
-        <span th:text="${f.situacionEconomica?.actividadesTiempoLibre != null and #strings.contains(f.situacionEconomica.actividadesTiempoLibre, 'Música') ? 'Música (X)' : 'Música ( )'}"></span> &nbsp;&nbsp;&nbsp;&nbsp;
-        <span th:text="${f.situacionEconomica?.actividadesTiempoLibre != null and #strings.contains(f.situacionEconomica.actividadesTiempoLibre, 'TV') ? 'TV (X)' : 'TV ( )'}"></span> &nbsp;&nbsp;&nbsp;&nbsp;
-        <span th:text="${f.situacionEconomica?.actividadesTiempoLibre != null and #strings.contains(f.situacionEconomica.actividadesTiempoLibre, 'Internet') ? 'Internet (X)' : 'Internet ( )'}"></span> &nbsp;&nbsp;&nbsp;&nbsp;
-        <span th:text="${f.situacionEconomica?.actividadesTiempoLibre != null and #strings.contains(f.situacionEconomica.actividadesTiempoLibre, 'Paseos') ? 'Paseos familiares (X)' : 'Paseos familiares ( )'}"></span> &nbsp;&nbsp;&nbsp;&nbsp;
+        <span th:text="${f.situacionEconomica?.actividadesTiempoLibre != null and #strings.contains(f.situacionEconomica.actividadesTiempoLibre, 'Deporte') ? 'Deporte (X)' : 'Deporte ( )'}"></span> &#160;&#160;&#160;&#160;
+        <span th:text="${f.situacionEconomica?.actividadesTiempoLibre != null and #strings.contains(f.situacionEconomica.actividadesTiempoLibre, 'Música') ? 'Música (X)' : 'Música ( )'}"></span> &#160;&#160;&#160;&#160;
+        <span th:text="${f.situacionEconomica?.actividadesTiempoLibre != null and #strings.contains(f.situacionEconomica.actividadesTiempoLibre, 'TV') ? 'TV (X)' : 'TV ( )'}"></span> &#160;&#160;&#160;&#160;
+        <span th:text="${f.situacionEconomica?.actividadesTiempoLibre != null and #strings.contains(f.situacionEconomica.actividadesTiempoLibre, 'Internet') ? 'Internet (X)' : 'Internet ( )'}"></span> &#160;&#160;&#160;&#160;
+        <span th:text="${f.situacionEconomica?.actividadesTiempoLibre != null and #strings.contains(f.situacionEconomica.actividadesTiempoLibre, 'Paseos') ? 'Paseos familiares (X)' : 'Paseos familiares ( )'}"></span> &#160;&#160;&#160;&#160;
         <span th:text="${f.situacionEconomica?.actividadesTiempoLibre != null and #strings.contains(f.situacionEconomica.actividadesTiempoLibre, 'Amigos') ? 'Amigos/as (X)' : 'Amigos/as ( )'}"></span>
     </div>
     <div style="margin-top: 5px; padding: 5px;">
         <span th:text="${f.situacionEconomica?.actividadesTiempoLibre != null and #strings.contains(f.situacionEconomica.actividadesTiempoLibre, 'Trabajo') ? 'Trabajo infantil (X)' : 'Trabajo infantil ( )'}"></span> 
-        &nbsp;&nbsp; <span class="label">Especifique:</span> <span class="text-line" th:text="${f.situacionEconomica?.actividadesTiempoLibre != null and #strings.contains(f.situacionEconomica.actividadesTiempoLibre, 'Trabajo infantil:') ? #strings.substringBefore(#strings.substringAfter(f.situacionEconomica.actividadesTiempoLibre, 'Trabajo infantil:'), '\"') : '___________'}"></span>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        &#160;&#160; <span class="label">Especifique:</span> <span class="text-line" th:text="${f.situacionEconomica?.actividadesTiempoLibre != null and #strings.contains(f.situacionEconomica.actividadesTiempoLibre, 'Trabajo infantil:') ? #strings.substringBefore(#strings.substringAfter(f.situacionEconomica.actividadesTiempoLibre, 'Trabajo infantil:'), '&quot;') : #strings.repeat('_', 11)}"></span>
+        &#160;&#160;&#160;&#160;&#160;&#160;
         <span th:text="${f.situacionEconomica?.actividadesTiempoLibre != null and #strings.contains(f.situacionEconomica.actividadesTiempoLibre, 'Otros') ? 'Otros (X)' : 'Otros ( )'}"></span> 
-        &nbsp;&nbsp; <span class="text-line" th:text="${f.situacionEconomica?.actividadesTiempoLibre != null and #strings.contains(f.situacionEconomica.actividadesTiempoLibre, 'Otros:') ? #strings.substringBefore(#strings.substringAfter(f.situacionEconomica.actividadesTiempoLibre, 'Otros:'), '\"') : '___________'}"></span>
+        &#160;&#160; <span class="text-line" th:text="${f.situacionEconomica?.actividadesTiempoLibre != null and #strings.contains(f.situacionEconomica.actividadesTiempoLibre, 'Otros:') ? #strings.substringBefore(#strings.substringAfter(f.situacionEconomica.actividadesTiempoLibre, 'Otros:'), '&quot;') : #strings.repeat('_', 11)}"></span>
     </div>
 </div>
 
@@ -488,10 +496,10 @@
 <div class="section">
     <div class="section-title">13. SEGÚN SU SITUACIÓN ECONÓMICA HASTA CUANTO PODRÍA GASTAR EN UNA EVALUACIÓN PSICOPEDAGÓGICA:</div>
     <div style="padding: 5px;">
-        <span th:text="${f.situacionEconomica?.capacidadGastoEvaluacion != null and #strings.contains(f.situacionEconomica.capacidadGastoEvaluacion, '3$') ? '(X)' : '( )'}"></span> 3$ por sesión &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-        <span th:text="${f.situacionEconomica?.capacidadGastoEvaluacion != null and #strings.contains(f.situacionEconomica.capacidadGastoEvaluacion, '5$') ? '(X)' : '( )'}"></span> 5$ por sesión &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-        <span th:text="${f.situacionEconomica?.capacidadGastoEvaluacion != null and #strings.contains(f.situacionEconomica.capacidadGastoEvaluacion, '10$') ? '(X)' : '( )'}"></span> 10$ por sesión &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-        <span th:text="${f.situacionEconomica?.capacidadGastoEvaluacion != null and #strings.contains(f.situacionEconomica.capacidadGastoEvaluacion, '15$') ? '(X)' : '( )'}"></span> 15$ por sesión &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <span th:text="${f.situacionEconomica?.capacidadGastoEvaluacion != null and #strings.contains(f.situacionEconomica.capacidadGastoEvaluacion, '3$') ? '(X)' : '( )'}"></span> 3$ por sesión &#160;&#160;&#160;&#160;&#160;&#160;
+        <span th:text="${f.situacionEconomica?.capacidadGastoEvaluacion != null and #strings.contains(f.situacionEconomica.capacidadGastoEvaluacion, '5$') ? '(X)' : '( )'}"></span> 5$ por sesión &#160;&#160;&#160;&#160;&#160;&#160;
+        <span th:text="${f.situacionEconomica?.capacidadGastoEvaluacion != null and #strings.contains(f.situacionEconomica.capacidadGastoEvaluacion, '10$') ? '(X)' : '( )'}"></span> 10$ por sesión &#160;&#160;&#160;&#160;&#160;&#160;
+        <span th:text="${f.situacionEconomica?.capacidadGastoEvaluacion != null and #strings.contains(f.situacionEconomica.capacidadGastoEvaluacion, '15$') ? '(X)' : '( )'}"></span> 15$ por sesión &#160;&#160;&#160;&#160;&#160;&#160;
         <span th:text="${f.situacionEconomica?.capacidadGastoEvaluacion != null and #strings.contains(f.situacionEconomica.capacidadGastoEvaluacion, 'No puedo') ? '(X)' : '( )'}"></span> No puedo cubrir los gastos
     </div>
     <div style="margin-top: 5px; padding: 5px;">
@@ -505,14 +513,14 @@
     <tr>
         <td style="border: none; width: 50%; padding-left: 20px;">
             <div class="signature-box">
-                <span class="label" th:text="${f.responsable ?: 'Especialista responsable'}"></span><br/>
-                <span>Nombre del responsable</span>
+                <span class="label" th:text="${f.responsable ?: 'Familiar Responsable'}"></span><br/>
+                <span>Firma del responsable (Familiar)</span>
             </div>
         </td>
         <td style="border: none; width: 50%; padding-right: 20px;">
             <div class="signature-box" style="float: right;">
-                <br/>
-                <span>Firma</span>
+                <span class="label" th:text="${f.especialista?.nombresApellidos ?: 'Especialista'}"></span><br/>
+                <span>Firma del Especialista</span>
             </div>
         </td>
     </tr>
