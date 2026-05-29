@@ -80,7 +80,5 @@ public class FichaSocioeconomica {
     @Column(name = "nombre_responsable_registro")
     private String responsable;
 
-    @OneToMany(mappedBy = "ficha", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<FichaSocioFamiliar> familiares = new ArrayList<>();
 
 }

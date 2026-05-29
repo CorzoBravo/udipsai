@@ -9,13 +9,17 @@ import com.ucacue.udipsai.modules.informesocial.repository.InformeSocialReposito
 import com.ucacue.udipsai.modules.paciente.domain.Paciente;
 import com.ucacue.udipsai.modules.paciente.dto.PacienteFichaDTO;
 import com.ucacue.udipsai.modules.paciente.repository.PacienteRepository;
+import com.ucacue.udipsai.modules.familiar.domain.Familiar;
+import com.ucacue.udipsai.modules.familiar.dto.FamiliarDTO;
+import com.ucacue.udipsai.modules.familiar.dto.FamiliarRequest;
+import com.ucacue.udipsai.modules.familiar.service.FamiliarService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import com.ucacue.udipsai.modules.fichasocial.domain.FichaSocioeconomica;
-import com.ucacue.udipsai.modules.fichasocial.domain.components.FichaSocioFamiliar;
 import com.ucacue.udipsai.modules.fichasocial.repository.FichaSocioeconomicaRepository;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -30,8 +34,10 @@ public class InformeSocialService {
     private StorageService storageService;
     @Autowired
     private FichaSocioeconomicaRepository fichaRepository;
+    @Autowired
+    private FamiliarService familiarService;
+
     @Transactional
-    
     public InformeSocialDTO crearInforme(InformeSocialRequest request, MultipartFile genograma, MultipartFile ecomapa) {
         Paciente paciente = pacienteRepository.findById(request.getPacienteId())
                 .orElseThrow(() -> new RuntimeException("Paciente no encontrado"));
@@ -48,12 +54,6 @@ public class InformeSocialService {
 
         informe.setTipoFamilia(request.getTipoFamilia());
         informe.setTipoFamiliaEspecificar(request.getTipoFamiliaEspecificar());
-
-        informe.setInformanteNombre(request.getInformanteNombre());
-        informe.setInformanteParentesco(request.getInformanteParentesco());
-        informe.setInformanteCedula(request.getInformanteCedula());
-        informe.setInformanteTelefono(request.getInformanteTelefono());
-        informe.setInformanteCorreo(request.getInformanteCorreo());
 
         if (genograma != null && !genograma.isEmpty()) {
             informe.setGenogramaUrl(storageService.store(genograma));
@@ -75,7 +75,45 @@ public class InformeSocialService {
         informe.setElaboradoPor(request.getElaboradoPor());
 
         InformeSocial saved = informeRepository.save(informe);
+
+        if (request.getInformante() != null) {
+            procesarInformante(request.getInformante(), paciente.getId(), saved.getId().longValue());
+        }
+
         return convertirADTO(saved, ficha);
+    }
+
+    private void procesarInformante(FamiliarDTO fDto, Integer pacienteId, Long informeId) {
+        FamiliarRequest fReq = new FamiliarRequest();
+        fReq.setRelacion(fDto.getRelacion());
+        fReq.setNombresApellidos(fDto.getNombresApellidos());
+        fReq.setEdad(fDto.getEdad());
+        fReq.setEstadoCivil(fDto.getEstadoCivil());
+        fReq.setInstruccion(fDto.getInstruccion());
+        fReq.setOcupacion(fDto.getOcupacion());
+        fReq.setIngresoMensual(fDto.getIngresoMensual());
+        fReq.setCedula(fDto.getCedula());
+        fReq.setNumeroTelefono(fDto.getNumeroTelefono());
+        fReq.setCorreoElectronico(fDto.getCorreoElectronico());
+        fReq.setProblemasSalud(fDto.getProblemasSalud());
+        fReq.setDescripProblemasSalud(fDto.getDescripProblemasSalud());
+        fReq.setEnfermedadCatastrofica(fDto.getEnfermedadCatastrofica());
+        fReq.setDescripEnfermedadCatastrofica(fDto.getDescripEnfermedadCatastrofica());
+        fReq.setDiscapacidad(fDto.getDiscapacidad());
+        fReq.setDescripDiscapacidad(fDto.getDescripDiscapacidad());
+
+        FamiliarDTO guardado;
+        if (fDto.getId() != null) {
+            guardado = familiarService.actualizarFamiliar(fDto.getId().longValue(), fReq);
+        } else {
+            guardado = familiarService.crearFamiliar(pacienteId, fReq);
+        }
+
+        // Avoid linking multiple times if it's already an informante for this informe
+        Familiar informanteActual = familiarService.obtenerInformante(informeId);
+        if (informanteActual == null || !informanteActual.getId().equals(guardado.getId())) {
+            familiarService.vincularFamiliarAInforme(guardado.getId(), informeId, true);
+        }
     }
 
     @Transactional(readOnly = true)
@@ -151,12 +189,6 @@ public class InformeSocialService {
         informe.setTipoFamilia(request.getTipoFamilia());
         informe.setTipoFamiliaEspecificar(request.getTipoFamiliaEspecificar());
 
-        informe.setInformanteNombre(request.getInformanteNombre());
-        informe.setInformanteParentesco(request.getInformanteParentesco());
-        informe.setInformanteCedula(request.getInformanteCedula());
-        informe.setInformanteTelefono(request.getInformanteTelefono());
-        informe.setInformanteCorreo(request.getInformanteCorreo());
-
         informe.setDescripcionDinamicaFamiliar(request.getDescripcionDinamicaFamiliar());
         informe.setSituacionEconomica(request.getSituacionEconomica());
         informe.setSituacionHabitabilidad(request.getSituacionHabitabilidad());
@@ -170,6 +202,11 @@ public class InformeSocialService {
         informe.setElaboradoPor(request.getElaboradoPor());
 
         InformeSocial saved = informeRepository.save(informe);
+
+        if (request.getInformante() != null) {
+            procesarInformante(request.getInformante(), informe.getPaciente().getId(), saved.getId().longValue());
+        }
+
         return convertirADTO(saved, ficha);
     }
 
@@ -190,21 +227,31 @@ public class InformeSocialService {
             throw new RuntimeException("No se puede editar un informe inactivo");
         }
 
-        FichaSocioeconomica ficha = fichaRepository.findByPacienteIdAndActivo(informe.getPaciente().getId(), true);
-        if (ficha == null) {
-            throw new RuntimeException("No existe ficha activa para este paciente");
-        }
-
-        FichaSocioFamiliar familiar = ficha.getFamiliares().stream()
-                .filter(f -> f.getId().equals(familiarId.longValue()))
-                .findFirst()
+        Familiar familiar = familiarService.obtenerFamiliarPorId(familiarId.longValue())
                 .orElseThrow(() -> new RuntimeException("Familiar no encontrado"));
 
-        familiar.setCedula(familiarDTO.getCedula());
-        familiar.setNumeroTelefono(familiarDTO.getTelefono());
-        familiar.setCorreoElectronico(familiarDTO.getCorreo());
+        FamiliarRequest fReq = new FamiliarRequest();
+        fReq.setRelacion(familiar.getRelacion());
+        fReq.setNombresApellidos(familiar.getNombresApellidos());
+        fReq.setEdad(familiar.getEdad());
+        fReq.setEstadoCivil(familiar.getEstadoCivil());
+        fReq.setInstruccion(familiar.getInstruccion());
+        fReq.setOcupacion(familiar.getOcupacion());
+        fReq.setIngresoMensual(familiar.getIngresoMensual());
+        fReq.setProblemasSalud(familiar.getProblemasSalud());
+        fReq.setDescripProblemasSalud(familiar.getDescripProblemasSalud());
+        fReq.setEnfermedadCatastrofica(familiar.getEnfermedadCatastrofica());
+        fReq.setDescripEnfermedadCatastrofica(familiar.getDescripEnfermedadCatastrofica());
+        fReq.setDiscapacidad(familiar.getDiscapacidad());
+        fReq.setDescripDiscapacidad(familiar.getDescripDiscapacidad());
+        
+        fReq.setCedula(familiarDTO.getCedula());
+        fReq.setNumeroTelefono(familiarDTO.getTelefono());
+        fReq.setCorreoElectronico(familiarDTO.getCorreo());
 
-        fichaRepository.save(ficha);
+        familiarService.actualizarFamiliar(familiarId.longValue(), fReq);
+
+        FichaSocioeconomica ficha = fichaRepository.findByPacienteIdAndActivo(informe.getPaciente().getId(), true);
         return convertirADTO(informe, ficha);
     }
 
@@ -219,12 +266,6 @@ public class InformeSocialService {
         dto.setTipoFamilia(entity.getTipoFamilia());
         dto.setTipoFamiliaEspecificar(entity.getTipoFamiliaEspecificar());
 
-        dto.setInformanteNombre(entity.getInformanteNombre());
-        dto.setInformanteParentesco(entity.getInformanteParentesco());
-        dto.setInformanteCedula(entity.getInformanteCedula());
-        dto.setInformanteTelefono(entity.getInformanteTelefono());
-        dto.setInformanteCorreo(entity.getInformanteCorreo());
-
         dto.setDescripcionDinamicaFamiliar(entity.getDescripcionDinamicaFamiliar());
         dto.setSituacionEconomica(entity.getSituacionEconomica());
         dto.setSituacionHabitabilidad(entity.getSituacionHabitabilidad());
@@ -237,6 +278,31 @@ public class InformeSocialService {
         dto.setRecomendaciones(entity.getRecomendaciones());
         dto.setElaboradoPor(entity.getElaboradoPor());
 
+        Familiar informante = familiarService.obtenerInformante(entity.getId().longValue());
+        if (informante != null) {
+            FamiliarDTO fDto = new FamiliarDTO();
+            fDto.setId(informante.getId());
+            fDto.setPacienteId(informante.getPaciente().getId());
+            fDto.setRelacion(informante.getRelacion());
+            fDto.setNombresApellidos(informante.getNombresApellidos());
+            fDto.setEdad(informante.getEdad());
+            fDto.setEstadoCivil(informante.getEstadoCivil());
+            fDto.setInstruccion(informante.getInstruccion());
+            fDto.setOcupacion(informante.getOcupacion());
+            fDto.setIngresoMensual(informante.getIngresoMensual());
+            fDto.setCedula(informante.getCedula());
+            fDto.setNumeroTelefono(informante.getNumeroTelefono());
+            fDto.setCorreoElectronico(informante.getCorreoElectronico());
+            fDto.setProblemasSalud(informante.getProblemasSalud());
+            fDto.setDescripProblemasSalud(informante.getDescripProblemasSalud());
+            fDto.setEnfermedadCatastrofica(informante.getEnfermedadCatastrofica());
+            fDto.setDescripEnfermedadCatastrofica(informante.getDescripEnfermedadCatastrofica());
+            fDto.setDiscapacidad(informante.getDiscapacidad());
+            fDto.setDescripDiscapacidad(informante.getDescripDiscapacidad());
+            fDto.setActivo(informante.getActivo());
+            dto.setInformante(fDto);
+        }
+
         if (entity.getPaciente() != null) {
             dto.setPaciente(new PacienteFichaDTO(
                     entity.getPaciente().getId(),
@@ -244,9 +310,10 @@ public class InformeSocialService {
                     entity.getPaciente().getCedula()));
         }
 
-        if (entity.getPaciente() != null) {
-            if (ficha != null && ficha.getFamiliares() != null) {
-                dto.setFamiliares(ficha.getFamiliares().stream().map(f -> {
+        if (entity.getPaciente() != null && ficha != null) {
+            List<Familiar> fichaFamiliares = familiarService.obtenerFamiliaresPorEntidad("FICHA", ficha.getId().longValue());
+            if (fichaFamiliares != null) {
+                dto.setFamiliares(fichaFamiliares.stream().map(f -> {
                     InformeSocialFamiliarDTO fDto = new InformeSocialFamiliarDTO();
                     fDto.setId(f.getId() != null ? f.getId().intValue() : null);
                     fDto.setNombres(f.getNombresApellidos());

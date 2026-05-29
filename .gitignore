@@ -1,3 +1,9 @@
+
+udipsai-back/bin/
+**/bin/
+*.class
+uploads/
+
 node_modules
 dist
 .env
@@ -44,6 +50,5 @@ build/
 
 ### Archivos de configuración ###
 env.sh
-uploads
 application-dev.properties
 .fake

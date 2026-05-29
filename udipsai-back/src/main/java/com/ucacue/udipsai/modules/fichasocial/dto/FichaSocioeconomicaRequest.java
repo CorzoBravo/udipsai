@@ -4,6 +4,7 @@ import com.ucacue.udipsai.modules.fichasocial.domain.components.*;
 import lombok.Data;
 import java.util.Date;
 import java.util.List;
+import com.ucacue.udipsai.modules.familiar.dto.FamiliarDTO;
 
 @Data
 public class FichaSocioeconomicaRequest {

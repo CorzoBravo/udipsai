@@ -2,6 +2,7 @@ package com.ucacue.udipsai.modules.informesocial.dto;
 
 import lombok.Data;
 import java.util.List;
+import com.ucacue.udipsai.modules.familiar.dto.FamiliarDTO;
 
 @Data
 public class InformeSocialRequest {
@@ -15,11 +16,7 @@ public class InformeSocialRequest {
     private String pacienteNacionalidad;
     private String pacienteSexo;
 
-    private String informanteNombre;
-    private String informanteParentesco;
-    private String informanteCedula;
-    private String informanteTelefono;
-    private String informanteCorreo;
+    private FamiliarDTO informante;
     
     private String descripcionDinamicaFamiliar;
     private String situacionEconomica;

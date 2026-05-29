@@ -35,21 +35,6 @@ public class InformeSocial {
     @Column(name = "tipo_familia_especificar")
     private String tipoFamiliaEspecificar;
 
-    @Column(name = "informante_nombre")
-    private String informanteNombre;
-
-    @Column(name = "informante_parentesco")
-    private String informanteParentesco;
-
-    @Column(name = "informante_cedula")
-    private String informanteCedula;
-
-    @Column(name = "informante_telefono")
-    private String informanteTelefono;
-
-    @Column(name = "informante_correo")
-    private String informanteCorreo;
-
     
     @Column(columnDefinition = "TEXT")
     private String descripcionDinamicaFamiliar;

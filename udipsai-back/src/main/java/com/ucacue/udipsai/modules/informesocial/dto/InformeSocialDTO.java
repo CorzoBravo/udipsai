@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.util.Date;
 import java.util.List;
+import com.ucacue.udipsai.modules.familiar.dto.FamiliarDTO;
 
 @Data
 @NoArgsConstructor
@@ -23,11 +24,7 @@ public class InformeSocialDTO {
     private String tipoFamilia;
     private String tipoFamiliaEspecificar;
 
-    private String informanteNombre;
-    private String informanteParentesco;
-    private String informanteCedula;
-    private String informanteTelefono;
-    private String informanteCorreo;
+    private FamiliarDTO informante;
 
     private String descripcionDinamicaFamiliar;
     private String situacionEconomica;
