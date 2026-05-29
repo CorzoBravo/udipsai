@@ -131,8 +131,8 @@ export const privateRouteObjects: RouteObject[] = [
       { path: "socioeconomico/nuevo", ...protectedRoute("PERM_SOCIOECONOMICA_CREAR", <NuevaSocioEconomico />) },
       { path: "socioeconomico/editar/:id", ...protectedRoute("PERM_SOCIOECONOMICA_EDITAR", <EditarSocioEconomico />) },
       // Seguimiento Social
-      { path: "seguimiento-social/nuevo", ...protectedRoute("PERM_PACIENTES_CREAR", <NuevaSeguimientoSocial />) },
-      { path: "seguimiento-social/editar/:id", ...protectedRoute("PERM_PACIENTES_EDITAR", <EditarSeguimientoSocial />) },
+      { path: "seguimiento-social/nuevo", ...protectedRoute("PERM_SEGUIMIENTO_SOCIAL_CREAR", <NuevaSeguimientoSocial />) },
+      { path: "seguimiento-social/editar/:id", ...protectedRoute("PERM_SEGUIMIENTO_SOCIAL_EDITAR", <EditarSeguimientoSocial />) },
 
       // Informe Social
       { path: "informe-social/nuevo", ...protectedRoute("PERM_INFORME_SOCIAL_CREAR", <NuevaInformeSocial />) },

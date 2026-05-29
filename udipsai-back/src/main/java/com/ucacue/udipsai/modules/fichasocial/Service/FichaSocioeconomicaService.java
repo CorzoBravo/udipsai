@@ -38,7 +38,11 @@ public class FichaSocioeconomicaService {
     private EspecialistaRepository especialistaRepository;
 
     @Autowired
+<<<<<<< HEAD
     private FamiliarService familiarService;
+=======
+    private com.ucacue.udipsai.modules.pasante.repository.PasanteRepository pasanteRepository;
+>>>>>>> origin/main
 
     @Transactional(readOnly = true)
     public List<FichaSocioeconomicaDTO> listarFichas() {
@@ -80,12 +84,23 @@ public class FichaSocioeconomicaService {
         Paciente paciente = pacienteRepository.findById(request.getPacienteId())
                 .orElseThrow(() -> new RuntimeException("Paciente no encontrado"));
 
-        Especialista especialista = especialistaRepository.findById(request.getEspecialistaId())
-                .orElseThrow(() -> new RuntimeException("Especialista no encontrado"));
-
         ficha.setPaciente(paciente);
-        ficha.setEspecialista(especialista);
         ficha.setActivo(true);
+
+        // Resolve creator as Specialist or Pasante
+        Especialista especialista = especialistaRepository.findById(request.getEspecialistaId()).orElse(null);
+        if (especialista != null) {
+            ficha.setEspecialista(especialista);
+            ficha.setPasante(null);
+        } else {
+            com.ucacue.udipsai.modules.pasante.domain.Pasante pasante = pasanteRepository.findById(request.getEspecialistaId()).orElse(null);
+            if (pasante != null) {
+                ficha.setPasante(pasante);
+                ficha.setEspecialista(null);
+            } else {
+                throw new RuntimeException("Especialista o Pasante no encontrado");
+            }
+        }
 
         mapRequestToEntity(request, ficha);
 
@@ -216,6 +231,11 @@ public class FichaSocioeconomicaService {
             EspecialistaDTO espDto = new EspecialistaDTO();
             espDto.setId(ficha.getEspecialista().getId());
             espDto.setNombresApellidos(ficha.getEspecialista().getNombresApellidos());
+            dto.setEspecialista(espDto);
+        } else if (ficha.getPasante() != null) {
+            EspecialistaDTO espDto = new EspecialistaDTO();
+            espDto.setId(ficha.getPasante().getId());
+            espDto.setNombresApellidos(ficha.getPasante().getNombresApellidos());
             dto.setEspecialista(espDto);
         }
         

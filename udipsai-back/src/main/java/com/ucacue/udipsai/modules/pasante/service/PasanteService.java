@@ -143,13 +143,15 @@ public class PasanteService {
         mapearRequestAEntidad(request, pasante);
         pasante.setActivo(true);
 
-        if (request.getPermisos() != null) {
-            pasante.setPermisos(request.getPermisos());
-        } else {
-            Permisos permisos = new Permisos();
-            permisos.setPasantes(true);
-            pasante.setPermisos(permisos);
+        Permisos permisos = request.getPermisos();
+        if (permisos == null) {
+            permisos = new Permisos();
         }
+        permisos.setPasantes(true);
+        permisos.setPacientes(true);
+        permisos.setSedes(true);
+        permisos.setInstitucionesEducativas(true);
+        pasante.setPermisos(permisos);
 
         if (foto != null && !foto.isEmpty()) {
             String filename = storageService.store(foto);
@@ -187,6 +189,13 @@ public class PasanteService {
                 pasante.setPermisos(request.getPermisos());
             }
         }
+        if (pasante.getPermisos() == null) {
+            pasante.setPermisos(new Permisos());
+        }
+        pasante.getPermisos().setPasantes(true);
+        pasante.getPermisos().setPacientes(true);
+        pasante.getPermisos().setSedes(true);
+        pasante.getPermisos().setInstitucionesEducativas(true);
 
         if (foto != null && !foto.isEmpty()) {
             String filename = storageService.store(foto);

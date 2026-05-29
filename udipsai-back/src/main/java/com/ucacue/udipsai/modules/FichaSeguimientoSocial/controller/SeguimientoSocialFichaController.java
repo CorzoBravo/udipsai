@@ -19,11 +19,21 @@ import java.util.List;
 public class SeguimientoSocialFichaController {
 
     private final SeguimientoSocialFichaService seguimientoService;
+    private final com.ucacue.udipsai.modules.asignacion.service.AsignacionSecurityService asignacionSecurity;
 
     // POST: http://localhost:8081/api/seguimientos-sociales (Para Guardar)
     @PostMapping
-    @PreAuthorize("hasAuthority('PERM_SEGUIMIENTO_SOCIAL_CREAR')")
     public ResponseEntity<SeguimientoSocialFichaDTO> crearSeguimiento(@RequestBody SeguimientoSocialFichaRequest request) {
+        if (!asignacionSecurity.checkPasanteAcceso(request.getPacienteId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        boolean canCreate = auth.getAuthorities().contains(new org.springframework.security.core.authority.SimpleGrantedAuthority("PERM_SEGUIMIENTO_SOCIAL_CREAR"));
+        if (!canCreate) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
         SeguimientoSocialFichaDTO nuevoSeguimiento = seguimientoService.crearSeguimiento(request);
         return new ResponseEntity<>(nuevoSeguimiento, HttpStatus.CREATED);
     }
@@ -39,7 +49,7 @@ public class SeguimientoSocialFichaController {
 
     // GET: http://localhost:8081/api/seguimientos-sociales/paciente/1 (Listar por paciente)
     @GetMapping("/paciente/{pacienteId}")
-    @PreAuthorize("hasAuthority('PERM_SEGUIMIENTO_SOCIAL')")
+    @PreAuthorize("hasAuthority('PERM_SEGUIMIENTO_SOCIAL') and @asignacionSecurity.checkPasanteAcceso(#pacienteId)")
     public ResponseEntity<List<SeguimientoSocialFichaDTO>> listarPorPaciente(@PathVariable Integer pacienteId) {
         List<SeguimientoSocialFichaDTO> lista = seguimientoService.listarPorPaciente(pacienteId);
         return ResponseEntity.ok(lista);
@@ -47,27 +57,72 @@ public class SeguimientoSocialFichaController {
     
     // GET: http://localhost:8081/api/seguimientos-sociales/1 (Obtener uno solo)
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('PERM_SEGUIMIENTO_SOCIAL')")
     public ResponseEntity<SeguimientoSocialFichaDTO> obtenerPorId(@PathVariable Integer id) {
-        return ResponseEntity.ok(seguimientoService.obtenerPorId(id));
+        SeguimientoSocialFichaDTO dto = seguimientoService.obtenerPorId(id);
+        if (dto != null) {
+            if (!asignacionSecurity.checkPasanteAcceso(dto.getPacienteId())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+        }
+
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        boolean canView = auth.getAuthorities().contains(new org.springframework.security.core.authority.SimpleGrantedAuthority("PERM_SEGUIMIENTO_SOCIAL"));
+        if (!canView) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        return ResponseEntity.ok(dto);
     }
     
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('PERM_SEGUIMIENTO_SOCIAL_EDITAR')")
     public ResponseEntity<SeguimientoSocialFichaDTO> actualizar(@PathVariable Integer id, @RequestBody SeguimientoSocialFichaRequest request) {
+        if (!asignacionSecurity.checkPasanteAcceso(request.getPacienteId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        boolean canEdit = auth.getAuthorities().contains(new org.springframework.security.core.authority.SimpleGrantedAuthority("PERM_SEGUIMIENTO_SOCIAL_EDITAR"));
+        if (!canEdit) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
         return ResponseEntity.ok(seguimientoService.actualizar(id, request));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('PERM_SEGUIMIENTO_SOCIAL_ELIMINAR')")
     public ResponseEntity<Void> eliminar(@PathVariable Integer id) {
+        SeguimientoSocialFichaDTO dto = seguimientoService.obtenerPorId(id);
+        if (dto != null) {
+            if (!asignacionSecurity.checkPasanteAcceso(dto.getPacienteId())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+        }
+
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        boolean canDelete = auth.getAuthorities().contains(new org.springframework.security.core.authority.SimpleGrantedAuthority("PERM_SEGUIMIENTO_SOCIAL_ELIMINAR"));
+        if (!canDelete) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
         seguimientoService.eliminar(id);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/reporte/pdf")
-    @PreAuthorize("hasAuthority('PERM_SEGUIMIENTO_SOCIAL')")
     public ResponseEntity<org.springframework.core.io.Resource> descargarPdf(@RequestParam Integer id) throws Exception {
+        SeguimientoSocialFichaDTO dto = seguimientoService.obtenerPorId(id);
+        if (dto != null) {
+            if (!asignacionSecurity.checkPasanteAcceso(dto.getPacienteId())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+        }
+
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        boolean canView = auth.getAuthorities().contains(new org.springframework.security.core.authority.SimpleGrantedAuthority("PERM_SEGUIMIENTO_SOCIAL"));
+        if (!canView) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
         byte[] pdf = seguimientoService.exportarPdf(id);
 
         org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
@@ -80,7 +135,7 @@ public class SeguimientoSocialFichaController {
     }
 
     @GetMapping("/reporte/excel")
-    @PreAuthorize("hasAuthority('PERM_SEGUIMIENTO_SOCIAL')")
+    @PreAuthorize("hasAuthority('PERM_SEGUIMIENTO_SOCIAL') and (#pacienteId == null or @asignacionSecurity.checkPasanteAcceso(#pacienteId))")
     public ResponseEntity<org.springframework.core.io.Resource> descargarExcel(
             @RequestParam(required = false) Integer pacienteId) throws java.io.IOException {
 

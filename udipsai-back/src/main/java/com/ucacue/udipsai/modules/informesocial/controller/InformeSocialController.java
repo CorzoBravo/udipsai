@@ -17,6 +17,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -36,23 +37,53 @@ public class InformeSocialController {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private com.ucacue.udipsai.modules.asignacion.service.AsignacionSecurityService asignacionSecurity;
+
     @GetMapping
+    @PreAuthorize("hasAuthority('PERM_INFORME_SOCIAL')")
     public ResponseEntity<List<InformeSocialDTO>> listar() {
         return ResponseEntity.ok(informeService.listarInformes());
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<InformeSocialDTO> obtenerPorId(@PathVariable Integer id) {
-        return ResponseEntity.ok(informeService.obtenerPorId(id));
+        InformeSocialDTO dto = informeService.obtenerPorId(id);
+        if (dto != null && dto.getPaciente() != null) {
+            if (!asignacionSecurity.checkPasanteAcceso(dto.getPaciente().getId())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+        }
+
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        boolean canView = auth.getAuthorities().contains(new org.springframework.security.core.authority.SimpleGrantedAuthority("PERM_INFORME_SOCIAL"));
+        if (!canView) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        return ResponseEntity.ok(dto);
     }
 
     @GetMapping("/paciente/{cedula}")
     public ResponseEntity<InformeSocialDTO> obtenerPorPaciente(@PathVariable String cedula) {
         InformeSocialDTO dto = informeService.obtenerPorPacienteCedula(cedula);
+        if (dto != null && dto.getPaciente() != null) {
+            if (!asignacionSecurity.checkPasanteAcceso(dto.getPaciente().getId())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+        }
+
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        boolean canView = auth.getAuthorities().contains(new org.springframework.security.core.authority.SimpleGrantedAuthority("PERM_INFORME_SOCIAL"));
+        if (!canView) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
         return (dto != null) ? ResponseEntity.ok(dto) : ResponseEntity.notFound().build();
     }
 
     @GetMapping("/paciente/id/{pacienteId}")
+    @PreAuthorize("hasAuthority('PERM_INFORME_SOCIAL') and @asignacionSecurity.checkPasanteAcceso(#pacienteId)")
     public ResponseEntity<InformeSocialDTO> obtenerPorPacienteId(@PathVariable Integer pacienteId) {
         InformeSocialDTO dto = informeService.obtenerPorPacienteId(pacienteId);
         return (dto != null) ? ResponseEntity.ok(dto) : ResponseEntity.notFound().build();
@@ -66,6 +97,16 @@ public class InformeSocialController {
 
         try {
             InformeSocialRequest request = objectMapper.readValue(informeJson, InformeSocialRequest.class);
+            if (!asignacionSecurity.checkPasanteAcceso(request.getPacienteId())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+
+            org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+            boolean canCreate = auth.getAuthorities().contains(new org.springframework.security.core.authority.SimpleGrantedAuthority("PERM_INFORME_SOCIAL_CREAR"));
+            if (!canCreate) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(informeService.crearInforme(request, genograma, ecomapa));
         } catch (Exception e) {
@@ -82,6 +123,16 @@ public class InformeSocialController {
 
         try {
             InformeSocialRequest request = objectMapper.readValue(informeJson, InformeSocialRequest.class);
+            if (!asignacionSecurity.checkPasanteAcceso(request.getPacienteId())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+
+            org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+            boolean canEdit = auth.getAuthorities().contains(new org.springframework.security.core.authority.SimpleGrantedAuthority("PERM_INFORME_SOCIAL_EDITAR"));
+            if (!canEdit) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+
             return ResponseEntity.ok(informeService.actualizarInforme(id, request, genograma, ecomapa));
         } catch (Exception e) {
             throw new IllegalArgumentException(e.getMessage(), e);
@@ -90,6 +141,19 @@ public class InformeSocialController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable Integer id) {
+        InformeSocialDTO dto = informeService.obtenerPorId(id);
+        if (dto != null && dto.getPaciente() != null) {
+            if (!asignacionSecurity.checkPasanteAcceso(dto.getPaciente().getId())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+        }
+
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        boolean canDelete = auth.getAuthorities().contains(new org.springframework.security.core.authority.SimpleGrantedAuthority("PERM_INFORME_SOCIAL_ELIMINAR"));
+        if (!canDelete) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
         informeService.eliminarInforme(id);
         return ResponseEntity.noContent().build();
     }
@@ -99,10 +163,24 @@ public class InformeSocialController {
             @PathVariable Integer informeId,
             @PathVariable Integer familiarId,
             @RequestBody InformeSocialFamiliarDTO familiarDTO) {
+        InformeSocialDTO dto = informeService.obtenerPorId(informeId);
+        if (dto != null && dto.getPaciente() != null) {
+            if (!asignacionSecurity.checkPasanteAcceso(dto.getPaciente().getId())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+        }
+
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        boolean canEdit = auth.getAuthorities().contains(new org.springframework.security.core.authority.SimpleGrantedAuthority("PERM_INFORME_SOCIAL_EDITAR"));
+        if (!canEdit) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
         return ResponseEntity.ok(informeService.actualizarFamiliarEspecifico(informeId, familiarId, familiarDTO));
     }
 
     @GetMapping("/reporte/excel")
+    @PreAuthorize("hasAuthority('PERM_INFORME_SOCIAL') and (#pacienteId == null or @asignacionSecurity.checkPasanteAcceso(#pacienteId))")
     public ResponseEntity<Resource> descargarExcel(
             @RequestParam(required = false) Integer pacienteId)
             throws IOException {
@@ -123,6 +201,7 @@ public class InformeSocialController {
     }
 
     @GetMapping("/reporte/pdf")
+    @PreAuthorize("hasAuthority('PERM_INFORME_SOCIAL') and @asignacionSecurity.checkPasanteAcceso(#pacienteId)")
     public ResponseEntity<Resource> descargarPdf(
             @RequestParam Integer pacienteId)
             throws Exception {
@@ -141,6 +220,7 @@ public class InformeSocialController {
     }
 
     @GetMapping("/paciente/{pacienteId}/genograma")
+    @PreAuthorize("hasAuthority('PERM_INFORME_SOCIAL') and @asignacionSecurity.checkPasanteAcceso(#pacienteId)")
     public ResponseEntity<Resource> descargarGenograma(@PathVariable Integer pacienteId) {
         Resource file = informeService.cargarGenogramaComoRecurso(pacienteId);
         if (file == null) {
@@ -154,6 +234,7 @@ public class InformeSocialController {
     }
 
     @GetMapping("/paciente/{pacienteId}/ecomapa")
+    @PreAuthorize("hasAuthority('PERM_INFORME_SOCIAL') and @asignacionSecurity.checkPasanteAcceso(#pacienteId)")
     public ResponseEntity<Resource> descargarEcomapa(@PathVariable Integer pacienteId) {
         Resource file = informeService.cargarEcomapaComoRecurso(pacienteId);
         if (file == null) {

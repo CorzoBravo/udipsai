@@ -31,6 +31,10 @@ public class FichaSocioeconomica {
     @JoinColumn(name = "especialista_id", referencedColumnName = "id")
     private Especialista especialista;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "pasante_id", referencedColumnName = "id")
+    private com.ucacue.udipsai.modules.pasante.domain.Pasante pasante;
+
     @Column(name = "activo", nullable = false)
     private Boolean activo = true;
 
