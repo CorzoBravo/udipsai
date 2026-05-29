@@ -147,7 +147,7 @@ public class InformeSocialReportService {
                                                         .setCellValue(
                                                                         fmt(i.getElaboradoPor()));
 
-                                        // Familiares concatenados
+                                       
                                         if (i.getFamiliares() != null &&
                                                         !i.getFamiliares().isEmpty()) {
 

@@ -84,7 +84,7 @@ public class FichaSocioeconomicaService {
         ficha.setPaciente(paciente);
         ficha.setActivo(true);
 
-        // Resolve creator as Specialist or Pasante
+        
         Especialista especialista = especialistaRepository.findById(request.getEspecialistaId()).orElse(null);
         if (especialista != null) {
             ficha.setEspecialista(especialista);

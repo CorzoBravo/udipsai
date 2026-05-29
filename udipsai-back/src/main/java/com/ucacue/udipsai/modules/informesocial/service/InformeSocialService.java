@@ -109,7 +109,7 @@ public class InformeSocialService {
             guardado = familiarService.crearFamiliar(pacienteId, fReq);
         }
 
-        // Avoid linking multiple times if it's already an informante for this informe
+       
         Familiar informanteActual = familiarService.obtenerInformante(informeId);
         if (informanteActual == null || !informanteActual.getId().equals(guardado.getId())) {
             familiarService.vincularFamiliarAInforme(guardado.getId(), informeId, true);

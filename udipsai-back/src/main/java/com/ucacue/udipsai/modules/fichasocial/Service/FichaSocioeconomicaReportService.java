@@ -47,7 +47,7 @@ public class FichaSocioeconomicaReportService {
 
         return ExcelGenerator.generateExcel("Fichas Socioeconómicas", headers, fichas, (row, f) -> {
             int col = 0;
-            // DATOS BÁSICOS
+            
             row.createCell(col++).setCellValue(fmt(f.getId()));
             row.createCell(col++).setCellValue(f.getPaciente() != null ? f.getPaciente().getNombresApellidos() : "N/A");
             row.createCell(col++).setCellValue(f.getPaciente() != null ? f.getPaciente().getCedula() : "N/A");
@@ -55,7 +55,7 @@ public class FichaSocioeconomicaReportService {
             row.createCell(col++)
                     .setCellValue(f.getEspecialista() != null ? f.getEspecialista().getNombresApellidos() : "N/A");
 
-            // RIESGOS SOCIALES
+            
             RiesgosSociales rs = f.getRiesgosSociales();
             if (rs != null) {
                 row.createCell(col++).setCellValue(fmt(rs.getProblemasSociales()));
@@ -68,7 +68,7 @@ public class FichaSocioeconomicaReportService {
                 col += 3;
             }
 
-            // VIVIENDA
+        
             ViviendaHabitabilidad vh = f.getVivienda();
             if (vh != null) {
                 row.createCell(col++).setCellValue(fmt(vh.getTipoTenencia()));
@@ -79,7 +79,7 @@ public class FichaSocioeconomicaReportService {
                 col += 3;
             }
 
-            // SALUD
+          
             SituacionSalud ss = f.getSalud();
             if (ss != null) {
                 row.createCell(col++).setCellValue(fmt(ss.getLugarAtencionMedica()));
@@ -89,7 +89,7 @@ public class FichaSocioeconomicaReportService {
                 col += 3;
             }
 
-            // ECONOMÍA
+            
             SituacionEconomica se = f.getSituacionEconomica();
             if (se != null) {
                 row.createCell(col++).setCellValue(fmt(se.getTotalIngresos()));
@@ -99,7 +99,7 @@ public class FichaSocioeconomicaReportService {
                 col += 3;
             }
 
-            // DINÁMICA FAMILIAR
+            
             DinamicaFamiliar df = f.getDinamicaFamiliar();
             if (df != null) {
                 row.createCell(col++).setCellValue(fmt(df.getTipoHogar()));
