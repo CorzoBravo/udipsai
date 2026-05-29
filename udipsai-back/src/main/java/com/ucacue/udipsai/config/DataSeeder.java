@@ -11,6 +11,7 @@ import com.ucacue.udipsai.modules.asignacion.repository.AsignacionRepository;
 import com.ucacue.udipsai.modules.permisos.Permisos;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -31,6 +32,9 @@ public class DataSeeder implements CommandLineRunner {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     @Override
     public void run(String... args) throws Exception {
@@ -106,6 +110,20 @@ public class DataSeeder implements CommandLineRunner {
             System.out.println("Cédula: 0101010101");
             System.out.println("Contraseña: admin123");
             System.out.println("------------------------------------------------");
+        }
+
+        // permisos de admin actualizados en caso de que se necesiten mas permisos 
+        syncPermisosSequence();
+    }
+
+    private void syncPermisosSequence() {
+        try {
+            jdbcTemplate.execute("SELECT setval('permisos_id_seq', (SELECT COALESCE(MAX(id), 1) FROM permisos))");
+            System.out.println("------------------------------------------------");
+            System.out.println("Secuencia de permisos reseteada correctamente.");
+            System.out.println("------------------------------------------------");
+        } catch (Exception e) {
+            System.out.println("No se pudo resetear la secuencia de permisos: " + e.getMessage());
         }
     }
 

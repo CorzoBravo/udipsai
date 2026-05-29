@@ -201,6 +201,7 @@ export default function FichasUnificadasTable() {
   const [viewInformeModalOpen, setViewInformeModalOpen] = useState(false);
   const activeTab = tabs.find((t) => t.key === activeTabKey) || tabs[0];
 
+
   const isSeguimientoSocial = activeTabKey === "seguimiento_social";
 
   const handleTabChange = (key: TabKey) => {
@@ -364,7 +365,7 @@ export default function FichasUnificadasTable() {
 
       <div className="rounded-xl border border-gray-200 bg-white p-5 dark:border-white/[0.05] dark:bg-white/[0.03]">
         <div className="mb-6 flex flex-wrap gap-2 border-b border-gray-200 dark:border-gray-700 pb-2">
-          {tabs.filter((tab) => hasPermission(tab.permRead)).map((tab) => {
+          {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTabKey === tab.key;
             return (
