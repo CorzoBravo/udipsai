@@ -33,6 +33,9 @@ public class FichaSocioeconomicaController {
     @Autowired
     private FichaSocioeconomicaReportService reportService;
 
+    @Autowired
+    private com.ucacue.udipsai.modules.asignacion.service.AsignacionSecurityService asignacionSecurity;
+
     @GetMapping
     @PreAuthorize("hasAuthority('PERM_SOCIOECONOMICA')")
     public ResponseEntity<List<FichaSocioeconomicaDTO>> listar() {
@@ -40,43 +43,82 @@ public class FichaSocioeconomicaController {
     }
 
     @GetMapping("/paciente/{pacienteId}")
-    @PreAuthorize("hasAuthority('PERM_SOCIOECONOMICA')")
+    @PreAuthorize("hasAuthority('PERM_SOCIOECONOMICA') and @asignacionSecurity.checkPasanteAcceso(#pacienteId)")
     public ResponseEntity<FichaSocioeconomicaDTO> obtenerPorPaciente(@PathVariable Integer pacienteId) {
         FichaSocioeconomicaDTO dto = fichaService.obtenerFichaActivaPorPacienteId(pacienteId);
         return (dto != null) ? ResponseEntity.ok(dto) : ResponseEntity.notFound().build();
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('PERM_SOCIOECONOMICA')")
     public ResponseEntity<FichaSocioeconomicaDTO> obtenerPorId(@PathVariable Integer id) {
-        return ResponseEntity.ok(fichaService.obtenerPorId(id));
+        FichaSocioeconomicaDTO dto = fichaService.obtenerPorId(id);
+        if (dto != null && dto.getPaciente() != null) {
+            if (!asignacionSecurity.checkPasanteAcceso(dto.getPaciente().getId())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+        }
+
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        boolean canView = auth.getAuthorities().contains(new org.springframework.security.core.authority.SimpleGrantedAuthority("PERM_SOCIOECONOMICA"));
+        if (!canView) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        return ResponseEntity.ok(dto);
     }
 
     @PostMapping("/crearFicha")
-    @PreAuthorize("hasAuthority('PERM_SOCIOECONOMICA_CREAR') and @asignacionSecurity.checkPasanteAcceso(#request.pacienteId)")
-
     public ResponseEntity<FichaSocioeconomicaDTO> crear(@RequestBody FichaSocioeconomicaRequest request) {
+        if (!asignacionSecurity.checkPasanteAcceso(request.getPacienteId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        boolean canCreate = auth.getAuthorities().contains(new org.springframework.security.core.authority.SimpleGrantedAuthority("PERM_SOCIOECONOMICA_CREAR"));
+        if (!canCreate) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
         return ResponseEntity.status(HttpStatus.CREATED).body(fichaService.crearFicha(request));
     }
 
     @PutMapping("/socioeconomicas/{id}")
-    @PreAuthorize("hasAuthority('PERM_SOCIOECONOMICA_EDITAR')")
-
     public ResponseEntity<FichaSocioeconomicaDTO> actualizar(@PathVariable Integer id,
             @RequestBody FichaSocioeconomicaRequest request) {
+        if (!asignacionSecurity.checkPasanteAcceso(request.getPacienteId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        boolean canEdit = auth.getAuthorities().contains(new org.springframework.security.core.authority.SimpleGrantedAuthority("PERM_SOCIOECONOMICA_EDITAR"));
+        if (!canEdit) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
         return ResponseEntity.ok(fichaService.actualizarFicha(id, request));
     }
 
     @DeleteMapping("/socioeconomicas/{id}")
-    @PreAuthorize("hasAuthority('PERM_SOCIOECONOMICA_ELIMINAR')")
-
     public ResponseEntity<Void> eliminar(@PathVariable Integer id) {
+        FichaSocioeconomicaDTO dto = fichaService.obtenerPorId(id);
+        if (dto != null && dto.getPaciente() != null) {
+            if (!asignacionSecurity.checkPasanteAcceso(dto.getPaciente().getId())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+        }
+
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        boolean canDelete = auth.getAuthorities().contains(new org.springframework.security.core.authority.SimpleGrantedAuthority("PERM_SOCIOECONOMICA_ELIMINAR"));
+        if (!canDelete) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
         fichaService.desactivarFicha(id);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/reporte/excel")
-    @PreAuthorize("hasAuthority('PERM_SOCIOECONOMICA')")
+    @PreAuthorize("hasAuthority('PERM_SOCIOECONOMICA') and (#pacienteId == null or @asignacionSecurity.checkPasanteAcceso(#pacienteId))")
     public ResponseEntity<Resource> descargarExcel(@RequestParam(required = false) Integer pacienteId)
             throws IOException {
 
@@ -93,7 +135,7 @@ public class FichaSocioeconomicaController {
     }
 
     @GetMapping("/reporte/pdf")
-    @PreAuthorize("hasAuthority('PERM_SOCIOECONOMICA')")
+    @PreAuthorize("hasAuthority('PERM_SOCIOECONOMICA') and @asignacionSecurity.checkPasanteAcceso(#pacienteId)")
     public ResponseEntity<Resource> descargarPdf(
             @RequestParam Integer pacienteId) throws Exception {
 
