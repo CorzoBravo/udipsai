@@ -38,11 +38,8 @@ public class FichaSocioeconomicaService {
     private EspecialistaRepository especialistaRepository;
 
     @Autowired
-<<<<<<< HEAD
     private FamiliarService familiarService;
-=======
     private com.ucacue.udipsai.modules.pasante.repository.PasanteRepository pasanteRepository;
->>>>>>> origin/main
 
     @Transactional(readOnly = true)
     public List<FichaSocioeconomicaDTO> listarFichas() {
