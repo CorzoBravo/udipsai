@@ -1,18 +1,30 @@
-<!doctype html>
+<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
   <head>
     <meta charset="UTF-8" />
     <style>
+      @page {
+        size: A4;
+        margin: 30mm 15mm 22mm 15mm;
+        @top-center {
+          content: element(header);
+        }
+        @bottom-center {
+          content: element(footer);
+        }
+      }
       body {
         font-family: Arial;
+        margin: 0;
         font-size: 12px;
         color: #333;
       }
       .header {
+        position: running(header);
         text-align: center;
         border-bottom: 2px solid #fa3340;
-        margin-bottom: 20px;
-        padding-bottom: 10px;
+        padding-bottom: 5px;
+        width: 100%;
       }
       .header h1 {
         color: #fa3340;
@@ -75,14 +87,16 @@
         width: 80%;
         margin: 0 auto 5px auto;
       }
-       .footer-info {
+      .footer-info {
+        position: running(footer);
         text-align: center;
-        margin-top: 50px;
         font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-        font-size: 11px;
+        font-size: 10px;
         color: #000;
-        line-height: 1.5;
-        page-break-inside: avoid;
+        line-height: 1.4;
+        border-top: 1px solid #ddd;
+        padding-top: 5px;
+        width: 100%;
       }
       .footer-info .label-dir {
         font-weight: bold;
@@ -97,7 +111,7 @@
     <div class="header">
       <img
         src="../../static/images/logo/logoudipsai.png"
-        th:src="@{/images/logo/logoudipsai.png}"
+        th:src="${logoUri}"
         alt="UDIPSAI Logo"
         style="height: 60px; margin-bottom: 5px"
       />

@@ -1,21 +1,32 @@
-<!doctype html>
+<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
   <head>
     <meta charset="UTF-8" />
     <title>Ficha Socioeconómica</title>
     <style>
+      @page {
+        size: A4;
+        margin: 30mm 15mm 22mm 15mm;
+        @top-center {
+          content: element(header);
+        }
+        @bottom-center {
+          content: element(footer);
+        }
+      }
       body {
         font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
         font-size: 11px;
         color: #222;
         line-height: 1.4;
-        margin: 20px;
+        margin: 0;
       }
       .header {
+        position: running(header);
         text-align: center;
         border-bottom: 3px solid #fa3340;
-        margin-bottom: 20px;
-        padding-bottom: 10px;
+        padding-bottom: 5px;
+        width: 100%;
       }
       .header h1 {
         color: #fa3340;
@@ -113,13 +124,15 @@
       }
 
       .footer-info {
+        position: running(footer);
         text-align: center;
-        margin-top: 50px;
         font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-        font-size: 11px;
+        font-size: 10px;
         color: #000;
-        line-height: 1.5;
-        page-break-inside: avoid;
+        line-height: 1.4;
+        border-top: 1px solid #ddd;
+        padding-top: 5px;
+        width: 100%;
       }
       .footer-info .label-dir {
         font-weight: bold;
@@ -131,10 +144,17 @@
     </style>
   </head>
   <body>
+    <div class="footer-info">
+      <span class="label-dir">Dirección:</span> Av. De las Américas y
+      Humboldt<br />
+      Tel: 4134750 ext. 2003<br />
+      <a href="mailto:udipsai@ucacue.edu.ec">udipsai@ucacue.edu.ec</a>
+    </div>
+
     <div class="header">
       <img
         src="../../static/images/logo/logoudipsai.png"
-        th:src="@{/images/logo/logoudipsai.png}"
+        th:src="${logoUri}"
         alt="UDIPSAI Logo"
         style="height: 60px; margin-bottom: 5px"
       />
@@ -848,16 +868,16 @@
       <!-- SALUD DE FAMILIARES DENTRO DE LA SECCIÓN 8 -->
       <div style="margin-top: 15px">
         <span class="label">PROBLEMAS DE SALUD DE FAMILIAR:</span>
-        <div th:each="fam : ${f.familiares}" th:if="${fam.problemas_salud}">
+        <div th:each="fam : ${f.familiares}" th:if="${fam.problemasSalud}">
           - <span class="label">Parentesco:</span>
           <span th:text="${fam.relacion}"></span> &#160;&#160;
           <span class="label">Nombre:</span>
           <span th:text="${fam.nombresApellidos}"></span> &#160;&#160;
           <span class="label">Enfermedad:</span>
-          <span th:text="${fam.descripProblemasSaludFamiliar}"></span>
+          <span th:text="${fam.descripProblemasSalud}"></span>
         </div>
         <div
-          th:if="${#lists.isEmpty(f.familiares) or f.familiares.?[problemas_salud].isEmpty()}"
+          th:if="${#lists.isEmpty(f.familiares) or f.familiares.?[problemasSalud].isEmpty()}"
         >
           SI ( ) NO (X)
         </div>
@@ -869,7 +889,7 @@
         >
         <div
           th:each="fam : ${f.familiares}"
-          th:if="${fam.enfermedad_catastrofica}"
+          th:if="${fam.enfermedadCatastrofica}"
         >
           - <span class="label">Parentesco:</span>
           <span th:text="${fam.relacion}"></span> &#160;&#160;
@@ -879,7 +899,7 @@
           <span th:text="${fam.descripEnfermedadCatastrofica}"></span>
         </div>
         <div
-          th:if="${#lists.isEmpty(f.familiares) or f.familiares.?[enfermedad_catastrofica].isEmpty()}"
+          th:if="${#lists.isEmpty(f.familiares) or f.familiares.?[enfermedadCatastrofica].isEmpty()}"
         >
           SI ( ) NO (X)
         </div>
@@ -1196,12 +1216,5 @@
         </td>
       </tr>
     </table>
-
-    <div class="footer-info">
-      <span class="label-dir">Dirección:</span> Av. De las Américas y
-      Humboldt<br />
-      Tel: 4134750 ext. 2003<br />
-      <a href="mailto:udipsai@ucacue.edu.ec">udipsai@ucacue.edu.ec</a>
-    </div>
   </body>
 </html>

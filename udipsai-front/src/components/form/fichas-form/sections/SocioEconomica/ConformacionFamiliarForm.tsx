@@ -2,6 +2,7 @@ import React from "react";
 import { Plus, Trash2, ChevronDown, ChevronUp, User } from "lucide-react";
 
 interface Familiar {
+  id?: number | null;
   relacion: string;
   nombresApellidos: string;
   edad: number;
@@ -9,6 +10,9 @@ interface Familiar {
   instruccion: string;
   ocupacion: string;
   ingresoMensual: number;
+  cedula?: string;
+  numeroTelefono?: string;
+  correoElectronico?: string;
 }
 
 interface ConformacionFamiliarProps {
@@ -293,7 +297,7 @@ const ConformacionFamiliar: React.FC<ConformacionFamiliarProps> = ({
                   </div>
 
                   {/* INGRESO MENSUAL */}
-                  <div className="flex flex-col md:col-span-2">
+                  <div className="flex flex-col">
                     <label className="text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">
                       INGRESO MENSUAL
                     </label>
@@ -310,6 +314,61 @@ const ConformacionFamiliar: React.FC<ConformacionFamiliarProps> = ({
                           "ingresoMensual",
                           e.target.value === "" ? 0 : parseFloat(e.target.value)
                         )
+                      }
+                      className="border p-2 rounded w-full 
+               text-sm text-gray-700 
+               dark:text-gray-200 dark:bg-gray-800
+               focus:outline-none focus:ring-2 focus:ring-brand-400"
+                    />
+                  </div>
+
+                  {/* CÉDULA */}
+                  <div className="flex flex-col">
+                    <label className="text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">
+                      CÉDULA
+                    </label>
+                    <input
+                      placeholder="Cédula de identidad"
+                      value={familiar.cedula || ""}
+                      onChange={(e) =>
+                        onChange(index, "cedula", e.target.value)
+                      }
+                      className="border p-2 rounded w-full 
+               text-sm text-gray-700 
+               dark:text-gray-200 dark:bg-gray-800
+               focus:outline-none focus:ring-2 focus:ring-brand-400"
+                    />
+                  </div>
+
+                  {/* TELÉFONO */}
+                  <div className="flex flex-col">
+                    <label className="text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">
+                      TELÉFONO
+                    </label>
+                    <input
+                      placeholder="Número de teléfono"
+                      value={familiar.numeroTelefono || ""}
+                      onChange={(e) =>
+                        onChange(index, "numeroTelefono", e.target.value)
+                      }
+                      className="border p-2 rounded w-full 
+               text-sm text-gray-700 
+               dark:text-gray-200 dark:bg-gray-800
+               focus:outline-none focus:ring-2 focus:ring-brand-400"
+                    />
+                  </div>
+
+                  {/* CORREO ELECTRÓNICO */}
+                  <div className="flex flex-col">
+                    <label className="text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">
+                      CORREO ELECTRÓNICO
+                    </label>
+                    <input
+                      type="email"
+                      placeholder="correo@ejemplo.com"
+                      value={familiar.correoElectronico || ""}
+                      onChange={(e) =>
+                        onChange(index, "correoElectronico", e.target.value)
                       }
                       className="border p-2 rounded w-full 
                text-sm text-gray-700 

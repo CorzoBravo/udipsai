@@ -72,6 +72,7 @@ export interface FichaSocioeconomicaState {
   };
 
   familiares: {
+    id?: number | null;
     relacion: string;
     nombresApellidos: string;
     edad: number;
@@ -79,6 +80,9 @@ export interface FichaSocioeconomicaState {
     instruccion: string;
     ocupacion: string;
     ingresoMensual: number;
+    cedula?: string;
+    numeroTelefono?: string;
+    correoElectronico?: string;
     salud?: FamiliarSalud;
   }[];
 
@@ -348,6 +352,7 @@ const buildRequest = (data: FichaSocioeconomicaState) => {
     responsable: data.responsable || "",
 
     familiares: data.familiares.map((f) => ({
+      id: f.id || null,
       relacion: f.relacion,
       nombresApellidos: f.nombresApellidos,
       edad: f.edad,
@@ -355,11 +360,14 @@ const buildRequest = (data: FichaSocioeconomicaState) => {
       instruccion: f.instruccion,
       ocupacion: f.ocupacion,
       ingresoMensual: f.ingresoMensual,
+      cedula: f.cedula || "",
+      numeroTelefono: f.numeroTelefono || "",
+      correoElectronico: f.correoElectronico || "",
 
-      problemas_salud: f.salud?.problema || false,
-      descripProblemasSaludFamiliar: f.salud?.enfermedad || "",
+      problemasSalud: f.salud?.problema || false,
+      descripProblemasSalud: f.salud?.enfermedad || "",
 
-      enfermedad_catastrofica: f.salud?.catastrofica || false,
+      enfermedadCatastrofica: f.salud?.catastrofica || false,
       descripEnfermedadCatastrofica: f.salud?.enfermedadCatastrofica || "",
 
       discapacidad: f.salud?.discapacidad || false,
@@ -531,10 +539,10 @@ export default function FormularioFichaSocioeconomica() {
       const mappedFamiliares = (data.familiares || []).map((f: any) => ({
         ...f,
         salud: {
-          problema: f.problemas_salud || false,
-          enfermedad: f.descripProblemasSaludFamiliar || "",
+          problema: f.problemasSalud || false,
+          enfermedad: f.descripProblemasSalud || "",
 
-          catastrofica: f.enfermedad_catastrofica || false,
+          catastrofica: f.enfermedadCatastrofica || false,
           enfermedadCatastrofica: f.descripEnfermedadCatastrofica || "",
 
           discapacidad: f.discapacidad || false,
@@ -972,6 +980,7 @@ export default function FormularioFichaSocioeconomica() {
                     familiares: [
                       ...prev.familiares,
                       {
+                        id: null,
                         relacion: "",
                         nombresApellidos: "",
                         edad: 0,
@@ -979,6 +988,9 @@ export default function FormularioFichaSocioeconomica() {
                         instruccion: "",
                         ocupacion: "",
                         ingresoMensual: 0,
+                        cedula: "",
+                        numeroTelefono: "",
+                        correoElectronico: "",
                       },
                     ],
                   }));

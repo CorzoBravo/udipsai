@@ -33,6 +33,7 @@ interface SectionHeaderProps {
 }
 
 export interface FamiliarItem {
+  id?: number | null;
   relacion: string;
   nombresApellidos: string;
   edad: number;
@@ -40,6 +41,9 @@ export interface FamiliarItem {
   instruccion: string;
   ocupacion: string;
   ingresoMensual: number;
+  cedula?: string;
+  numeroTelefono?: string;
+  correoElectronico?: string;
 }
 
 export interface InformeSocialState {
@@ -59,7 +63,6 @@ export interface InformeSocialState {
 
   numFicha: string;
   fechaElaboracion: string;
-
   descripcionDinamicaFamiliar: string;
   situacionEconomica: string;
   situacionHabitabilidad: string;
@@ -76,6 +79,7 @@ export interface InformeSocialState {
   pacienteNacionalidad?: string;
   pacienteSexo?: string;
 
+  informanteId?: number | null;
   informanteNombre?: string;
   informanteParentesco?: string;
   informanteCedula?: string;
@@ -120,16 +124,25 @@ const buildRequest = (data: InformeSocialState) => {
     pacienteNacionalidad: data.pacienteNacionalidad || "",
     pacienteSexo: data.pacienteSexo || "",
 
-    informanteNombre: data.informanteNombre || "",
-    informanteParentesco: data.informanteParentesco || "",
-    informanteCedula: data.informanteCedula || "",
-    informanteTelefono: data.informanteTelefono || "",
-    informanteCorreo: data.informanteCorreo || "",
+    informante: data.informanteNombre ? {
+      id: data.informanteId || null,
+      pacienteId: data.paciente?.id || null,
+      relacion: data.informanteParentesco || "",
+      nombresApellidos: data.informanteNombre || "",
+      cedula: data.informanteCedula || "",
+      numeroTelefono: data.informanteTelefono || "",
+      correoElectronico: data.informanteCorreo || "",
+      problemasSalud: false,
+      enfermedadCatastrofica: false,
+      discapacidad: false,
+      activo: true
+    } : null,
 
     tipoFamilia: data.tipoFamilia || "",
     tipoFamiliaEspecificar: data.tipoFamiliaEspecificar || "",
 
     familiares: (data.familiares ?? []).map((f) => ({
+      id: f.id || null,
       nombres: f.nombresApellidos,
       parentesco: f.relacion,
       edad: f.edad,
@@ -137,6 +150,9 @@ const buildRequest = (data: InformeSocialState) => {
       instruccion: f.instruccion,
       ocupacion: f.ocupacion,
       ingresos: f.ingresoMensual,
+      cedula: f.cedula || "",
+      telefono: f.numeroTelefono || "",
+      correo: f.correoElectronico || "",
     })),
   };
 };
@@ -308,6 +324,7 @@ export default function FormularioInformeSocial() {
         }
 
         const mappedFamiliares = (data.familiares || []).map((f: any) => ({
+          id: f.id || null,
           nombresApellidos: f.nombres || "",
           relacion: f.parentesco || "",
           edad: f.edad || 0,
@@ -315,7 +332,12 @@ export default function FormularioInformeSocial() {
           instruccion: f.instruccion || "",
           ocupacion: f.ocupacion || "",
           ingresoMensual: f.ingresos || 0,
+          cedula: f.cedula || "",
+          numeroTelefono: f.telefono || "",
+          correoElectronico: f.correo || "",
         }));
+
+        const informante = data.informante || null;
 
         setFormData((prev) => ({
           ...prev,
@@ -324,6 +346,14 @@ export default function FormularioInformeSocial() {
           paciente: data.paciente || prev.paciente,
           genogramaUrl: genogramaObjUrl || prev.genogramaUrl,
           ecomapaUrl: ecomapaObjUrl || prev.ecomapaUrl,
+          
+          informanteId: informante?.id || null,
+          informanteNombre: informante?.nombresApellidos || "",
+          informanteParentesco: informante?.relacion || "",
+          informanteCedula: informante?.cedula || "",
+          informanteTelefono: informante?.numeroTelefono || "",
+          informanteCorreo: informante?.correoElectronico || "",
+          
           familiares: mappedFamiliares,
           tipoFamilia: data.tipoFamilia || "",
           tipoFamiliaEspecificar: data.tipoFamiliaEspecificar || "",
@@ -335,7 +365,7 @@ export default function FormularioInformeSocial() {
         // Marcar secciones como abiertas si tienen datos
         setSecciones({
           informacionPaciente: !!(data.pacienteEstadoCivil || data.pacienteNacionalidad || data.pacienteSexo),
-          informante: !!(data.informanteNombre || data.informanteParentesco || data.informanteCedula || data.informanteTelefono || data.informanteCorreo),
+          informante: !!(data.informante || data.informanteNombre),
           dinamicaFamiliar: !!data.descripcionDinamicaFamiliar || !!data.tipoFamilia,
           situacionEconomica: !!data.situacionEconomica,
           situacionHabitabilidad: !!data.situacionHabitabilidad,
@@ -377,6 +407,7 @@ export default function FormularioInformeSocial() {
       const socioeconomica = await fichasService.obtenerSocioEconomico(pacienteId);
       if (socioeconomica?.familiares?.length > 0) {
         const mapped = socioeconomica.familiares.map((f: any) => ({
+          id: f.id || null,
           nombresApellidos: f.nombresApellidos || "",
           relacion: f.relacion || "",
           edad: f.edad || 0,
@@ -384,6 +415,9 @@ export default function FormularioInformeSocial() {
           instruccion: f.instruccion || "",
           ocupacion: f.ocupacion || "",
           ingresoMensual: f.ingresoMensual || 0,
+          cedula: f.cedula || "",
+          numeroTelefono: f.numeroTelefono || "",
+          correoElectronico: f.correoElectronico || "",
         }));
         setFormData((prev) => ({
           ...prev,
@@ -745,8 +779,12 @@ export default function FormularioInformeSocial() {
                       const familiar = formData.familiares[Number(idx)];
                       setFormData({
                         ...formData,
+                        informanteId: familiar.id || null,
                         informanteNombre: familiar.nombresApellidos,
                         informanteParentesco: familiar.relacion,
+                        informanteCedula: familiar.cedula || "",
+                        informanteTelefono: familiar.numeroTelefono || "",
+                        informanteCorreo: familiar.correoElectronico || "",
                       });
                     }
                   }}
@@ -868,6 +906,7 @@ export default function FormularioInformeSocial() {
                 familiares: [
                   ...prev.familiares,
                   {
+                    id: null,
                     relacion: "",
                     nombresApellidos: "",
                     edad: 0,
@@ -875,6 +914,9 @@ export default function FormularioInformeSocial() {
                     instruccion: "",
                     ocupacion: "",
                     ingresoMensual: 0,
+                    cedula: "",
+                    numeroTelefono: "",
+                    correoElectronico: "",
                   },
                 ],
               }));

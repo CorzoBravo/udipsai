@@ -4,19 +4,31 @@
     <meta charset="UTF-8"/>
     <title>Informe Social</title>
     <style>
+        @page {
+            size: A4;
+            margin: 30mm 15mm 22mm 15mm;
+            @top-center {
+                content: element(header);
+            }
+            @bottom-center {
+                content: element(footer);
+            }
+        }
+
         body {
             font-family: Arial, sans-serif;
-            margin: 20px;
+            margin: 0;
             font-size: 12px;
             color: #333;
         }
 
         /* Clase header optimizada para centralizar todo su contenido */
         .header {
+            position: running(header);
             text-align: center;
             border-bottom: 3px solid #fa3340;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
+            padding-bottom: 5px;
+            width: 100%;
         }
 
         .header h1 {
@@ -79,13 +91,15 @@
         }
 
         .footer-info {
+            position: running(footer);
             text-align: center;
-            margin-top: 50px;
             font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-            font-size: 11px;
+            font-size: 10px;
             color: #000;
-            line-height: 1.5;
-            page-break-inside: avoid;
+            line-height: 1.4;
+            border-top: 1px solid #ddd;
+            padding-top: 5px;
+            width: 100%;
         }
         
         .footer-info .label-dir {
@@ -100,10 +114,16 @@
 </head>
 <body>
 
+    <div class="footer-info">
+        <span class="label-dir">Dirección:</span> Av. De las Américas y Humboldt<br />
+        Tel: 4134750 ext. 2003<br />
+        <a href="mailto:udipsai@ucacue.edu.ec">udipsai@ucacue.edu.ec</a>
+    </div>
+
     <div class="header">
       <img
         src="../../static/images/logo/logoudipsai.png"
-        th:src="@{/images/logo/logoudipsai.png}"
+        th:src="${logoUri}"
         alt="UDIPSAI Logo"
         style="height: 60px; margin-bottom: 5px"
       />
@@ -165,19 +185,19 @@
             </tr>
             <tr>
                 <td class="label">PERSONA QUE PROPORCIONA LA INFORMACIÓN</td>
-                <td th:text="${i.informanteNombre != null ? i.informanteNombre : '—'}"></td>
+                <td th:text="${i.informante != null && i.informante.nombresApellidos != null ? i.informante.nombresApellidos : '—'}"></td>
                 <td class="label">PARENTESCO</td>
-                <td th:text="${i.informanteParentesco != null ? i.informanteParentesco : '—'}"></td>
+                <td th:text="${i.informante != null && i.informante.relacion != null ? i.informante.relacion : '—'}"></td>
             </tr>
             <tr>
                 <td class="label">CEDULA/PASAPORTE</td>
-                <td th:text="${i.informanteCedula != null ? i.informanteCedula : '—'}"></td>
+                <td th:text="${i.informante != null && i.informante.cedula != null ? i.informante.cedula : '—'}"></td>
                 <td class="label">TELÉFONO</td>
-                <td th:text="${i.informanteTelefono != null ? i.informanteTelefono : '—'}"></td>
+                <td th:text="${i.informante != null && i.informante.numeroTelefono != null ? i.informante.numeroTelefono : '—'}"></td>
             </tr>
             <tr>
                 <td class="label">CORREO ELECTRÓNICO</td>
-                <td colspan="3" th:text="${i.informanteCorreo != null ? i.informanteCorreo : '—'}"></td>
+                <td colspan="3" th:text="${i.informante != null && i.informante.correoElectronico != null ? i.informante.correoElectronico : '—'}"></td>
             </tr>
             <tr>
                 <td class="label">N° DE FICHA</td>
@@ -340,12 +360,6 @@
                 </div>
             </div>
         </div>
-    </div>
-
-    <div class="footer-info">
-        <span class="label-dir">Dirección:</span> Av. De las Américas y Humboldt<br />
-        Tel: 4134750 ext. 2003<br />
-        <a href="mailto:udipsai@ucacue.edu.ec">udipsai@ucacue.edu.ec</a>
     </div>
 
 </body>
