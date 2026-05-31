@@ -351,14 +351,47 @@
         <div style="margin-top: 15px;">
             <p><strong>ÁREA:</strong> Trabajo Social</p>
             
-            <div style="margin-top: 40px; width: 100%; overflow: hidden;">
-                <div style="float: left; width: 45%; text-align: center;">
-                    <p><strong>ELABORADO POR:</strong></p>
-                    <div style="margin-top: 50px; border-top: 1px solid #000; width: 85%; margin-left: auto; margin-right: auto; padding-top: 5px;">
-                        <span th:text="${i.elaboradoPor != null ? i.elaboradoPor : 'Profesional de Trabajo Social'}"></span>
-                    </div>
-                </div>
-            </div>
+            <table style="width: 100%; margin-top: 30px; border-collapse: collapse; border: none; font-size: 11px; line-height: 1.2;">
+                <tr style="border: none;">
+                    <!-- Creado Por (Left Column) -->
+                    <td style="border: none; width: 33%; padding-left: 10px; padding-right: 10px; vertical-align: top; text-align: center;">
+                        <div style="min-height: 120px; position: relative;">
+                            <p style="font-weight: bold; margin-bottom: 50px; text-transform: uppercase;">Creado Por</p>
+                            <div style="border-top: 1px solid #000; width: 90%; margin: 0 auto; padding-top: 5px;">
+                                <span th:text="${i.pasante != null ? i.pasante.nombresApellidos : (i.especialista != null ? i.especialista.nombresApellidos : (i.elaboradoPor != null ? i.elaboradoPor : 'Profesional de Trabajo Social'))}" style="font-weight: bold;"></span>
+                                <br />
+                                <span th:text="${i.pasante != null ? 'Pasante' : 'Especialista'}"></span>
+                            </div>
+                        </div>
+                    </td>
+
+                    <!-- Revisado Por (Center Column) -->
+                    <td style="border: none; width: 33%; padding-left: 10px; padding-right: 10px; vertical-align: top; text-align: center;">
+                        <div style="min-height: 120px; position: relative;">
+                            <p style="font-weight: bold; margin-bottom: 50px; text-transform: uppercase;">Revisado Por</p>
+                            <div style="border-top: 1px solid #000; width: 90%; margin: 0 auto; padding-top: 5px;">
+                                <span th:if="${i.pasante != null}" th:text="${i.pasante.especialista != null ? i.pasante.especialista.nombresApellidos : 'Especialista a cargo'}" style="font-weight: bold;"></span>
+                                <span th:if="${i.pasante == null}" style="font-weight: bold;">Lcda. Gabriela Jara S., Mgs.</span>
+                                <br />
+                                <span th:if="${i.pasante != null}">Especialista a Cargo</span>
+                                <span th:if="${i.pasante == null}">Coordinadora de la UDIPSAI</span>
+                            </div>
+                        </div>
+                    </td>
+
+                    <!-- Responsable de la Información (Right Column) -->
+                    <td style="border: none; width: 33%; padding-left: 10px; padding-right: 10px; vertical-align: top; text-align: center;">
+                        <div style="min-height: 120px; position: relative;">
+                            <p style="font-weight: bold; margin-bottom: 50px; text-transform: uppercase;">Responsable de la Información (Familiar)</p>
+                            <div style="border-top: 1px solid #000; width: 90%; margin: 0 auto; padding-top: 5px;">
+                                <span th:text="${i.informante != null ? i.informante.nombresApellidos + (i.informante.relacion != null ? ' (' + i.informante.relacion + ')' : '') : 'Familiar Responsable'}" style="font-weight: bold;"></span>
+                                <br />
+                                <span>Nombre / Relación del Responsable</span>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            </table>
         </div>
     </div>
 

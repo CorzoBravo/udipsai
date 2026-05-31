@@ -93,11 +93,9 @@ const InformacionPacienteForm: React.FC<InformacionPacienteFormProps> = ({
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         E-mail
                     </label>
-                    <Input
-                        value={pacienteEmail}
-                        onChange={(e: any) => onChangePaciente("pacienteEmail", e.target.value)}
-                        placeholder="ejemplo@correo.com"
-                    />
+                    <p className="px-4 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg text-gray-800 dark:text-gray-100">
+                        {pacienteEmail || "—"}
+                    </p>
                 </div>
             </div>
 
@@ -107,21 +105,17 @@ const InformacionPacienteForm: React.FC<InformacionPacienteFormProps> = ({
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Instrucción
                     </label>
-                    <Input
-                        value={pacienteInstruccion}
-                        onChange={(e: any) => onChangePaciente("pacienteInstruccion", e.target.value)}
-                        placeholder="Nivel de educación (Ej: Básica, Bachillerato)"
-                    />
+                    <p className="px-4 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg text-gray-800 dark:text-gray-100">
+                        {pacienteInstruccion || "—"}
+                    </p>
                 </div>
                 <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Ocupación
                     </label>
-                    <Input
-                        value={pacienteOcupacion}
-                        onChange={(e: any) => onChangePaciente("pacienteOcupacion", e.target.value)}
-                        placeholder="Ej: Estudiante"
-                    />
+                    <p className="px-4 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg text-gray-800 dark:text-gray-100">
+                        {pacienteOcupacion || "—"}
+                    </p>
                 </div>
             </div>
 
@@ -153,37 +147,6 @@ const InformacionPacienteForm: React.FC<InformacionPacienteFormProps> = ({
                 <p className="px-4 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg text-gray-800 dark:text-gray-100">
                     {data.domicilio || "—"}
                 </p>
-            </div>
-
-            {/* Fila 6: Responsable de la información */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-gray-100 dark:border-gray-800 pt-4">
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Responsable de la Información (Familiar)
-                    </label>
-                    <select
-                        value={familiares?.some(f => `${f.nombresApellidos} (${f.relacion})` === responsable) ? responsable : ""}
-                        onChange={(e) => onChangePaciente("responsable", e.target.value)}
-                        className="w-full px-4 py-2 border rounded-lg bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100"
-                    >
-                        <option value="">Seleccionar de la lista de familiares...</option>
-                        {familiares?.map((f, i) => (
-                            <option key={i} value={`${f.nombresApellidos} (${f.relacion})`}>
-                                {f.nombresApellidos} ({f.relacion})
-                            </option>
-                        ))}
-                    </select>
-                </div>
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Nombre / Relación del Responsable
-                    </label>
-                    <Input
-                        value={responsable}
-                        onChange={(e: any) => onChangePaciente("responsable", e.target.value)}
-                        placeholder="Escriba nombre y relación (Ej: Juan Pérez (Padre))"
-                    />
-                </div>
             </div>
 
             {/* Discapacidad */}

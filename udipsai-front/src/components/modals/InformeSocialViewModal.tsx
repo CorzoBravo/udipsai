@@ -521,20 +521,54 @@ export const InformeSocialViewModal: React.FC<
             <h4 className="font-bold border-b pb-2 text-lg text-gray-800 dark:text-gray-100">
               14. PROFESIONALES RESPONSABLES
             </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-              <div className="border rounded-xl p-4 text-center bg-gray-50/50 dark:bg-white/[0.01]">
-                <span className="font-semibold block text-xs uppercase text-gray-500 dark:text-gray-400 mb-6">Elaborado Por</span>
-                <span className="text-gray-900 dark:text-gray-100 font-bold border-t pt-2 block max-w-[200px] mx-auto border-gray-300 dark:border-gray-700">
-                  {informe.elaboradoPor || "Profesional de Trabajo Social"}
-                </span>
-                <span className="text-xs text-gray-500 block mt-1">Especialista / Pasante</span>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-gray-50 dark:bg-gray-800/40 p-5 rounded-2xl border border-gray-100 dark:border-gray-800 mt-4 shadow-sm">
+              {/* CREADO POR */}
+              <div className="text-center p-5 border border-dashed border-gray-200 dark:border-gray-700 rounded-2xl bg-white dark:bg-gray-900">
+                <div className="h-16 flex items-end justify-center mb-3">
+                  <span className="text-xs text-gray-400 italic">Creado por</span>
+                </div>
+                <div className="border-t border-gray-200 dark:border-gray-700 pt-3">
+                  <span className="font-bold text-gray-800 dark:text-gray-200 block text-sm">
+                    {informe.pasante ? informe.pasante.nombresApellidos : (informe.especialista?.nombresApellidos || informe.elaboradoPor || "Profesional de Trabajo Social")}
+                  </span>
+                  <span className="text-xs text-gray-400 uppercase font-semibold tracking-wider">
+                    {informe.pasante ? "Pasante" : "Especialista"}
+                  </span>
+                </div>
               </div>
-              <div className="border rounded-xl p-4 text-center bg-gray-50/50 dark:bg-white/[0.01]">
-                <span className="font-semibold block text-xs uppercase text-gray-500 dark:text-gray-400 mb-6">Profesional Responsable</span>
-                <span className="text-gray-900 dark:text-gray-100 font-bold border-t pt-2 block max-w-[200px] mx-auto border-gray-300 dark:border-gray-700">
-                  Lcda. Gabriela Jara S., Mgs.
-                </span>
-                <span className="text-xs text-gray-500 block mt-1 font-semibold uppercase">Coordinadora de la UDIPSAI</span>
+
+              {/* REVISADO POR */}
+              <div className="text-center p-5 border border-dashed border-gray-200 dark:border-gray-700 rounded-2xl bg-white dark:bg-gray-900">
+                <div className="h-16 flex items-end justify-center mb-3">
+                  <span className="text-xs text-gray-400 italic">Revisado por</span>
+                </div>
+                <div className="border-t border-gray-200 dark:border-gray-700 pt-3">
+                  <span className="font-bold text-gray-800 dark:text-gray-200 block text-sm">
+                    {informe.pasante 
+                      ? (informe.pasante.especialista?.nombresApellidos || "Especialista a Cargo") 
+                      : "Lcda. Gabriela Jara S., Mgs."}
+                  </span>
+                  <span className="text-xs text-gray-400 uppercase font-semibold tracking-wider">
+                    {informe.pasante ? "Especialista a Cargo" : "Coordinadora de la UDIPSAI"}
+                  </span>
+                </div>
+              </div>
+
+              {/* RESPONSABLE DE LA INFORMACIÓN */}
+              <div className="text-center p-5 border border-dashed border-gray-200 dark:border-gray-700 rounded-2xl bg-white dark:bg-gray-900">
+                <div className="h-16 flex items-end justify-center mb-3">
+                  <span className="text-xs text-gray-400 italic">Responsable de la Información</span>
+                </div>
+                <div className="border-t border-gray-200 dark:border-gray-700 pt-3">
+                  <span className="font-bold text-gray-800 dark:text-gray-200 block text-sm">
+                    {informe.informante 
+                      ? `${informe.informante.nombresApellidos}${informe.informante.relacion ? ` (${informe.informante.relacion})` : ""}` 
+                      : "Familiar Responsable"}
+                  </span>
+                  <span className="text-xs text-gray-400 uppercase font-semibold tracking-wider">
+                    Nombre / Relación del Responsable
+                  </span>
+                </div>
               </div>
             </div>
           </section>

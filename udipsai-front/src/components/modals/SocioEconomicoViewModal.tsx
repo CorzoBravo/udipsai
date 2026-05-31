@@ -45,9 +45,9 @@ export const SocioEconomicoViewModal: React.FC<SocioEconomicoProps> = ({
       const mappedFamiliares = (res.familiares || []).map((f: any) => ({
         ...f,
         salud: {
-          problema: f.problemas_salud || false,
-          enfermedad: f.descripProblemasSaludFamiliar || "",
-          catastrofica: f.enfermedad_catastrofica || false,
+          problema: f.problemasSalud || false,
+          enfermedad: f.descripProblemasSalud || "",
+          catastrofica: f.enfermedadCatastrofica || false,
           enfermedadCatastrofica: f.descripEnfermedadCatastrofica || "",
           discapacidad: f.discapacidad || false,
           descripDiscapacidad: f.descripDiscapacidad || "",
@@ -339,6 +339,9 @@ export const SocioEconomicoViewModal: React.FC<SocioEconomicoProps> = ({
                     <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider dark:text-gray-400">Instrucción</th>
                     <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider dark:text-gray-400">Ocupación</th>
                     <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider dark:text-gray-400">Ingreso Mensual</th>
+                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider dark:text-gray-400">Cédula</th>
+                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider dark:text-gray-400">Teléfono</th>
+                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider dark:text-gray-400">Correo</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-100 dark:bg-gray-900 dark:divide-gray-800">
@@ -355,11 +358,14 @@ export const SocioEconomicoViewModal: React.FC<SocioEconomicoProps> = ({
                         <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">
                           {fam.ingresoMensual != null ? `$${fam.ingresoMensual}` : "-"}
                         </td>
+                        <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">{fam.cedula || "-"}</td>
+                        <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">{fam.numeroTelefono || "-"}</td>
+                        <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">{fam.correoElectronico || "-"}</td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={8} className="px-4 py-4 text-center text-sm text-gray-500">
+                      <td colSpan={11} className="px-4 py-4 text-center text-sm text-gray-500">
                         Sin miembros de la familia registrados
                       </td>
                     </tr>
@@ -1247,23 +1253,47 @@ export const SocioEconomicoViewModal: React.FC<SocioEconomicoProps> = ({
           </section>
 
           {/* FIRMAS */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50 dark:bg-gray-800/40 p-5 rounded-2xl border border-gray-100 dark:border-gray-800 mt-6 shadow-sm">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-gray-50 dark:bg-gray-800/40 p-5 rounded-2xl border border-gray-100 dark:border-gray-800 mt-6 shadow-sm">
+            {/* CREADO POR */}
             <div className="text-center p-5 border border-dashed border-gray-200 dark:border-gray-700 rounded-2xl bg-white dark:bg-gray-900">
               <div className="h-16 flex items-end justify-center mb-3">
-                <span className="text-xs text-gray-400 italic">Firma del Responsable (Familiar)</span>
+                <span className="text-xs text-gray-400 italic">Creado por</span>
+              </div>
+              <div className="border-t border-gray-200 dark:border-gray-700 pt-3">
+                <span className="font-bold text-gray-800 dark:text-gray-200 block text-sm">
+                  {data.pasante ? data.pasante.nombresApellidos : (data.especialista?.nombresApellidos || "Especialista")}
+                </span>
+                <span className="text-xs text-gray-400 uppercase font-semibold tracking-wider">
+                  {data.pasante ? "Pasante" : "Especialista"}
+                </span>
+              </div>
+            </div>
+
+            {/* REVISADO POR */}
+            <div className="text-center p-5 border border-dashed border-gray-200 dark:border-gray-700 rounded-2xl bg-white dark:bg-gray-900">
+              <div className="h-16 flex items-end justify-center mb-3">
+                <span className="text-xs text-gray-400 italic">Revisado por</span>
+              </div>
+              <div className="border-t border-gray-200 dark:border-gray-700 pt-3">
+                <span className="font-bold text-gray-800 dark:text-gray-200 block text-sm">
+                  {data.pasante 
+                    ? (data.pasante.especialista?.nombresApellidos || "Especialista a Cargo") 
+                    : "Lcda. Gabriela Jara S., Mgs."}
+                </span>
+                <span className="text-xs text-gray-400 uppercase font-semibold tracking-wider">
+                  {data.pasante ? "Especialista a Cargo" : "Coordinadora de la UDIPSAI"}
+                </span>
+              </div>
+            </div>
+
+            {/* RESPONSABLE DE LA INFORMACION */}
+            <div className="text-center p-5 border border-dashed border-gray-200 dark:border-gray-700 rounded-2xl bg-white dark:bg-gray-900">
+              <div className="h-16 flex items-end justify-center mb-3">
+                <span className="text-xs text-gray-400 italic">Responsable de la Información (Familiar)</span>
               </div>
               <div className="border-t border-gray-200 dark:border-gray-700 pt-3">
                 <span className="font-bold text-gray-800 dark:text-gray-200 block text-sm">{data.responsable || "N/A"}</span>
-                <span className="text-xs text-gray-400 uppercase font-semibold tracking-wider">Persona que proporciona la información</span>
-              </div>
-            </div>
-            <div className="text-center p-5 border border-dashed border-gray-200 dark:border-gray-700 rounded-2xl bg-white dark:bg-gray-900">
-              <div className="h-16 flex items-end justify-center mb-3">
-                <span className="text-xs text-gray-400 italic">Firma del Especialista</span>
-              </div>
-              <div className="border-t border-gray-200 dark:border-gray-700 pt-3">
-                <span className="font-bold text-gray-800 dark:text-gray-200 block text-sm">{data.especialista?.nombresApellidos || "N/A"}</span>
-                <span className="text-xs text-gray-400 uppercase font-semibold tracking-wider">Especialista responsable</span>
+                <span className="text-xs text-gray-400 uppercase font-semibold tracking-wider">Nombre / Relación del Responsable</span>
               </div>
             </div>
           </div>

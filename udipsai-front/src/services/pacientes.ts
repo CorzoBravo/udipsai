@@ -195,6 +195,16 @@ export const pacientesService = {
     }
   },
 
+  obtenerFamiliares: async (id: number | string) => {
+    try {
+      const response = await api.get(`/pacientes/${id}/familiares`);
+      return response.data;
+    } catch (error) {
+      console.error("Error al obtener familiares del paciente:", error);
+      throw error;
+    }
+  },
+
   exportarExcel: async (criteria: PacienteCriteria): Promise<Blob> => {
     try {
       const response = await api.get("/pacientes/export/excel", {

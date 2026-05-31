@@ -44,7 +44,7 @@ export default function EditarSeguimientoSocial() {
         pageTitle="Gestión de Seguimiento Social"
         items={[
           { label: "Inicio", path: "/" },
-          { label: "Fichas", path: "/fichas" },
+          { label: "Fichas", path: "/fichas?tab=seguimiento_social" },
           { label: "Editar Seguimiento" }
         ]}
       />

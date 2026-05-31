@@ -295,6 +295,11 @@ export const fichasService = {
     return res.data;
   },
 
+  obtenerSiguienteNumeroInforme: async () => {
+    const res = await api.get("/informes-sociales/siguiente-numero");
+    return res.data;
+  },
+
   crearInformeSocial: async (data: FormData) => {
     const res = await api.post("/informes-sociales/crear", data, {
       headers: {

@@ -3,6 +3,7 @@ import ComponentCard from "../../common/ComponentCard";
 import Button from "../../ui/button/Button";
 
 import { useNavigate, useParams, useSearchParams } from "react-router";
+import Input from "../input/InputField";
 import { toast } from "react-toastify";
 import { MessageSquare, User } from "lucide-react";
 import { pacientesService, especialistasService, pasantesService } from "../../../services";
@@ -69,6 +70,15 @@ export interface FichaSocioeconomicaState {
   especialista: {
     id: number;
     nombresApellidos: string;
+  };
+
+  pasante?: {
+    id: number;
+    nombresApellidos: string;
+    especialista?: {
+      id: number;
+      nombresApellidos: string;
+    };
   };
 
   familiares: {
@@ -403,6 +413,7 @@ export default function FormularioFichaSocioeconomica() {
   const [verConclusiones, setVerConclusiones] = useState(false);
   const [verRecomendaciones, setVerRecomendaciones] = useState(false);
   const [verCapacidadGasto, setVerCapacidadGasto] = useState(false);
+  const [verResponsableSeccion, setVerResponsableSeccion] = useState(false);
 
   const [validaciones, setValidaciones] = useState<Record<string, boolean>>({
     conformacionFamiliar: false,
@@ -489,13 +500,37 @@ export default function FormularioFichaSocioeconomica() {
       const paciente = await pacientesService.obtenerPorId(id);
       if (paciente) {
         setSelectedPatient(paciente);
+        
+        let mappedFamiliares: any[] = [];
+        try {
+          const familiaresResponse = await pacientesService.obtenerFamiliares(paciente.id);
+          mappedFamiliares = (familiaresResponse || []).map((f: any) => ({
+            ...f,
+            salud: {
+              problema: f.problemasSalud || false,
+              enfermedad: f.descripProblemasSalud || "",
+              catastrofica: f.enfermedadCatastrofica || false,
+              enfermedadCatastrofica: f.descripEnfermedadCatastrofica || "",
+              discapacidad: f.discapacidad || false,
+              descripDiscapacidad: f.descripDiscapacidad || "",
+            }
+          }));
+        } catch (fError) {
+          console.warn("No se pudieron cargar los familiares del paciente:", fError);
+        }
+
         setFormData((prev) => ({
           ...prev,
           paciente: paciente,
           pacienteInstruccion: paciente.nivelEducativo || "",
           pacienteOcupacion: paciente.ocupacion || "",
           pacienteEmail: paciente.email || "",
+          familiares: mappedFamiliares,
         }));
+        
+        if (mappedFamiliares.length > 0) {
+          setVerConformacionFamiliar(true);
+        }
         setShowSelector(false);
       }
     } catch (error) {
@@ -674,12 +709,12 @@ export default function FormularioFichaSocioeconomica() {
         }
       } else {
         toast.error("No se encontró la ficha socioeconómica.");
-        navigate("/fichas?tab=socioeconomica");
+        navigate("/fichas?tab=socioeconomico");
       }
     } catch (error) {
       console.error("Error al cargar ficha:", error);
       toast.error("Ocurrió un error al cargar la ficha. Intente de nuevo.");
-      navigate("/fichas?tab=socioeconomica");
+      navigate("/fichas?tab=socioeconomico");
     } finally {
       setLoading(false);
     }
@@ -778,7 +813,7 @@ export default function FormularioFichaSocioeconomica() {
         await fichasService.crearSocioEconomico(request);
         toast.success("Ficha creada exitosamente");
       }
-      navigate("/fichas?tab=socioeconomica");
+      navigate("/fichas?tab=socioeconomico");
     } catch (error: any) {
       if (error.response?.status === 409) {
         toast.error("Este paciente ya tiene una ficha activa.");
@@ -795,19 +830,50 @@ export default function FormularioFichaSocioeconomica() {
     }
   };
 
-  const handlePatientSelect = (patient: any) => {
-    setFormData((prev) => ({
-      ...prev,
-      paciente: {
-        ...prev.paciente,
-        ...patient,
-      },
-      pacienteInstruccion: patient.nivelEducativo || "",
-      pacienteOcupacion: patient.ocupacion || "",
-      pacienteEmail: patient.email || "",
-    }));
-    setSelectedPatient(patient);
-    setShowSelector(false);
+  const handlePatientSelect = async (patient: any) => {
+    try {
+      setLoading(true);
+      let mappedFamiliares: any[] = [];
+      try {
+        const familiaresResponse = await pacientesService.obtenerFamiliares(patient.id);
+        mappedFamiliares = (familiaresResponse || []).map((f: any) => ({
+          ...f,
+          salud: {
+            problema: f.problemasSalud || false,
+            enfermedad: f.descripProblemasSalud || "",
+            catastrofica: f.enfermedadCatastrofica || false,
+            enfermedadCatastrofica: f.descripEnfermedadCatastrofica || "",
+            discapacidad: f.discapacidad || false,
+            descripDiscapacidad: f.descripDiscapacidad || "",
+          }
+        }));
+      } catch (fError) {
+        console.warn("No se pudieron cargar los familiares del paciente:", fError);
+      }
+
+      setFormData((prev) => ({
+        ...prev,
+        paciente: {
+          ...prev.paciente,
+          ...patient,
+        },
+        pacienteInstruccion: patient.nivelEducativo || "",
+        pacienteOcupacion: patient.ocupacion || "",
+        pacienteEmail: patient.email || "",
+        familiares: mappedFamiliares,
+      }));
+
+      if (mappedFamiliares.length > 0) {
+        setVerConformacionFamiliar(true);
+      }
+      setSelectedPatient(patient);
+      setShowSelector(false);
+    } catch (error) {
+      console.error("Error al seleccionar paciente:", error);
+      toast.error("Error al cargar datos del paciente.");
+    } finally {
+      setLoading(false);
+    }
   };
 
 
@@ -1521,6 +1587,54 @@ export default function FormularioFichaSocioeconomica() {
                     value={formData.situacionEconomica.capacidadGastoEvaluacion?.startsWith("OTRO:") ? formData.situacionEconomica.capacidadGastoEvaluacion.replace("OTRO:", "").trim() : ""}
                     onChange={(e) => handleNestedChange("situacionEconomica", "capacidadGastoEvaluacion", "OTRO: " + e.target.value)}
                     className="px-2 py-1 border rounded bg-white dark:bg-gray-900 text-gray-800 dark:text-white"
+                  />
+                </div>
+              </div>
+            </ComponentCard>
+          </div>
+        )}
+
+        {/* RESPONSABLE DE LA INFORMACION */}
+        <SectionHeader
+          title="14. Responsable de la Información"
+          description="Familiar responsable de proporcionar la información"
+          icon={<User size={24} />}
+          isOpen={verResponsableSeccion}
+          onToggle={() => setVerResponsableSeccion(!verResponsableSeccion)}
+        />
+        {verResponsableSeccion && (
+          <div className="mt-6 space-y-6 animate-in slide-in-from-bottom-4 duration-500">
+            <ComponentCard
+              title="Responsable de la Información (Familiar)"
+              onHeaderClick={() => setVerResponsableSeccion(!verResponsableSeccion)}
+              bodyDisabled={!verResponsableSeccion}
+            >
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Responsable de la Información (Familiar)
+                  </label>
+                  <select
+                    value={formData.familiares?.some(f => `${f.nombresApellidos} (${f.relacion})` === formData.responsable) ? formData.responsable : ""}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, responsable: e.target.value }))}
+                    className="w-full px-4 py-2 border rounded-lg bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100"
+                  >
+                    <option value="">Seleccionar de la lista de familiares...</option>
+                    {formData.familiares?.map((f, i) => (
+                      <option key={i} value={`${f.nombresApellidos} (${f.relacion})`}>
+                        {f.nombresApellidos} ({f.relacion})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Nombre / Relación del Responsable
+                  </label>
+                  <Input
+                    value={formData.responsable}
+                    onChange={(e: any) => setFormData((prev) => ({ ...prev, responsable: e.target.value }))}
+                    placeholder="Escriba nombre y relación (Ej: Juan Pérez (Padre))"
                   />
                 </div>
               </div>

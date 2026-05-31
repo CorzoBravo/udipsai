@@ -1,6 +1,8 @@
 package com.ucacue.udipsai.modules.informesocial.domain;
 
 import com.ucacue.udipsai.modules.paciente.domain.Paciente;
+import com.ucacue.udipsai.modules.especialistas.domain.Especialista;
+import com.ucacue.udipsai.modules.pasante.domain.Pasante;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.util.Date;
@@ -67,4 +69,12 @@ public class InformeSocial {
     private String recomendaciones;
 
     private String elaboradoPor;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "especialista_id")
+    private Especialista especialista;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "pasante_id")
+    private Pasante pasante;
 }

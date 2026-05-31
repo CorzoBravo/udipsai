@@ -21,6 +21,7 @@ interface FamiliarSalud {
 interface Familiar {
     relacion: string;
     nombresApellidos: string;
+    cedula?: string;
     salud?: FamiliarSalud;
 }
 
@@ -408,13 +409,23 @@ const SaludForm: React.FC<SaludFormProps> = ({
                                     <Switch
                                         label="Discapacidad"
                                         checked={fam.salud?.discapacidad || false}
-                                        onChange={(v) =>
-                                            onChangeFamiliar(index, "discapacidad", v)
-                                        }
+                                        onChange={(v) => {
+                                            onChangeFamiliar(index, "discapacidad", v);
+                                            if (v) {
+                                                const actual = fam.salud?.descripDiscapacidad || "";
+                                                const parts = actual.split("|");
+                                                const tipo = parts[0]?.trim() || "";
+                                                const porcentaje = parts[1]?.trim() || "";
+                                                const currentCarnet = parts[2]?.replace("Carnet:", "").trim() || "";
+                                                const carnet = currentCarnet || fam.cedula || "";
+                                                const nueva = `${tipo} | ${porcentaje} | Carnet: ${carnet}`;
+                                                onChangeFamiliar(index, "descripDiscapacidad", nueva);
+                                            }
+                                        }}
                                     />
 
                                     {fam.salud?.discapacidad && (
-                                        <div className="mt-2">
+                                        <div className="mt-2 space-y-2">
 
                                             <Input
                                                 placeholder="Tipo discapacidad"
@@ -447,20 +458,40 @@ const SaludForm: React.FC<SaludFormProps> = ({
                                                 }}
                                             />
 
-                                            <Input
-                                                placeholder="N° Carnet"
-                                                value={fam.salud?.descripDiscapacidad?.split("|")[2]?.replace("Carnet:", "").trim() || ""}
-                                                onChange={(e: any) => {
-                                                    const actual = fam.salud?.descripDiscapacidad || "";
-                                                    const parts = actual.split("|");
+                                            <div className="flex gap-2 items-center">
+                                                <div className="flex-1">
+                                                    <Input
+                                                        placeholder="N° Carnet"
+                                                        value={fam.salud?.descripDiscapacidad?.split("|")[2]?.replace("Carnet:", "").trim() || ""}
+                                                        onChange={(e: any) => {
+                                                            const actual = fam.salud?.descripDiscapacidad || "";
+                                                            const parts = actual.split("|");
 
-                                                    const tipo = parts[0] || "";
-                                                    const porcentaje = parts[1] || "";
+                                                            const tipo = parts[0] || "";
+                                                            const porcentaje = parts[1] || "";
 
-                                                    const nueva = `${tipo} | ${porcentaje} | Carnet: ${e.target.value}`;
-                                                    onChangeFamiliar(index, "descripDiscapacidad", nueva);
-                                                }}
-                                            />
+                                                            const nueva = `${tipo} | ${porcentaje} | Carnet: ${e.target.value}`;
+                                                            onChangeFamiliar(index, "descripDiscapacidad", nueva);
+                                                        }}
+                                                    />
+                                                </div>
+                                                {fam.cedula && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            const actual = fam.salud?.descripDiscapacidad || "";
+                                                            const parts = actual.split("|");
+                                                            const tipo = parts[0] || "";
+                                                            const porcentaje = parts[1] || "";
+                                                            const nueva = `${tipo} | ${porcentaje} | Carnet: ${fam.cedula}`;
+                                                            onChangeFamiliar(index, "descripDiscapacidad", nueva);
+                                                        }}
+                                                        className="px-3 py-2 bg-brand-50 text-brand-700 hover:bg-brand-100 rounded-xl text-xs font-semibold border border-brand-200 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 whitespace-nowrap transition-colors"
+                                                    >
+                                                        Usar Cédula
+                                                    </button>
+                                                )}
+                                            </div>
 
                                         </div>
                                     )}

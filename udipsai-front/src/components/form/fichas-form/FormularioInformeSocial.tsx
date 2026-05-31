@@ -60,6 +60,14 @@ export interface InformeSocialState {
     id: number;
     nombresApellidos: string;
   };
+  pasante?: {
+    id: number;
+    nombresApellidos: string;
+    especialista?: {
+      id: number;
+      nombresApellidos: string;
+    };
+  } | null;
 
   numFicha: string;
   fechaElaboracion: string;
@@ -118,7 +126,7 @@ const buildRequest = (data: InformeSocialState) => {
     situacionLegal: data.situacionLegal,
     valoracionProfesional: data.valoracionProfesional,
     recomendaciones: data.recomendaciones,
-    elaboradoPor: data.especialista?.nombresApellidos || "",
+    elaboradoPor: data.pasante ? data.pasante.nombresApellidos : (data.especialista?.nombresApellidos || data.elaboradoPor || ""),
 
     pacienteEstadoCivil: data.pacienteEstadoCivil || "",
     pacienteNacionalidad: data.pacienteNacionalidad || "",
@@ -166,6 +174,7 @@ export const initialInformeSocialState: InformeSocialState = {
     id: 0,
     nombresApellidos: "",
   },
+  pasante: null,
   numFicha: "",
   fechaElaboracion: getFechaActual(),
   descripcionDinamicaFamiliar: "",
@@ -289,12 +298,26 @@ export default function FormularioInformeSocial() {
     loadEspecialista();
   }, [userIdentity, userRole]);
 
-  // Cargar informe si es edición
+  // Cargar informe si es edición o inicializar número de ficha
   useEffect(() => {
     if (isEdit && id) {
       loadInforme(id);
     } else {
       setShowSelector(true);
+      const loadNextNumero = async () => {
+        try {
+          const nextNum = await fichasService.obtenerSiguienteNumeroInforme();
+          if (nextNum) {
+            setFormData((prev) => ({
+              ...prev,
+              numFicha: nextNum,
+            }));
+          }
+        } catch (error) {
+          console.error("Error al obtener el siguiente número de informe:", error);
+        }
+      };
+      loadNextNumero();
     }
   }, [id, isEdit]);
 
@@ -391,18 +414,49 @@ export default function FormularioInformeSocial() {
         }
       } else {
         toast.error("No se encontró el informe social.");
-        navigate("/fichas");
+        navigate("/fichas?tab=informe_social");
       }
     } catch (error) {
       console.error("Error al cargar informe:", error);
       toast.error("Error al cargar el informe. Intente de nuevo.");
-      navigate("/fichas");
+      navigate("/fichas?tab=informe_social");
     } finally {
       setLoading(false);
     }
   };
 
   const importarFamiliaresSocioeconomicos = async (pacienteId: number) => {
+    try {
+      const familiares = await pacientesService.obtenerFamiliares(pacienteId);
+      if (familiares && familiares.length > 0) {
+        const mapped = familiares.map((f: any) => ({
+          id: f.id || null,
+          nombresApellidos: f.nombresApellidos || "",
+          relacion: f.relacion || "",
+          edad: f.edad || 0,
+          estadoCivil: f.estadoCivil || "",
+          instruccion: f.instruccion || "",
+          ocupacion: f.ocupacion || "",
+          ingresoMensual: f.ingresoMensual || 0,
+          cedula: f.cedula || "",
+          numeroTelefono: f.numeroTelefono || "",
+          correoElectronico: f.correoElectronico || "",
+        }));
+        setFormData((prev) => ({
+          ...prev,
+          familiares: mapped,
+        }));
+        setSecciones((prevSec) => ({
+          ...prevSec,
+          familiares: true,
+        }));
+        toast.info("Se cargaron los familiares automáticamente");
+        return;
+      }
+    } catch (e) {
+      console.log("No se pudo cargar familiares mediante pacientesService:", e);
+    }
+
     try {
       const socioeconomica = await fichasService.obtenerSocioEconomico(pacienteId);
       if (socioeconomica?.familiares?.length > 0) {
@@ -498,7 +552,7 @@ export default function FormularioInformeSocial() {
         toast.success("Informe creado exitosamente");
       }
 
-      navigate("/fichas");
+      navigate("/fichas?tab=informe_social");
     } catch (error: any) {
       console.error("ERROR COMPLETO:", error?.response?.data);
       const serverMessage = error?.response?.data?.message;
@@ -595,9 +649,9 @@ export default function FormularioInformeSocial() {
         <input
           type="text"
           value={formData.numFicha}
-          onChange={(e) => setFormData({ ...formData, numFicha: e.target.value })}
-          placeholder="Ej: INF-001"
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+          disabled
+          placeholder="Cargando..."
+          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed"
         />
       </div>
 
@@ -750,125 +804,6 @@ export default function FormularioInformeSocial() {
         </ComponentCard>
       )}
 
-      {/* SECCIÓN PERSONA QUE PROPORCIONA LA INFORMACIÓN */}
-      <SectionHeader
-        title="Persona que Proporciona la Información"
-        description="Datos del informante y su relación con el paciente"
-        icon={<User size={24} />}
-        isOpen={secciones.informante}
-        onToggle={() =>
-          setSecciones({
-            ...secciones,
-            informante: !secciones.informante,
-          })
-        }
-      />
-      {secciones.informante && (
-        <ComponentCard title="Persona que Proporciona la Información">
-          <div className="space-y-4">
-            {formData.familiares && formData.familiares.length > 0 && (
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                  Seleccionar de Miembros Familiares
-                </label>
-                <select
-                  value=""
-                  onChange={(e) => {
-                    const idx = e.target.value;
-                    if (idx !== "") {
-                      const familiar = formData.familiares[Number(idx)];
-                      setFormData({
-                        ...formData,
-                        informanteId: familiar.id || null,
-                        informanteNombre: familiar.nombresApellidos,
-                        informanteParentesco: familiar.relacion,
-                        informanteCedula: familiar.cedula || "",
-                        informanteTelefono: familiar.numeroTelefono || "",
-                        informanteCorreo: familiar.correoElectronico || "",
-                      });
-                    }
-                  }}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-medium"
-                >
-                  <option value="">-- Seleccione un familiar para auto-completar --</option>
-                  {formData.familiares.map((familiar, idx) => (
-                    <option key={idx} value={idx}>
-                      {familiar.nombresApellidos} ({familiar.relacion})
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Nombre Completo
-                </label>
-                <input
-                  type="text"
-                  value={formData.informanteNombre || ""}
-                  onChange={(e) => setFormData({ ...formData, informanteNombre: e.target.value })}
-                  placeholder="Nombre de la persona"
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-medium"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Parentesco
-                </label>
-                <input
-                  type="text"
-                  value={formData.informanteParentesco || ""}
-                  onChange={(e) => setFormData({ ...formData, informanteParentesco: e.target.value })}
-                  placeholder="Ej: Madre, Padre, Tío/a"
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-medium"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Cédula / Pasaporte
-                </label>
-                <input
-                  type="text"
-                  value={formData.informanteCedula || ""}
-                  onChange={(e) => setFormData({ ...formData, informanteCedula: e.target.value })}
-                  placeholder="Cédula del informante"
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-medium"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Teléfono
-                </label>
-                <input
-                  type="text"
-                  value={formData.informanteTelefono || ""}
-                  onChange={(e) => setFormData({ ...formData, informanteTelefono: e.target.value })}
-                  placeholder="Número de teléfono"
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-medium"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Correo Electrónico
-              </label>
-              <input
-                type="email"
-                value={formData.informanteCorreo || ""}
-                onChange={(e) => setFormData({ ...formData, informanteCorreo: e.target.value })}
-                placeholder="ejemplo@correo.com"
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-medium"
-              />
-            </div>
-          </div>
-        </ComponentCard>
-      )}
 
       {/* 1. DATOS DE IDENTIFICACIÓN */}
       <SectionHeader
@@ -887,46 +822,7 @@ export default function FormularioInformeSocial() {
         <ComponentCard title="1. DATOS DE IDENTIFICACIÓN">
           <ConformacionFamiliar
             data={formData.familiares}
-            onChange={(index, field, value) => {
-              setFormData((prev) => {
-                const updated = [...prev.familiares];
-                updated[index] = {
-                  ...updated[index],
-                  [field]: value,
-                };
-                return {
-                  ...prev,
-                  familiares: updated,
-                };
-              });
-            }}
-            onAdd={() => {
-              setFormData((prev) => ({
-                ...prev,
-                familiares: [
-                  ...prev.familiares,
-                  {
-                    id: null,
-                    relacion: "",
-                    nombresApellidos: "",
-                    edad: 0,
-                    estadoCivil: "",
-                    instruccion: "",
-                    ocupacion: "",
-                    ingresoMensual: 0,
-                    cedula: "",
-                    numeroTelefono: "",
-                    correoElectronico: "",
-                  },
-                ],
-              }));
-            }}
-            onRemove={(index) => {
-              setFormData((prev) => ({
-                ...prev,
-                familiares: prev.familiares.filter((_, i) => i !== index),
-              }));
-            }}
+            readOnly={true}
             onValidate={handleValidateFamiliares}
           />
         </ComponentCard>
@@ -1404,6 +1300,126 @@ export default function FormularioInformeSocial() {
               setValidaciones({ ...validaciones, recomendaciones: isValid })
             }
           />
+        </ComponentCard>
+      )}
+
+      {/* SECCIÓN PERSONA QUE PROPORCIONA LA INFORMACIÓN */}
+      <SectionHeader
+        title="Persona que Proporciona la Información"
+        description="Datos del informante y su relación con el paciente"
+        icon={<User size={24} />}
+        isOpen={secciones.informante}
+        onToggle={() =>
+          setSecciones({
+            ...secciones,
+            informante: !secciones.informante,
+          })
+        }
+      />
+      {secciones.informante && (
+        <ComponentCard title="Persona que Proporciona la Información">
+          <div className="space-y-4">
+            {formData.familiares && formData.familiares.length > 0 && (
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                  Seleccionar de Miembros Familiares
+                </label>
+                <select
+                  value=""
+                  onChange={(e) => {
+                    const idx = e.target.value;
+                    if (idx !== "") {
+                      const familiar = formData.familiares[Number(idx)];
+                      setFormData({
+                        ...formData,
+                        informanteId: familiar.id || null,
+                        informanteNombre: familiar.nombresApellidos,
+                        informanteParentesco: familiar.relacion,
+                        informanteCedula: familiar.cedula || "",
+                        informanteTelefono: familiar.numeroTelefono || "",
+                        informanteCorreo: familiar.correoElectronico || "",
+                      });
+                    }
+                  }}
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-medium"
+                >
+                  <option value="">-- Seleccione un familiar para auto-completar --</option>
+                  {formData.familiares.map((familiar, idx) => (
+                    <option key={idx} value={idx}>
+                      {familiar.nombresApellidos} ({familiar.relacion})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Nombre Completo
+                </label>
+                <input
+                  type="text"
+                  value={formData.informanteNombre || ""}
+                  onChange={(e) => setFormData({ ...formData, informanteNombre: e.target.value })}
+                  placeholder="Nombre de la persona"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-medium"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Parentesco
+                </label>
+                <input
+                  type="text"
+                  value={formData.informanteParentesco || ""}
+                  onChange={(e) => setFormData({ ...formData, informanteParentesco: e.target.value })}
+                  placeholder="Ej: Madre, Padre, Tío/a"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-medium"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Cédula / Pasaporte
+                </label>
+                <input
+                  type="text"
+                  value={formData.informanteCedula || ""}
+                  onChange={(e) => setFormData({ ...formData, informanteCedula: e.target.value })}
+                  placeholder="Cédula del informante"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-medium"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Teléfono
+                </label>
+                <input
+                  type="text"
+                  value={formData.informanteTelefono || ""}
+                  onChange={(e) => setFormData({ ...formData, informanteTelefono: e.target.value })}
+                  placeholder="Número de teléfono"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-medium"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Correo Electrónico
+              </label>
+              <input
+                type="email"
+                value={formData.informanteCorreo || ""}
+                onChange={(e) => setFormData({ ...formData, informanteCorreo: e.target.value })}
+                placeholder="ejemplo@correo.com"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-medium"
+              />
+            </div>
+          </div>
         </ComponentCard>
       )}
 

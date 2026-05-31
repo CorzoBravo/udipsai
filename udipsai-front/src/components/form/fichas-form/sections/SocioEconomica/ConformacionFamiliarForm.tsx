@@ -17,14 +17,15 @@ interface Familiar {
 
 interface ConformacionFamiliarProps {
   data: Familiar[];
-  onChange: (
+  onChange?: (
     index: number,
     field: keyof Familiar,
     value: string | number
   ) => void;
-  onAdd: () => void;
-  onRemove: (index: number) => void;
+  onAdd?: () => void;
+  onRemove?: (index: number) => void;
   onValidate?: (isValid: boolean, errors: string[]) => void;
+  readOnly?: boolean;
 }
 
 const validateFamiliar = (familiar: Familiar): string[] => {
@@ -47,6 +48,7 @@ const ConformacionFamiliar: React.FC<ConformacionFamiliarProps> = ({
   onAdd,
   onRemove,
   onValidate,
+  readOnly = false,
 }) => {
   const [openIndex, setOpenIndex] = React.useState<number | null>(null);
   const relaciones = ["Padre", "Madre", "Hermano", "Hermana", "Abuelo", "Abuela", "Tío", "Tía", "Otro"];
@@ -54,6 +56,11 @@ const ConformacionFamiliar: React.FC<ConformacionFamiliarProps> = ({
 
   React.useEffect(() => {
     if (!onValidate) return;
+
+    if (readOnly) {
+      onValidate(true, []);
+      return;
+    }
 
     if (data.length === 0) {
       onValidate(false, ["No hay familiares registrados"]);
@@ -74,7 +81,7 @@ const ConformacionFamiliar: React.FC<ConformacionFamiliarProps> = ({
 
     onValidate(allErrors.length === 0, allErrors);
 
-  }, [data, onValidate]);
+  }, [data, onValidate, readOnly]);
 
   return (
     <div className="space-y-4">
@@ -91,13 +98,15 @@ const ConformacionFamiliar: React.FC<ConformacionFamiliarProps> = ({
           </h2>
         </div>
 
-        <button
-          onClick={onAdd}
-          className="flex items-center gap-2 bg-brand-400 text-white px-4 py-2 rounded-xl hover:bg-brand-500 transition-all"
-        >
-          <Plus size={18} />
-          Agregar
-        </button>
+        {!readOnly && onAdd && (
+          <button
+            onClick={onAdd}
+            className="flex items-center gap-2 bg-brand-400 text-white px-4 py-2 rounded-xl hover:bg-brand-500 transition-all"
+          >
+            <Plus size={18} />
+            Agregar
+          </button>
+        )}
       </div>
 
       {/* 🔹 LISTA */}
@@ -138,16 +147,18 @@ const ConformacionFamiliar: React.FC<ConformacionFamiliarProps> = ({
                   <ChevronDown size={18} className="text-gray-500" />
                 )}
 
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onRemove(index);
-                  }}
-                  className="flex items-center gap-1 text-red-500 text-sm hover:underline"
-                >
-                  <Trash2 size={16} />
-                  Eliminar
-                </button>
+                {!readOnly && onRemove && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onRemove(index);
+                    }}
+                    className="flex items-center gap-1 text-red-500 text-sm hover:underline"
+                  >
+                    <Trash2 size={16} />
+                    Eliminar
+                  </button>
+                )}
               </div>
             </div>
 
@@ -171,13 +182,14 @@ const ConformacionFamiliar: React.FC<ConformacionFamiliarProps> = ({
                             ? familiar.relacion
                             : "Otro"
                       }
+                      disabled={readOnly}
                       onChange={(e) => {
                         const value = e.target.value;
 
                         if (value === "Otro") {
-                          onChange(index, "relacion", "Otro");
+                          onChange && onChange(index, "relacion", "Otro");
                         } else {
-                          onChange(index, "relacion", value);
+                          onChange && onChange(index, "relacion", value);
                         }
                       }}
                       className="border p-2 rounded w-full text-sm text-gray-700 
@@ -201,8 +213,9 @@ const ConformacionFamiliar: React.FC<ConformacionFamiliarProps> = ({
                           value={
                             familiar.relacion === "Otro" ? "" : familiar.relacion
                           }
+                          disabled={readOnly}
                           onChange={(e) =>
-                            onChange(index, "relacion", e.target.value)
+                            onChange && onChange(index, "relacion", e.target.value)
                           }
                           className="border p-2 rounded mt-2"
                         />
@@ -217,8 +230,9 @@ const ConformacionFamiliar: React.FC<ConformacionFamiliarProps> = ({
                     <input
                       placeholder="Nombre completo"
                       value={familiar.nombresApellidos || ""}
+                      disabled={readOnly}
                       onChange={(e) =>
-                        onChange(index, "nombresApellidos", e.target.value)
+                        onChange && onChange(index, "nombresApellidos", e.target.value)
                       }
                       className="border p-2 rounded"
                     />
@@ -232,8 +246,9 @@ const ConformacionFamiliar: React.FC<ConformacionFamiliarProps> = ({
                     <input
                       type="number"
                       value={familiar.edad ?? ""}
+                      disabled={readOnly}
                       onChange={(e) =>
-                        onChange(
+                        onChange && onChange(
                           index,
                           "edad",
                           e.target.value === "" ? 0 : Number(e.target.value)
@@ -250,8 +265,9 @@ const ConformacionFamiliar: React.FC<ConformacionFamiliarProps> = ({
                     </label>
                     <select
                       value={familiar.estadoCivil || ""}
+                      disabled={readOnly}
                       onChange={(e) =>
-                        onChange(index, "estadoCivil", e.target.value)
+                        onChange && onChange(index, "estadoCivil", e.target.value)
                       }
                       className="border p-2 rounded w-full text-sm text-gray-700 
              dark:text-gray-200 dark:bg-gray-800
@@ -274,8 +290,9 @@ const ConformacionFamiliar: React.FC<ConformacionFamiliarProps> = ({
                     <input
                       placeholder="Primaria, Secundaria..."
                       value={familiar.instruccion || ""}
+                      disabled={readOnly}
                       onChange={(e) =>
-                        onChange(index, "instruccion", e.target.value)
+                        onChange && onChange(index, "instruccion", e.target.value)
                       }
                       className="border p-2 rounded"
                     />
@@ -289,8 +306,9 @@ const ConformacionFamiliar: React.FC<ConformacionFamiliarProps> = ({
                     <input
                       placeholder="Trabajo actual"
                       value={familiar.ocupacion || ""}
+                      disabled={readOnly}
                       onChange={(e) =>
-                        onChange(index, "ocupacion", e.target.value)
+                        onChange && onChange(index, "ocupacion", e.target.value)
                       }
                       className="border p-2 rounded"
                     />
@@ -308,8 +326,9 @@ const ConformacionFamiliar: React.FC<ConformacionFamiliarProps> = ({
                       min="0"
                       placeholder="0.00"
                       value={familiar.ingresoMensual ?? ""}
+                      disabled={readOnly}
                       onChange={(e) =>
-                        onChange(
+                        onChange && onChange(
                           index,
                           "ingresoMensual",
                           e.target.value === "" ? 0 : parseFloat(e.target.value)
@@ -330,8 +349,9 @@ const ConformacionFamiliar: React.FC<ConformacionFamiliarProps> = ({
                     <input
                       placeholder="Cédula de identidad"
                       value={familiar.cedula || ""}
+                      disabled={readOnly}
                       onChange={(e) =>
-                        onChange(index, "cedula", e.target.value)
+                        onChange && onChange(index, "cedula", e.target.value)
                       }
                       className="border p-2 rounded w-full 
                text-sm text-gray-700 
@@ -348,8 +368,9 @@ const ConformacionFamiliar: React.FC<ConformacionFamiliarProps> = ({
                     <input
                       placeholder="Número de teléfono"
                       value={familiar.numeroTelefono || ""}
+                      disabled={readOnly}
                       onChange={(e) =>
-                        onChange(index, "numeroTelefono", e.target.value)
+                        onChange && onChange(index, "numeroTelefono", e.target.value)
                       }
                       className="border p-2 rounded w-full 
                text-sm text-gray-700 
@@ -367,8 +388,9 @@ const ConformacionFamiliar: React.FC<ConformacionFamiliarProps> = ({
                       type="email"
                       placeholder="correo@ejemplo.com"
                       value={familiar.correoElectronico || ""}
+                      disabled={readOnly}
                       onChange={(e) =>
-                        onChange(index, "correoElectronico", e.target.value)
+                        onChange && onChange(index, "correoElectronico", e.target.value)
                       }
                       className="border p-2 rounded w-full 
                text-sm text-gray-700 

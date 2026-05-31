@@ -7,12 +7,14 @@ import lombok.Data;
 import java.util.Date;
 import java.util.List;
 import com.ucacue.udipsai.modules.familiar.dto.FamiliarDTO;
+import com.ucacue.udipsai.modules.pasante.dto.PasanteDTO;
 
 @Data
 public class FichaSocioeconomicaDTO {
     private Integer id;
     private PacienteFichaDTO paciente;
     private EspecialistaDTO especialista;
+    private PasanteDTO pasante;
     private Boolean activo;
     private Date fechaElaboracion;
     

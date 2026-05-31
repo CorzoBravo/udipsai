@@ -10,6 +10,7 @@ import com.ucacue.udipsai.modules.paciente.domain.Paciente;
 import com.ucacue.udipsai.modules.paciente.dto.PacienteFichaDTO;
 import com.ucacue.udipsai.modules.paciente.repository.PacienteRepository;
 import com.ucacue.udipsai.modules.familiar.domain.Familiar;
+import com.ucacue.udipsai.modules.familiar.domain.FamiliarReferencia;
 import com.ucacue.udipsai.modules.familiar.dto.FamiliarDTO;
 import com.ucacue.udipsai.modules.familiar.dto.FamiliarRequest;
 import com.ucacue.udipsai.modules.familiar.service.FamiliarService;
@@ -19,6 +20,13 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import com.ucacue.udipsai.modules.fichasocial.domain.FichaSocioeconomica;
 import com.ucacue.udipsai.modules.fichasocial.repository.FichaSocioeconomicaRepository;
+import com.ucacue.udipsai.modules.especialistas.repository.EspecialistaRepository;
+import com.ucacue.udipsai.modules.pasante.repository.PasanteRepository;
+import com.ucacue.udipsai.modules.especialistas.domain.Especialista;
+import com.ucacue.udipsai.modules.especialistas.dto.EspecialistaDTO;
+import com.ucacue.udipsai.modules.pasante.dto.PasanteDTO;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -36,6 +44,10 @@ public class InformeSocialService {
     private FichaSocioeconomicaRepository fichaRepository;
     @Autowired
     private FamiliarService familiarService;
+    @Autowired
+    private EspecialistaRepository especialistaRepository;
+    @Autowired
+    private PasanteRepository pasanteRepository;
 
     @Transactional
     public InformeSocialDTO crearInforme(InformeSocialRequest request, MultipartFile genograma, MultipartFile ecomapa) {
@@ -51,6 +63,48 @@ public class InformeSocialService {
         informe.setPaciente(paciente);
         informe.setNumFicha(request.getNumFicha());
         informe.setFechaElaboracion(new java.util.Date());
+        informe.setActivo(true);
+
+        // Resolve creator as Specialist or Pasante
+        boolean resolved = false;
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated()) {
+            String username = auth.getName();
+            boolean isPasante = auth.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("ROLE_PASANTE"));
+            boolean isEspecialista = auth.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("ROLE_ESPECIALISTA"));
+
+            if (isPasante) {
+                com.ucacue.udipsai.modules.pasante.domain.Pasante pasante = pasanteRepository.findByCedula(username).orElse(null);
+                if (pasante != null) {
+                    informe.setPasante(pasante);
+                    informe.setEspecialista(null);
+                    resolved = true;
+                }
+            } else if (isEspecialista) {
+                Especialista especialista = especialistaRepository.findByCedula(username).orElse(null);
+                if (especialista != null) {
+                    informe.setEspecialista(especialista);
+                    informe.setPasante(null);
+                    resolved = true;
+                }
+            }
+        }
+
+        if (!resolved && request.getEspecialistaId() != null) {
+            Especialista especialista = especialistaRepository.findById(request.getEspecialistaId()).orElse(null);
+            if (especialista != null) {
+                informe.setEspecialista(especialista);
+                informe.setPasante(null);
+            } else {
+                com.ucacue.udipsai.modules.pasante.domain.Pasante pasante = pasanteRepository.findById(request.getEspecialistaId()).orElse(null);
+                if (pasante != null) {
+                    informe.setPasante(pasante);
+                    informe.setEspecialista(null);
+                }
+            }
+        }
 
         informe.setTipoFamilia(request.getTipoFamilia());
         informe.setTipoFamiliaEspecificar(request.getTipoFamiliaEspecificar());
@@ -80,27 +134,71 @@ public class InformeSocialService {
             procesarInformante(request.getInformante(), paciente.getId(), saved.getId().longValue());
         }
 
+        procesarFamiliares(request.getFamiliares(), ficha);
+
         return convertirADTO(saved, ficha);
     }
 
     private void procesarInformante(FamiliarDTO fDto, Integer pacienteId, Long informeId) {
         FamiliarRequest fReq = new FamiliarRequest();
-        fReq.setRelacion(fDto.getRelacion());
-        fReq.setNombresApellidos(fDto.getNombresApellidos());
-        fReq.setEdad(fDto.getEdad());
-        fReq.setEstadoCivil(fDto.getEstadoCivil());
-        fReq.setInstruccion(fDto.getInstruccion());
-        fReq.setOcupacion(fDto.getOcupacion());
-        fReq.setIngresoMensual(fDto.getIngresoMensual());
-        fReq.setCedula(fDto.getCedula());
-        fReq.setNumeroTelefono(fDto.getNumeroTelefono());
-        fReq.setCorreoElectronico(fDto.getCorreoElectronico());
-        fReq.setProblemasSalud(fDto.getProblemasSalud());
-        fReq.setDescripProblemasSalud(fDto.getDescripProblemasSalud());
-        fReq.setEnfermedadCatastrofica(fDto.getEnfermedadCatastrofica());
-        fReq.setDescripEnfermedadCatastrofica(fDto.getDescripEnfermedadCatastrofica());
-        fReq.setDiscapacidad(fDto.getDiscapacidad());
-        fReq.setDescripDiscapacidad(fDto.getDescripDiscapacidad());
+
+        if (fDto.getId() != null) {
+            Familiar existente = familiarService.obtenerFamiliarPorId(fDto.getId().longValue()).orElse(null);
+            if (existente != null) {
+                fReq.setRelacion(fDto.getRelacion() != null && !fDto.getRelacion().trim().isEmpty() ? fDto.getRelacion() : existente.getRelacion());
+                fReq.setNombresApellidos(fDto.getNombresApellidos() != null && !fDto.getNombresApellidos().trim().isEmpty() ? fDto.getNombresApellidos() : existente.getNombresApellidos());
+                fReq.setCedula(fDto.getCedula() != null && !fDto.getCedula().trim().isEmpty() ? fDto.getCedula() : existente.getCedula());
+                fReq.setNumeroTelefono(fDto.getNumeroTelefono() != null && !fDto.getNumeroTelefono().trim().isEmpty() ? fDto.getNumeroTelefono() : existente.getNumeroTelefono());
+                fReq.setCorreoElectronico(fDto.getCorreoElectronico() != null && !fDto.getCorreoElectronico().trim().isEmpty() ? fDto.getCorreoElectronico() : existente.getCorreoElectronico());
+                
+                fReq.setEdad(fDto.getEdad() != null ? fDto.getEdad() : existente.getEdad());
+                fReq.setEstadoCivil(fDto.getEstadoCivil() != null ? fDto.getEstadoCivil() : existente.getEstadoCivil());
+                fReq.setInstruccion(fDto.getInstruccion() != null ? fDto.getInstruccion() : existente.getInstruccion());
+                fReq.setOcupacion(fDto.getOcupacion() != null ? fDto.getOcupacion() : existente.getOcupacion());
+                fReq.setIngresoMensual(fDto.getIngresoMensual() != null ? fDto.getIngresoMensual() : existente.getIngresoMensual());
+                
+                fReq.setProblemasSalud(existente.getProblemasSalud());
+                fReq.setDescripProblemasSalud(existente.getDescripProblemasSalud());
+                fReq.setEnfermedadCatastrofica(existente.getEnfermedadCatastrofica());
+                fReq.setDescripEnfermedadCatastrofica(existente.getDescripEnfermedadCatastrofica());
+                fReq.setDiscapacidad(existente.getDiscapacidad());
+                fReq.setDescripDiscapacidad(existente.getDescripDiscapacidad());
+            } else {
+                fReq.setRelacion(fDto.getRelacion());
+                fReq.setNombresApellidos(fDto.getNombresApellidos());
+                fReq.setEdad(fDto.getEdad());
+                fReq.setEstadoCivil(fDto.getEstadoCivil());
+                fReq.setInstruccion(fDto.getInstruccion());
+                fReq.setOcupacion(fDto.getOcupacion());
+                fReq.setIngresoMensual(fDto.getIngresoMensual());
+                fReq.setCedula(fDto.getCedula());
+                fReq.setNumeroTelefono(fDto.getNumeroTelefono());
+                fReq.setCorreoElectronico(fDto.getCorreoElectronico());
+                fReq.setProblemasSalud(fDto.getProblemasSalud() != null ? fDto.getProblemasSalud() : false);
+                fReq.setDescripProblemasSalud(fDto.getDescripProblemasSalud());
+                fReq.setEnfermedadCatastrofica(fDto.getEnfermedadCatastrofica() != null ? fDto.getEnfermedadCatastrofica() : false);
+                fReq.setDescripEnfermedadCatastrofica(fDto.getDescripEnfermedadCatastrofica());
+                fReq.setDiscapacidad(fDto.getDiscapacidad() != null ? fDto.getDiscapacidad() : false);
+                fReq.setDescripDiscapacidad(fDto.getDescripDiscapacidad());
+            }
+        } else {
+            fReq.setRelacion(fDto.getRelacion());
+            fReq.setNombresApellidos(fDto.getNombresApellidos());
+            fReq.setEdad(fDto.getEdad());
+            fReq.setEstadoCivil(fDto.getEstadoCivil());
+            fReq.setInstruccion(fDto.getInstruccion());
+            fReq.setOcupacion(fDto.getOcupacion());
+            fReq.setIngresoMensual(fDto.getIngresoMensual());
+            fReq.setCedula(fDto.getCedula());
+            fReq.setNumeroTelefono(fDto.getNumeroTelefono());
+            fReq.setCorreoElectronico(fDto.getCorreoElectronico());
+            fReq.setProblemasSalud(fDto.getProblemasSalud() != null ? fDto.getProblemasSalud() : false);
+            fReq.setDescripProblemasSalud(fDto.getDescripProblemasSalud());
+            fReq.setEnfermedadCatastrofica(fDto.getEnfermedadCatastrofica() != null ? fDto.getEnfermedadCatastrofica() : false);
+            fReq.setDescripEnfermedadCatastrofica(fDto.getDescripEnfermedadCatastrofica());
+            fReq.setDiscapacidad(fDto.getDiscapacidad() != null ? fDto.getDiscapacidad() : false);
+            fReq.setDescripDiscapacidad(fDto.getDescripDiscapacidad());
+        }
 
         FamiliarDTO guardado;
         if (fDto.getId() != null) {
@@ -113,6 +211,93 @@ public class InformeSocialService {
         Familiar informanteActual = familiarService.obtenerInformante(informeId);
         if (informanteActual == null || !informanteActual.getId().equals(guardado.getId())) {
             familiarService.vincularFamiliarAInforme(guardado.getId(), informeId, true);
+        }
+    }
+
+    private void procesarFamiliares(List<InformeSocialFamiliarDTO> familiaresDto, FichaSocioeconomica ficha) {
+        if (familiaresDto == null || ficha == null) {
+            return;
+        }
+
+        List<FamiliarReferencia> refs = familiarService.obtenerReferencias("FICHA", ficha.getId().longValue());
+
+        // Desvincular los familiares que ya no están en la lista enviada
+        for (FamiliarReferencia ref : refs) {
+            boolean sigueExistiendo = familiaresDto.stream()
+                    .anyMatch(fDto -> fDto.getId() != null && fDto.getId().equals(ref.getFamiliar().getId().intValue()));
+            if (!sigueExistiendo) {
+                familiarService.desvincularFamiliarDeEntidad(ref.getFamiliar().getId(), "FICHA", ficha.getId().longValue());
+            }
+        }
+
+        for (InformeSocialFamiliarDTO fDto : familiaresDto) {
+            FamiliarRequest fReq = new FamiliarRequest();
+
+            // Si es un familiar existente, conservar sus campos de salud y socioeconómicos si vienen vacíos
+            if (fDto.getId() != null) {
+                Familiar existente = familiarService.obtenerFamiliarPorId(fDto.getId().longValue()).orElse(null);
+                if (existente != null) {
+                    fReq.setRelacion(fDto.getParentesco() != null && !fDto.getParentesco().trim().isEmpty() ? fDto.getParentesco() : existente.getRelacion());
+                    fReq.setNombresApellidos(fDto.getNombres() != null && !fDto.getNombres().trim().isEmpty() ? fDto.getNombres() : existente.getNombresApellidos());
+                    fReq.setEdad(fDto.getEdad() != null && fDto.getEdad() > 0 ? fDto.getEdad() : existente.getEdad());
+                    fReq.setEstadoCivil(fDto.getEstadoCivil() != null && !fDto.getEstadoCivil().trim().isEmpty() ? fDto.getEstadoCivil() : existente.getEstadoCivil());
+                    fReq.setInstruccion(fDto.getInstruccion() != null && !fDto.getInstruccion().trim().isEmpty() ? fDto.getInstruccion() : existente.getInstruccion());
+                    fReq.setOcupacion(fDto.getOcupacion() != null && !fDto.getOcupacion().trim().isEmpty() ? fDto.getOcupacion() : existente.getOcupacion());
+                    fReq.setIngresoMensual(fDto.getIngresos() != null && fDto.getIngresos() > 0.0 ? fDto.getIngresos() : existente.getIngresoMensual());
+                    fReq.setCedula(fDto.getCedula() != null && !fDto.getCedula().trim().isEmpty() ? fDto.getCedula() : existente.getCedula());
+                    fReq.setNumeroTelefono(fDto.getTelefono() != null && !fDto.getTelefono().trim().isEmpty() ? fDto.getTelefono() : existente.getNumeroTelefono());
+                    fReq.setCorreoElectronico(fDto.getCorreo() != null && !fDto.getCorreo().trim().isEmpty() ? fDto.getCorreo() : existente.getCorreoElectronico());
+                    
+                    fReq.setProblemasSalud(existente.getProblemasSalud());
+                    fReq.setDescripProblemasSalud(existente.getDescripProblemasSalud());
+                    fReq.setEnfermedadCatastrofica(existente.getEnfermedadCatastrofica());
+                    fReq.setDescripEnfermedadCatastrofica(existente.getDescripEnfermedadCatastrofica());
+                    fReq.setDiscapacidad(existente.getDiscapacidad());
+                    fReq.setDescripDiscapacidad(existente.getDescripDiscapacidad());
+                } else {
+                    fReq.setRelacion(fDto.getParentesco());
+                    fReq.setNombresApellidos(fDto.getNombres());
+                    fReq.setEdad(fDto.getEdad());
+                    fReq.setEstadoCivil(fDto.getEstadoCivil());
+                    fReq.setInstruccion(fDto.getInstruccion());
+                    fReq.setOcupacion(fDto.getOcupacion());
+                    fReq.setIngresoMensual(fDto.getIngresos());
+                    fReq.setCedula(fDto.getCedula());
+                    fReq.setNumeroTelefono(fDto.getTelefono());
+                    fReq.setCorreoElectronico(fDto.getCorreo());
+                    fReq.setProblemasSalud(false);
+                    fReq.setEnfermedadCatastrofica(false);
+                    fReq.setDiscapacidad(false);
+                }
+            } else {
+                fReq.setRelacion(fDto.getParentesco());
+                fReq.setNombresApellidos(fDto.getNombres());
+                fReq.setEdad(fDto.getEdad());
+                fReq.setEstadoCivil(fDto.getEstadoCivil());
+                fReq.setInstruccion(fDto.getInstruccion());
+                fReq.setOcupacion(fDto.getOcupacion());
+                fReq.setIngresoMensual(fDto.getIngresos());
+                fReq.setCedula(fDto.getCedula());
+                fReq.setNumeroTelefono(fDto.getTelefono());
+                fReq.setCorreoElectronico(fDto.getCorreo());
+                fReq.setProblemasSalud(false);
+                fReq.setEnfermedadCatastrofica(false);
+                fReq.setDiscapacidad(false);
+            }
+
+            FamiliarDTO guardado;
+            if (fDto.getId() != null) {
+                guardado = familiarService.actualizarFamiliar(fDto.getId().longValue(), fReq);
+            } else {
+                guardado = familiarService.crearFamiliar(ficha.getPaciente().getId(), fReq);
+            }
+
+            boolean alreadyLinked = refs.stream()
+                    .anyMatch(r -> r.getFamiliar().getId().equals(guardado.getId()));
+
+            if (!alreadyLinked) {
+                familiarService.vincularFamiliarAFicha(guardado.getId(), ficha.getId().longValue());
+            }
         }
     }
 
@@ -179,6 +364,47 @@ public class InformeSocialService {
             throw new RuntimeException("No existe ficha socioeconómica activa para este paciente");
         }
 
+        // Resolve creator/editor as Specialist or Pasante
+        boolean resolved = false;
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated()) {
+            String username = auth.getName();
+            boolean isPasante = auth.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("ROLE_PASANTE"));
+            boolean isEspecialista = auth.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("ROLE_ESPECIALISTA"));
+
+            if (isPasante) {
+                com.ucacue.udipsai.modules.pasante.domain.Pasante pasante = pasanteRepository.findByCedula(username).orElse(null);
+                if (pasante != null) {
+                    informe.setPasante(pasante);
+                    informe.setEspecialista(null);
+                    resolved = true;
+                }
+            } else if (isEspecialista) {
+                Especialista especialista = especialistaRepository.findByCedula(username).orElse(null);
+                if (especialista != null) {
+                    informe.setEspecialista(especialista);
+                    informe.setPasante(null);
+                    resolved = true;
+                }
+            }
+        }
+
+        if (!resolved && request.getEspecialistaId() != null) {
+            Especialista especialista = especialistaRepository.findById(request.getEspecialistaId()).orElse(null);
+            if (especialista != null) {
+                informe.setEspecialista(especialista);
+                informe.setPasante(null);
+            } else {
+                com.ucacue.udipsai.modules.pasante.domain.Pasante pasante = pasanteRepository.findById(request.getEspecialistaId()).orElse(null);
+                if (pasante != null) {
+                    informe.setPasante(pasante);
+                    informe.setEspecialista(null);
+                }
+            }
+        }
+
         if (genograma != null && !genograma.isEmpty()) {
             informe.setGenogramaUrl(storageService.store(genograma));
         }
@@ -206,6 +432,8 @@ public class InformeSocialService {
         if (request.getInformante() != null) {
             procesarInformante(request.getInformante(), informe.getPaciente().getId(), saved.getId().longValue());
         }
+
+        procesarFamiliares(request.getFamiliares(), ficha);
 
         return convertirADTO(saved, ficha);
     }
@@ -260,6 +488,7 @@ public class InformeSocialService {
         dto.setId(entity.getId());
         dto.setNumFicha(entity.getNumFicha());
         dto.setFechaElaboracion(entity.getFechaElaboracion());
+        dto.setActivo(entity.getActivo());
         dto.setGenogramaUrl(entity.getGenogramaUrl());
         dto.setEcomapaUrl(entity.getEcomapaUrl());
 
@@ -277,6 +506,29 @@ public class InformeSocialService {
         dto.setValoracionProfesional(entity.getValoracionProfesional());
         dto.setRecomendaciones(entity.getRecomendaciones());
         dto.setElaboradoPor(entity.getElaboradoPor());
+
+        if (entity.getEspecialista() != null) {
+            EspecialistaDTO espDto = new EspecialistaDTO();
+            espDto.setId(entity.getEspecialista().getId());
+            espDto.setNombresApellidos(entity.getEspecialista().getNombresApellidos());
+            dto.setEspecialista(espDto);
+        } else if (entity.getPasante() != null) {
+            EspecialistaDTO espDto = new EspecialistaDTO();
+            espDto.setId(entity.getPasante().getId());
+            espDto.setNombresApellidos(entity.getPasante().getNombresApellidos());
+            dto.setEspecialista(espDto);
+
+            PasanteDTO pasDto = new PasanteDTO();
+            pasDto.setId(entity.getPasante().getId());
+            pasDto.setNombresApellidos(entity.getPasante().getNombresApellidos());
+            if (entity.getPasante().getEspecialista() != null) {
+                EspecialistaDTO superEsp = new EspecialistaDTO();
+                superEsp.setId(entity.getPasante().getEspecialista().getId());
+                superEsp.setNombresApellidos(entity.getPasante().getEspecialista().getNombresApellidos());
+                pasDto.setEspecialista(superEsp);
+            }
+            dto.setPasante(pasDto);
+        }
 
         Familiar informante = familiarService.obtenerInformante(entity.getId().longValue());
         if (informante != null) {
@@ -354,5 +606,11 @@ public class InformeSocialService {
             return storageService.loadAsResource(informes.get(0).getEcomapaUrl());
         }
         return null;
+    }
+
+    @Transactional(readOnly = true)
+    public String obtenerSiguienteNumeroFicha() {
+        long count = informeRepository.count();
+        return String.format("INF-%04d", count + 1);
     }
 }

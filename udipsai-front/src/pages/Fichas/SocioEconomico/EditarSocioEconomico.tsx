@@ -14,7 +14,7 @@ export default function EditarSocioEconomico() {
         pageTitle="Editar Ficha Socioeconómica"
         items={[
           { label: "Inicio", path: "/" },
-          { label: "Fichas", path: "/fichas" },
+          { label: "Fichas", path: "/fichas?tab=socioeconomico" },
           { label: "Editar Ficha Socioeconómica" }
         ]}
       />

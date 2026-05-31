@@ -271,14 +271,16 @@
       <table>
         <thead>
           <tr>
-            <th style="width: 5%">N°</th>
-            <th style="width: 15%">RELACIÓN</th>
-            <th style="width: 30%">NOMBRES Y APELLIDOS</th>
-            <th style="width: 8%">EDAD</th>
-            <th style="width: 12%">EST. CIVIL</th>
-            <th style="width: 12%">INSTRUCCIÓN</th>
-            <th style="width: 12%">OCUPACIÓN</th>
-            <th style="width: 11%">INGRESO</th>
+            <th style="width: 4%">N°</th>
+            <th style="width: 11%">RELACIÓN</th>
+            <th style="width: 22%">NOMBRES Y APELLIDOS</th>
+            <th style="width: 5%">EDAD</th>
+            <th style="width: 10%">EST. CIVIL</th>
+            <th style="width: 10%">INSTRUCCIÓN</th>
+            <th style="width: 10%">OCUPACIÓN</th>
+            <th style="width: 8%">INGRESO</th>
+            <th style="width: 10%">CÉDULA</th>
+            <th style="width: 10%">TELÉFONO</th>
           </tr>
         </thead>
         <tbody>
@@ -293,9 +295,11 @@
             <td
               th:text="${fam.ingresoMensual != null ? '$' + fam.ingresoMensual : '-'}"
             ></td>
+            <td th:text="${fam.cedula ?: '-'}"></td>
+            <td th:text="${fam.numeroTelefono ?: '-'}"></td>
           </tr>
           <tr th:if="${#lists.isEmpty(f.familiares)}">
-            <td colspan="8" style="text-align: center">
+            <td colspan="10" style="text-align: center">
               Sin familiares registrados
             </td>
           </tr>
@@ -1191,27 +1195,44 @@
       </div>
     </div>
 
-    <!-- FIRMA RESPONSABLE -->
-    <table class="signature-section">
-      <tr>
-        <td style="border: none; width: 50%; padding-left: 20px">
-          <div class="signature-box">
-            <span
-              class="label"
-              th:text="${f.responsable ?: 'Familiar Responsable'}"
-            ></span
-            ><br />
-            <span>Firma del responsable (Familiar)</span>
+    <!-- SECCIÓN DE FIRMAS -->
+    <table class="signature-section" style="width: 100%; margin-top: 50px; page-break-inside: avoid; border: none;">
+      <tr style="border: none;">
+        <!-- Creado Por (Left Column) -->
+        <td style="border: none; width: 33%; padding-left: 10px; padding-right: 10px; vertical-align: top; text-align: center;">
+          <div style="min-height: 120px; position: relative;">
+            <p style="font-weight: bold; margin-bottom: 50px; text-transform: uppercase;">Creado Por</p>
+            <div style="border-top: 1px solid #000; width: 90%; margin: 0 auto; padding-top: 5px;">
+              <span th:text="${f.pasante != null ? f.pasante.nombresApellidos : (f.especialista != null ? f.especialista.nombresApellidos : 'Especialista')}" style="font-weight: bold;"></span>
+              <br />
+              <span th:text="${f.pasante != null ? 'Pasante' : 'Especialista'}"></span>
+            </div>
           </div>
         </td>
-        <td style="border: none; width: 50%; padding-right: 20px">
-          <div class="signature-box" style="float: right">
-            <span
-              class="label"
-              th:text="${f.especialista?.nombresApellidos ?: 'Especialista'}"
-            ></span
-            ><br />
-            <span>Firma del Especialista</span>
+
+        <!-- Revisado Por (Center Column) -->
+        <td style="border: none; width: 33%; padding-left: 10px; padding-right: 10px; vertical-align: top; text-align: center;">
+          <div style="min-height: 120px; position: relative;">
+            <p style="font-weight: bold; margin-bottom: 50px; text-transform: uppercase;">Revisado Por</p>
+            <div style="border-top: 1px solid #000; width: 90%; margin: 0 auto; padding-top: 5px;">
+              <span th:if="${f.pasante != null}" th:text="${f.pasante.especialista != null ? f.pasante.especialista.nombresApellidos : 'Especialista a cargo'}" style="font-weight: bold;"></span>
+              <span th:if="${f.pasante == null}" style="font-weight: bold;">Lcda. Gabriela Jara S., Mgs.</span>
+              <br />
+              <span th:if="${f.pasante != null}">Especialista a Cargo</span>
+              <span th:if="${f.pasante == null}">Coordinadora de la UDIPSAI</span>
+            </div>
+          </div>
+        </td>
+
+        <!-- Responsable de la Información (Right Column) -->
+        <td style="border: none; width: 33%; padding-left: 10px; padding-right: 10px; vertical-align: top; text-align: center;">
+          <div style="min-height: 120px; position: relative;">
+            <p style="font-weight: bold; margin-bottom: 50px; text-transform: uppercase;">Responsable de la Información (Familiar)</p>
+            <div style="border-top: 1px solid #000; width: 90%; margin: 0 auto; padding-top: 5px;">
+              <span th:text="${f.responsable ?: 'Familiar Responsable'}" style="font-weight: bold;"></span>
+              <br />
+              <span>Nombre / Relación del Responsable</span>
+            </div>
           </div>
         </td>
       </tr>

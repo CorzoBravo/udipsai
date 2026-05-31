@@ -1,6 +1,8 @@
 package com.ucacue.udipsai.modules.informesocial.dto;
 
 import com.ucacue.udipsai.modules.paciente.dto.PacienteFichaDTO;
+import com.ucacue.udipsai.modules.especialistas.dto.EspecialistaDTO;
+import com.ucacue.udipsai.modules.pasante.dto.PasanteDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,6 +19,7 @@ public class InformeSocialDTO {
     private PacienteFichaDTO paciente;
     private String numFicha;
     private Date fechaElaboracion;
+    private Boolean activo;
     
     
     private String genogramaUrl;
@@ -38,5 +41,7 @@ public class InformeSocialDTO {
     private String recomendaciones;
 
     private String elaboradoPor;
+    private EspecialistaDTO especialista;
+    private PasanteDTO pasante;
     private List<InformeSocialFamiliarDTO> familiares;
 }

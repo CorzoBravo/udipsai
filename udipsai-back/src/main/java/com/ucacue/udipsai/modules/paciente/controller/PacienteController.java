@@ -6,6 +6,8 @@ import com.itextpdf.io.IOException;
 import com.ucacue.udipsai.modules.paciente.dto.*;
 import com.ucacue.udipsai.modules.paciente.service.PacienteReportService;
 import com.ucacue.udipsai.modules.paciente.service.PacienteService;
+import com.ucacue.udipsai.modules.familiar.service.FamiliarService;
+import com.ucacue.udipsai.modules.familiar.dto.FamiliarDTO;
 import com.ucacue.udipsai.infrastructure.storage.StorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -35,6 +37,15 @@ public class PacienteController {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private FamiliarService familiarService;
+
+    @GetMapping("/{id}/familiares")
+    @PreAuthorize("hasAuthority('PERM_PACIENTES') and @asignacionSecurity.checkPasanteAcceso(#id)")
+    public ResponseEntity<List<FamiliarDTO>> obtenerFamiliaresPorPaciente(@PathVariable Integer id) {
+        log.info("Petición GET para obtener familiares del paciente ID: {}", id);
+        return ResponseEntity.ok(familiarService.obtenerFamiliaresPorPaciente(id));
+    }
 
     @GetMapping("/activos")
     @PreAuthorize("hasAuthority('PERM_PACIENTES')")

@@ -107,6 +107,7 @@ public class FamiliarService {
         familiar.setIngresoMensual(request.getIngresoMensual());
         familiar.setNumeroTelefono(request.getNumeroTelefono());
         familiar.setCorreoElectronico(request.getCorreoElectronico());
+        familiar.setCedula(request.getCedula());
         familiar.setProblemasSalud(request.getProblemasSalud());
         familiar.setDescripProblemasSalud(request.getDescripProblemasSalud());
         familiar.setEnfermedadCatastrofica(request.getEnfermedadCatastrofica());
@@ -163,6 +164,14 @@ public class FamiliarService {
     @Transactional
     public void vincularFamiliarAFicha(Long familiarId, Long fichaId) {
         crearReferencia(familiarId, "FICHA", fichaId, Map.of("rol", "familiar_ficha"));
+    }
+
+    @Transactional
+    public void desvincularFamiliarDeEntidad(Long familiarId, String entidadTipo, Long entidadId) {
+        List<FamiliarReferencia> referencias = referenciaRepository.findByEntidadTipoAndEntidadId(entidadTipo, entidadId);
+        referencias.stream()
+                .filter(ref -> ref.getFamiliar().getId().equals(familiarId))
+                .forEach(referenciaRepository::delete);
     }
 
     @Transactional

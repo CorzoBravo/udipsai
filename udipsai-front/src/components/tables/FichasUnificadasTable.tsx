@@ -11,6 +11,7 @@ import {
   Eye,
   Home,
   ClipboardList,
+  Users,
 } from "lucide-react";
 
 import {
@@ -183,7 +184,18 @@ export default function FichasUnificadasTable() {
     }
   ];
 
-  const initialTab = (searchParams.get("tab") as TabKey) || "historia_clinica";
+  const getNormalizedTab = (tabStr: string | null): TabKey => {
+    if (!tabStr) return "historia_clinica";
+    if (tabStr === "socioeconomica") return "socioeconomico";
+    return tabStr as TabKey;
+  };
+
+  const isSocialTab = (key: TabKey) =>
+    key === "socioeconomico" ||
+    key === "seguimiento_social" ||
+    key === "informe_social";
+
+  const initialTab = getNormalizedTab(searchParams.get("tab"));
   const [activeTabKey, setActiveTabKey] = useState<TabKey>(initialTab);
   const [fichas, setFichas] = useState<FichaListDTO[]>([]);
   const [loading, setLoading] = useState(false);
@@ -208,6 +220,13 @@ export default function FichasUnificadasTable() {
     setActiveTabKey(key);
     setSearchParams({ tab: key });
   };
+
+  useEffect(() => {
+    const tabFromUrl = getNormalizedTab(searchParams.get("tab"));
+    if (tabFromUrl !== activeTabKey) {
+      setActiveTabKey(tabFromUrl);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     loadFichas();
@@ -364,25 +383,70 @@ export default function FichasUnificadasTable() {
       />
 
       <div className="rounded-xl border border-gray-200 bg-white p-5 dark:border-white/[0.05] dark:bg-white/[0.03]">
+        {/* Pestañas Principales */}
         <div className="mb-6 flex flex-wrap gap-2 border-b border-gray-200 dark:border-gray-700 pb-2">
-          {tabs.map((tab) => {
+          {[
+            { key: "historia_clinica", label: "Historia Clínica", icon: FileText },
+            { key: "psicologia_educativa", label: "Psicología Educativa", icon: Activity },
+            { key: "psicologia_clinica", label: "Psicología Clínica", icon: Brain },
+            { key: "fonoaudiologia", label: "Fonoaudiología", icon: Ear },
+            { key: "trabajo_social", label: "Trabajo Social", icon: Users },
+          ].map((tab) => {
             const Icon = tab.icon;
-            const isActive = activeTabKey === tab.key;
+            const isActive = tab.key === "trabajo_social" 
+              ? isSocialTab(activeTabKey)
+              : activeTabKey === tab.key;
+            
+            const handleClick = () => {
+              if (tab.key === "trabajo_social") {
+                handleTabChange("socioeconomico");
+              } else {
+                handleTabChange(tab.key as TabKey);
+              }
+            };
+
             return (
               <button
                 key={tab.key}
-                onClick={() => handleTabChange(tab.key)}
+                onClick={handleClick}
                 className={`flex items-center gap-2 px-4 py-2 rounded-t-lg transition-all duration-200 text-sm font-medium ${isActive
                   ? "bg-brand-50 text-brand-600 border-b-2 border-brand-500 dark:bg-white/5 dark:text-brand-400"
                   : "text-gray-500 hover:text-gray-700 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-white/5"
                   }`}
               >
-                {typeof Icon === 'string' ? Icon : <Icon size={16} />}
+                <Icon size={16} />
                 {tab.label}
               </button>
             );
           })}
         </div>
+
+        {/* Sub-pestañas de Trabajo Social */}
+        {isSocialTab(activeTabKey) && (
+          <div className="mb-6 flex flex-wrap gap-1 bg-gray-50 dark:bg-white/5 p-1 rounded-xl w-fit">
+            {[
+              { key: "socioeconomico", label: "Socioeconómico", icon: Home },
+              { key: "seguimiento_social", label: "Seguimiento Social", icon: ClipboardList },
+              { key: "informe_social", label: "Informe Social", icon: FileText },
+            ].map((subTab) => {
+              const SubIcon = subTab.icon;
+              const isSubActive = activeTabKey === subTab.key;
+              return (
+                <button
+                  key={subTab.key}
+                  onClick={() => handleTabChange(subTab.key as TabKey)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 text-xs font-semibold ${isSubActive
+                    ? "bg-white text-brand-600 shadow-sm dark:bg-gray-800 dark:text-brand-400"
+                    : "text-gray-500 hover:text-gray-700 dark:text-gray-400"
+                    }`}
+                >
+                  <SubIcon size={14} />
+                  {subTab.label}
+                </button>
+              );
+            })}
+          </div>
+        )}
 
         <div className="max-w-full overflow-x-auto">
           <Table>

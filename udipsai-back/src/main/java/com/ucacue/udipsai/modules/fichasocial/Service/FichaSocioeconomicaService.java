@@ -16,7 +16,10 @@ import com.ucacue.udipsai.modules.paciente.repository.PacienteRepository;
 import com.ucacue.udipsai.modules.especialistas.domain.Especialista;
 import com.ucacue.udipsai.modules.especialistas.dto.EspecialistaDTO;
 import com.ucacue.udipsai.modules.especialistas.repository.EspecialistaRepository;
+import com.ucacue.udipsai.modules.pasante.repository.PasanteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.extern.slf4j.Slf4j;
@@ -39,7 +42,9 @@ public class FichaSocioeconomicaService {
 
     @Autowired
     private FamiliarService familiarService;
-    private com.ucacue.udipsai.modules.pasante.repository.PasanteRepository pasanteRepository;
+
+    @Autowired
+    private PasanteRepository pasanteRepository;
 
     @Transactional(readOnly = true)
     public List<FichaSocioeconomicaDTO> listarFichas() {
@@ -85,17 +90,45 @@ public class FichaSocioeconomicaService {
         ficha.setActivo(true);
 
         // Resolve creator as Specialist or Pasante
-        Especialista especialista = especialistaRepository.findById(request.getEspecialistaId()).orElse(null);
-        if (especialista != null) {
-            ficha.setEspecialista(especialista);
-            ficha.setPasante(null);
-        } else {
-            com.ucacue.udipsai.modules.pasante.domain.Pasante pasante = pasanteRepository.findById(request.getEspecialistaId()).orElse(null);
-            if (pasante != null) {
-                ficha.setPasante(pasante);
-                ficha.setEspecialista(null);
+        boolean resolved = false;
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated()) {
+            String username = auth.getName();
+            boolean isPasante = auth.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("ROLE_PASANTE"));
+            boolean isEspecialista = auth.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("ROLE_ESPECIALISTA"));
+
+            if (isPasante) {
+                com.ucacue.udipsai.modules.pasante.domain.Pasante pasante = pasanteRepository.findByCedula(username).orElse(null);
+                if (pasante != null) {
+                    ficha.setPasante(pasante);
+                    ficha.setEspecialista(null);
+                    resolved = true;
+                }
+            } else if (isEspecialista) {
+                Especialista especialista = especialistaRepository.findByCedula(username).orElse(null);
+                if (especialista != null) {
+                    ficha.setEspecialista(especialista);
+                    ficha.setPasante(null);
+                    resolved = true;
+                }
+            }
+        }
+
+        if (!resolved) {
+            Especialista especialista = especialistaRepository.findById(request.getEspecialistaId()).orElse(null);
+            if (especialista != null) {
+                ficha.setEspecialista(especialista);
+                ficha.setPasante(null);
             } else {
-                throw new RuntimeException("Especialista o Pasante no encontrado");
+                com.ucacue.udipsai.modules.pasante.domain.Pasante pasante = pasanteRepository.findById(request.getEspecialistaId()).orElse(null);
+                if (pasante != null) {
+                    ficha.setPasante(pasante);
+                    ficha.setEspecialista(null);
+                } else {
+                    throw new RuntimeException("Especialista o Pasante no encontrado");
+                }
             }
         }
 
@@ -164,6 +197,15 @@ public class FichaSocioeconomicaService {
         }
 
         List<FamiliarReferencia> refs = familiarService.obtenerReferencias("FICHA", ficha.getId().longValue());
+
+        // Desvincular los familiares que ya no están en la lista enviada
+        for (FamiliarReferencia ref : refs) {
+            boolean sigueExistiendo = familiaresDto.stream()
+                    .anyMatch(fDto -> fDto.getId() != null && fDto.getId().equals(ref.getFamiliar().getId()));
+            if (!sigueExistiendo) {
+                familiarService.desvincularFamiliarDeEntidad(ref.getFamiliar().getId(), "FICHA", ficha.getId().longValue());
+            }
+        }
 
         for (FamiliarDTO fDto : familiaresDto) {
             FamiliarRequest fReq = new FamiliarRequest();
@@ -234,6 +276,17 @@ public class FichaSocioeconomicaService {
             espDto.setId(ficha.getPasante().getId());
             espDto.setNombresApellidos(ficha.getPasante().getNombresApellidos());
             dto.setEspecialista(espDto);
+
+            com.ucacue.udipsai.modules.pasante.dto.PasanteDTO pasDto = new com.ucacue.udipsai.modules.pasante.dto.PasanteDTO();
+            pasDto.setId(ficha.getPasante().getId());
+            pasDto.setNombresApellidos(ficha.getPasante().getNombresApellidos());
+            if (ficha.getPasante().getEspecialista() != null) {
+                EspecialistaDTO superEsp = new EspecialistaDTO();
+                superEsp.setId(ficha.getPasante().getEspecialista().getId());
+                superEsp.setNombresApellidos(ficha.getPasante().getEspecialista().getNombresApellidos());
+                pasDto.setEspecialista(superEsp);
+            }
+            dto.setPasante(pasDto);
         }
         
         dto.setRiesgosSociales(ficha.getRiesgosSociales());

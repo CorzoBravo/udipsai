@@ -13,7 +13,7 @@ export default function NuevaInformeSocial() {
         pageTitle="Nuevo Informe Social"
         items={[
           { label: "Inicio", path: "/" },
-          { label: "Fichas", path: "/fichas" },
+          { label: "Fichas", path: "/fichas?tab=informe_social" },
           { label: "Nuevo Informe Social" },
         ]}
       />

@@ -89,6 +89,12 @@ public class InformeSocialController {
         return (dto != null) ? ResponseEntity.ok(dto) : ResponseEntity.notFound().build();
     }
 
+    @GetMapping("/siguiente-numero")
+    @PreAuthorize("hasAuthority('PERM_INFORME_SOCIAL')")
+    public ResponseEntity<String> obtenerSiguienteNumeroFicha() {
+        return ResponseEntity.ok(informeService.obtenerSiguienteNumeroFicha());
+    }
+
     @PostMapping(value = "/crear", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<InformeSocialDTO> crearInforme(
             @RequestPart("informe") String informeJson,

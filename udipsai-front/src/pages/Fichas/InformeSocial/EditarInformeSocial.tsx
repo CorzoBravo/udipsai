@@ -13,7 +13,7 @@ export default function EditarInformeSocial() {
         pageTitle="Editar Informe Social"
         items={[
           { label: "Inicio", path: "/" },
-          { label: "Fichas", path: "/fichas" },
+          { label: "Fichas", path: "/fichas?tab=informe_social" },
           { label: "Editar Informe Social" },
         ]}
       />

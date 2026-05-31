@@ -13,7 +13,7 @@ export default function NuevaSocioEconomico() {
         pageTitle="Nueva Ficha Socioeconómica"
         items={[
           { label: "Inicio", path: "/" },
-          { label: "Fichas", path: "/fichas" },
+          { label: "Fichas", path: "/fichas?tab=socioeconomico" },
           { label: "Nueva Ficha Socioeconómica" },
         ]}
       />
