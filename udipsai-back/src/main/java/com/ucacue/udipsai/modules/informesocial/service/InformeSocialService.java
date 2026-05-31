@@ -48,6 +48,8 @@ public class InformeSocialService {
     private EspecialistaRepository especialistaRepository;
     @Autowired
     private PasanteRepository pasanteRepository;
+    @Autowired
+    private com.ucacue.udipsai.modules.asignacion.service.AsignacionSecurityService asignacionSecurity;
 
     @Transactional
     public InformeSocialDTO crearInforme(InformeSocialRequest request, MultipartFile genograma, MultipartFile ecomapa) {
@@ -58,6 +60,7 @@ public class InformeSocialService {
         if (ficha == null) {
             throw new RuntimeException("No existe ficha socioeconómica activa. Cree una ficha primero en el módulo de fichas socioeconómicas");
         }
+
 
         InformeSocial informe = new InformeSocial();
         informe.setPaciente(paciente);
@@ -303,9 +306,13 @@ public class InformeSocialService {
 
     @Transactional(readOnly = true)
     public List<InformeSocialDTO> listarInformes() {
-        return informeRepository.findAll().stream()
-                .filter(i -> Boolean.TRUE.equals(i.getActivo()))
-                .map(i -> {
+        List<Integer> assignedIds = asignacionSecurity.getPasanteAssignedPatientIds();
+        java.util.stream.Stream<InformeSocial> stream = informeRepository.findAll().stream()
+                .filter(i -> Boolean.TRUE.equals(i.getActivo()));
+        if (assignedIds != null) {
+            stream = stream.filter(i -> i.getPaciente() != null && assignedIds.contains(i.getPaciente().getId()));
+        }
+        return stream.map(i -> {
                     FichaSocioeconomica ficha = fichaRepository.findByPacienteIdAndActivo(i.getPaciente().getId(), true);
                     return convertirADTO(i, ficha);
                 })
@@ -347,6 +354,18 @@ public class InformeSocialService {
             return convertirADTO(informe, ficha);
         }
         return null;
+    }
+
+    @Transactional(readOnly = true)
+    public List<InformeSocialDTO> obtenerHistorialPorPacienteId(Integer pacienteId) {
+        List<InformeSocial> informes = informeRepository.findByPacienteIdOrderByFechaElaboracionDesc(pacienteId);
+        return informes.stream()
+                .filter(i -> Boolean.TRUE.equals(i.getActivo()))
+                .map(i -> {
+                    FichaSocioeconomica ficha = fichaRepository.findByPacienteIdAndActivo(pacienteId, true);
+                    return convertirADTO(i, ficha);
+                })
+                .collect(Collectors.toList());
     }
 
     @Transactional

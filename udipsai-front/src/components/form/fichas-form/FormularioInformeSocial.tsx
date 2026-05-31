@@ -201,9 +201,15 @@ export const initialInformeSocialState: InformeSocialState = {
   tipoFamiliaEspecificar: "",
 };
 
-export default function FormularioInformeSocial() {
+interface FormularioInformeSocialProps {
+  fichaId?: number | string;
+  onSuccess?: () => void;
+}
+
+export default function FormularioInformeSocial({ fichaId, onSuccess }: FormularioInformeSocialProps = {}) {
   const navigate = useNavigate();
-  const { id } = useParams<{ id: string }>();
+  const { id: paramId } = useParams<{ id: string }>();
+  const id = fichaId?.toString() || paramId;
 
   const { userIdentity, userRole } = useAuth();
 
@@ -552,7 +558,11 @@ export default function FormularioInformeSocial() {
         toast.success("Informe creado exitosamente");
       }
 
-      navigate("/fichas?tab=informe_social");
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        navigate("/fichas?tab=informe_social");
+      }
     } catch (error: any) {
       console.error("ERROR COMPLETO:", error?.response?.data);
       const serverMessage = error?.response?.data?.message;

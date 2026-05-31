@@ -49,6 +49,32 @@ public class FichaSocioeconomicaController {
         return (dto != null) ? ResponseEntity.ok(dto) : ResponseEntity.notFound().build();
     }
 
+    @GetMapping("/paciente/id/{pacienteId}/historial")
+    @PreAuthorize("hasAuthority('PERM_SOCIOECONOMICA') and @asignacionSecurity.checkPasanteAcceso(#pacienteId)")
+    public ResponseEntity<List<FichaSocioeconomicaDTO>> obtenerHistorialPorPacienteId(@PathVariable Integer pacienteId) {
+        return ResponseEntity.ok(fichaService.obtenerHistorialPorPacienteId(pacienteId));
+    }
+
+    @GetMapping("/reporte/pdf/id/{id}")
+    public ResponseEntity<Resource> descargarPdfPorId(@PathVariable Integer id) throws Exception {
+        FichaSocioeconomicaDTO dto = fichaService.obtenerPorId(id);
+        if (dto != null && dto.getPaciente() != null) {
+            if (!asignacionSecurity.checkPasanteAcceso(dto.getPaciente().getId())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+        }
+
+        byte[] pdf = reportService.exportarPdfPorFichaId(id);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Disposition", "attachment; filename=ficha_socioeconomica_" + id + ".pdf");
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(new ByteArrayResource(pdf));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<FichaSocioeconomicaDTO> obtenerPorId(@PathVariable Integer id) {
         FichaSocioeconomicaDTO dto = fichaService.obtenerPorId(id);

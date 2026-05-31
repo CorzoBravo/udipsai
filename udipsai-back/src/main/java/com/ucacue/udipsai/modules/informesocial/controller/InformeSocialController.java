@@ -89,6 +89,12 @@ public class InformeSocialController {
         return (dto != null) ? ResponseEntity.ok(dto) : ResponseEntity.notFound().build();
     }
 
+    @GetMapping("/paciente/id/{pacienteId}/historial")
+    @PreAuthorize("hasAuthority('PERM_INFORME_SOCIAL') and @asignacionSecurity.checkPasanteAcceso(#pacienteId)")
+    public ResponseEntity<List<InformeSocialDTO>> obtenerHistorialPorPacienteId(@PathVariable Integer pacienteId) {
+        return ResponseEntity.ok(informeService.obtenerHistorialPorPacienteId(pacienteId));
+    }
+
     @GetMapping("/siguiente-numero")
     @PreAuthorize("hasAuthority('PERM_INFORME_SOCIAL')")
     public ResponseEntity<String> obtenerSiguienteNumeroFicha() {
@@ -218,6 +224,30 @@ public class InformeSocialController {
         headers.add(
                 "Content-Disposition",
                 "attachment; filename=informe_social.pdf");
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(new ByteArrayResource(pdf));
+    }
+
+    @GetMapping("/reporte/pdf/id/{id}")
+    public ResponseEntity<Resource> descargarPdfPorId(
+            @PathVariable Integer id)
+            throws Exception {
+        InformeSocialDTO dto = informeService.obtenerPorId(id);
+        if (dto != null && dto.getPaciente() != null) {
+            if (!asignacionSecurity.checkPasanteAcceso(dto.getPaciente().getId())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+        }
+
+        byte[] pdf = reportService.exportarPdfPorInformeId(id);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(
+                "Content-Disposition",
+                "attachment; filename=informe_social_" + id + ".pdf");
 
         return ResponseEntity.ok()
                 .headers(headers)

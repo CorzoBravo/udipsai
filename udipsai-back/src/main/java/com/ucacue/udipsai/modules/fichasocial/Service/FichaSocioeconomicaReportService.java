@@ -128,6 +128,22 @@ public class FichaSocioeconomicaReportService {
                 data);
     }
 
+    public byte[] exportarPdfPorFichaId(Integer id) throws Exception {
+        FichaSocioeconomicaDTO ficha = fichaService.obtenerPorId(id);
+
+        if (ficha == null) {
+            throw new RuntimeException(
+                    "No existe la ficha socioeconómica solicitada");
+        }
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("f", ficha);
+
+        return pdfService.generatePdfFromHtml(
+                "reportes/fichasocial-detalle",
+                data);
+    }
+
     private String fmt(Object value) {
         if (value == null)
             return "N/A";

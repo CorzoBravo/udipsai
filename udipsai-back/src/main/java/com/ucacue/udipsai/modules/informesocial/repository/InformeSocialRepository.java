@@ -6,4 +6,5 @@ import java.util.List;
 
 public interface InformeSocialRepository extends JpaRepository<InformeSocial, Integer> {
     List<InformeSocial> findByPacienteIdAndActivoTrue(Integer pacienteId);
+    List<InformeSocial> findByPacienteIdOrderByFechaElaboracionDesc(Integer pacienteId);
 }

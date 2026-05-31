@@ -9,4 +9,5 @@ public interface FichaSocioeconomicaRepository extends JpaRepository<FichaSocioe
 
 
     FichaSocioeconomica findByPacienteIdAndActivo(Integer idPaciente, boolean activo);
+    java.util.List<FichaSocioeconomica> findByPacienteIdAndActivoTrue(Integer pacienteId);
 }

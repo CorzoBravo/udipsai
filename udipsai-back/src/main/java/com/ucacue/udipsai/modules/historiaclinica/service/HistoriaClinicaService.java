@@ -32,13 +32,19 @@ public class HistoriaClinicaService {
     @Autowired
     private StorageService storageService;
 
+    @Autowired
+    private com.ucacue.udipsai.modules.asignacion.service.AsignacionSecurityService asignacionSecurity;
+
     @Transactional(readOnly = true)
     public List<HistoriaClinicaDTO> listarHistoriasClinicas() {
-
         log.info("Consultando todas las historias clínicas activas");
-        return historiaClinicaRepository.findAll().stream()
-                .filter(HistoriaClinica::getActivo)
-                .map(this::convertirADTO)
+        List<Integer> assignedIds = asignacionSecurity.getPasanteAssignedPatientIds();
+        java.util.stream.Stream<HistoriaClinica> stream = historiaClinicaRepository.findAll().stream()
+                .filter(HistoriaClinica::getActivo);
+        if (assignedIds != null) {
+            stream = stream.filter(hc -> hc.getPaciente() != null && assignedIds.contains(hc.getPaciente().getId()));
+        }
+        return stream.map(this::convertirADTO)
                 .collect(Collectors.toList());
     }
 

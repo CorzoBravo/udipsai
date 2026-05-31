@@ -279,6 +279,18 @@ export const fichasService = {
     return res.data;
   },
 
+  obtenerHistorialSocioEconomico: async (pacienteId: number | string) => {
+    const res = await api.get(`/fichas-socioeconomicas/paciente/id/${pacienteId}/historial`);
+    return res.data;
+  },
+
+  exportarPdfSocioEconomicoPorId: async (id: number | string) => {
+    const res = await api.get(`/fichas-socioeconomicas/reporte/pdf/id/${id}`, {
+      responseType: "blob",
+    });
+    return res.data;
+  },
+
   listarInformeSocial: async () => {
     const res = await api.get("/informes-sociales");
     return res.data;
@@ -287,6 +299,11 @@ export const fichasService = {
 
   obtenerInformeSocial: async (id: number | string) => {
     const res = await api.get(`/informes-sociales/paciente/id/${id}`);
+    return res.data;
+  },
+
+  obtenerHistorialInformeSocial: async (id: number | string) => {
+    const res = await api.get(`/informes-sociales/paciente/id/${id}/historial`);
     return res.data;
   },
 
@@ -489,6 +506,18 @@ export const fichasService = {
       return response.data;
     } catch (error) {
       console.error("Error al exportar PDF Informe Social:", error);
+      throw error;
+    }
+  },
+
+  exportarPdfInformeSocialPorId: async (id: number | string) => {
+    try {
+      const response = await api.get(`/informes-sociales/reporte/pdf/id/${id}`, {
+        responseType: "blob",
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error al exportar PDF Informe Social por ID:", error);
       throw error;
     }
   },

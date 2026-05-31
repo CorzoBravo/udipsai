@@ -23,6 +23,7 @@ public class SeguimientoSocialFichaService {
     private final SeguimientoSocialFichaRepository seguimientoRepository;
     private final PacienteRepository pacienteRepository;
     private final PdfService pdfService;
+    private final com.ucacue.udipsai.modules.asignacion.service.AsignacionSecurityService asignacionSecurity;
 
     
     // (Este no lleva readOnly porque sí modifica la base de datos)
@@ -64,9 +65,13 @@ public class SeguimientoSocialFichaService {
     // 2. Listar absolutamente todos los seguimientos (NUEVO) 
     @Transactional(readOnly = true)
     public List<SeguimientoSocialFichaDTO> listarTodos() {
-        return seguimientoRepository.findByActivoTrue()
-                .stream()
-                .map(this::mapToDTO)
+        List<Integer> assignedIds = asignacionSecurity.getPasanteAssignedPatientIds();
+        java.util.stream.Stream<SeguimientoSocialFicha> stream = seguimientoRepository.findByActivoTrue()
+                .stream();
+        if (assignedIds != null) {
+            stream = stream.filter(s -> s.getPaciente() != null && assignedIds.contains(s.getPaciente().getId()));
+        }
+        return stream.map(this::mapToDTO)
                 .collect(Collectors.toList());
     }
 

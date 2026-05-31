@@ -236,6 +236,71 @@ public class InformeSocialReportService {
                                 data);
         }
 
+        @Transactional(readOnly = true)
+        public byte[] exportarPdfPorInformeId(Integer id)
+                        throws Exception {
+
+                InformeSocialDTO informe = informeService.obtenerPorId(id);
+
+                if (informe == null) {
+                        throw new RuntimeException(
+                                        "No existe informe social con ID: " + id);
+                }
+
+                Map<String, Object> data = new HashMap<>();
+                data.put("i", informe);
+
+                Paciente paciente = pacienteRepository.findById(informe.getPaciente().getId())
+                                .orElseThrow(() -> new RuntimeException("Paciente no encontrado"));
+                data.put("p", paciente);
+
+                if (informe.getGenogramaUrl() != null && !informe.getGenogramaUrl().trim().isEmpty()) {
+                        try {
+                                java.nio.file.Path path = storageService.load(informe.getGenogramaUrl());
+                                if (java.nio.file.Files.exists(path)) {
+                                        if (informe.getGenogramaUrl().toLowerCase().endsWith(".pdf")) {
+                                                data.put("genogramaIsPdf", true);
+                                        } else {
+                                                byte[] bytes = java.nio.file.Files.readAllBytes(path);
+                                                String contentType = java.nio.file.Files.probeContentType(path);
+                                                if (contentType == null) {
+                                                        contentType = "image/png";
+                                                }
+                                                String base64 = java.util.Base64.getEncoder().encodeToString(bytes);
+                                                data.put("genogramaUri", "data:" + contentType + ";base64," + base64);
+                                        }
+                                }
+                        } catch (Exception e) {
+                                e.printStackTrace();
+                        }
+                }
+
+                if (informe.getEcomapaUrl() != null && !informe.getEcomapaUrl().trim().isEmpty()) {
+                        try {
+                                java.nio.file.Path path = storageService.load(informe.getEcomapaUrl());
+                                if (java.nio.file.Files.exists(path)) {
+                                        if (informe.getEcomapaUrl().toLowerCase().endsWith(".pdf")) {
+                                                data.put("ecomapaIsPdf", true);
+                                        } else {
+                                                byte[] bytes = java.nio.file.Files.readAllBytes(path);
+                                                String contentType = java.nio.file.Files.probeContentType(path);
+                                                if (contentType == null) {
+                                                        contentType = "image/png";
+                                                }
+                                                String base64 = java.util.Base64.getEncoder().encodeToString(bytes);
+                                                data.put("ecomapaUri", "data:" + contentType + ";base64," + base64);
+                                        }
+                                }
+                        } catch (Exception e) {
+                                e.printStackTrace();
+                        }
+                }
+
+                return pdfService.generatePdfFromHtml(
+                                "reportes/informesocial-detalle",
+                                data);
+        }
+
         private String fmt(Object value) {
                 if (value == null) {
                         return "N/A";

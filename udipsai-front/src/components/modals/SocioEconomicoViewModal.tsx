@@ -3,8 +3,9 @@ import { Modal } from "../ui/modal";
 import { toast } from "react-toastify";
 import { fichasService, pacientesService } from "../../services";
 import { FichaSocioeconomicaState } from "../form/fichas-form/FormularioSocioEconomica";
-import { FileDown, User, Users, ShieldAlert, HeartPulse, Home, Clock, DollarSign, FileText } from "lucide-react";
+import { FileDown, User, Users, ShieldAlert, HeartPulse, Home, Clock, DollarSign, FileText, ArrowLeft, Eye, Calendar } from "lucide-react";
 import Button from "../ui/button/Button";
+import Badge from "../ui/badge/Badge";
 
 interface SocioEconomicoProps {
   isOpen: boolean;
@@ -20,18 +21,37 @@ export const SocioEconomicoViewModal: React.FC<SocioEconomicoProps> = ({
   const [data, setData] = useState<FichaSocioeconomicaState | null>(null);
   const [loading, setLoading] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [historial, setHistorial] = useState<any[]>([]);
+  const [fichaSeleccionada, setFichaSeleccionada] = useState<any>(null);
 
   useEffect(() => {
     if (isOpen && pacienteId) {
-      cargarFicha();
+      cargarHistorial();
+    }
+    if (!isOpen) {
+      setFichaSeleccionada(null);
+      setData(null);
     }
   }, [isOpen, pacienteId]);
 
-  const cargarFicha = async () => {
+  const cargarHistorial = async () => {
     try {
       setLoading(true);
+      setHistorial([]);
+      const res = await fichasService.obtenerHistorialSocioEconomico(pacienteId);
+      setHistorial(res || []);
+    } catch (error) {
+      console.error(error);
+      toast.error("Error al cargar historial de fichas socioeconómicas");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-      const res = await fichasService.obtenerSocioEconomico(pacienteId);
+  const seleccionarFicha = async (res: any) => {
+    try {
+      setLoading(true);
+      setFichaSeleccionada(res);
 
       let fullPaciente = res.paciente;
       if (res.paciente?.id) {
@@ -68,10 +88,21 @@ export const SocioEconomicoViewModal: React.FC<SocioEconomicoProps> = ({
       setData(loadedData);
     } catch (error) {
       console.error(error);
-      toast.error("Error al cargar ficha socioeconómica");
+      toast.error("Error al cargar detalles de la ficha socioeconómica");
     } finally {
       setLoading(false);
     }
+  };
+
+  const normalizarFormatoFecha = (fechaStr: string) => {
+    if (!fechaStr) return "S/F";
+    return new Date(fechaStr).toLocaleDateString("es-ES", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   };
 
   const normalizarValor = (val?: string) => {
@@ -159,17 +190,41 @@ export const SocioEconomicoViewModal: React.FC<SocioEconomicoProps> = ({
   };
 
   const handleExportPdf = async () => {
-    if (!pacienteId) return;
+    if (!data?.id) return;
 
     try {
       setIsExporting(true);
       toast.info("Generando reporte PDF...");
 
-      const blob = await fichasService.exportarPdfSocioEconomico(pacienteId);
+      const blob = await fichasService.exportarPdfSocioEconomicoPorId(data.id);
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.setAttribute("download", `ficha_socioeconomica_${pacienteId}.pdf`);
+      link.setAttribute("download", `ficha_socioeconomica_${data.id}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+
+      toast.success("Reporte PDF generado correctamente");
+    } catch (error) {
+      console.error("Error al exportar PDF:", error);
+      toast.error("Error al generar el reporte PDF");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleExportPdfForId = async (id: number) => {
+    try {
+      setIsExporting(true);
+      toast.info("Generando reporte PDF...");
+
+      const blob = await fichasService.exportarPdfSocioEconomicoPorId(id);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `ficha_socioeconomica_${id}.pdf`);
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -187,39 +242,47 @@ export const SocioEconomicoViewModal: React.FC<SocioEconomicoProps> = ({
   if (!isOpen) return null;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} className="max-w-[1000px] p-6">
-      <div className="mb-6 flex items-start justify-between border-b pb-4 dark:border-gray-800">
-        <div>
-          <h3 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <FileText className="text-brand-500" /> Ficha Socioeconómica
-          </h3>
-          <p className="text-sm text-gray-500 mt-1">
-            Paciente ID: {pacienteId} &bull; Ficha N°: {data?.id ?? "N/A"}
-          </p>
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleExportPdf}
-          disabled={isExporting}
-          className="flex items-center gap-2"
-        >
-          <FileDown size={16} />
-          {isExporting ? "Generando..." : "Exportar PDF"}
-        </Button>
-      </div>
+    <Modal isOpen={isOpen} onClose={onClose} className="max-w-[1000px] p-0 overflow-hidden">
+      {fichaSeleccionada ? (
+        <div className="p-6">
+          <div className="mb-6 flex items-start justify-between border-b pb-4 dark:border-gray-800">
+            <div>
+              <button
+                onClick={() => setFichaSeleccionada(null)}
+                className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-brand-600 hover:text-brand-700 transition-colors"
+              >
+                <ArrowLeft size={14} /> Volver al historial
+              </button>
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                <FileText className="text-brand-500" /> Ficha Socioeconómica
+              </h3>
+              <p className="text-sm text-gray-500 mt-1">
+                Paciente ID: {pacienteId} &bull; Ficha N°: {data?.id ?? "N/A"}
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExportPdf}
+              disabled={isExporting}
+              className="flex items-center gap-2"
+            >
+              <FileDown size={16} />
+              {isExporting ? "Generando..." : "Exportar PDF"}
+            </Button>
+          </div>
 
-      {loading ? (
-        <div className="py-12 flex justify-center items-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500"></div>
-          <span className="ml-3 text-gray-500">Cargando datos de la ficha...</span>
-        </div>
-      ) : !data ? (
-        <div className="py-12 text-center text-gray-500">
-          No existe una ficha socioeconómica registrada para este paciente.
-        </div>
-      ) : (
-        <div className="space-y-8 max-h-[70vh] overflow-y-auto pr-2">
+          {loading ? (
+            <div className="py-12 flex justify-center items-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500"></div>
+              <span className="ml-3 text-gray-500">Cargando datos de la ficha...</span>
+            </div>
+          ) : !data ? (
+            <div className="py-12 text-center text-gray-500">
+              No existe una ficha socioeconómica registrada para este paciente.
+            </div>
+          ) : (
+            <div className="max-h-[60vh] overflow-y-auto pr-2 space-y-6">
           {/* HEADER META INFO */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-gray-50 dark:bg-gray-800/40 p-4 rounded-2xl border border-gray-100 dark:border-gray-800">
             <div>
@@ -1298,6 +1361,104 @@ export const SocioEconomicoViewModal: React.FC<SocioEconomicoProps> = ({
             </div>
           </div>
         </div>
+      )}
+    </div>
+  ) : (
+        <>
+          {/* MENU / HISTORY LIST OF PREVIOUS SOCIAL REPORTS */}
+          <div className="bg-brand-600 p-6 text-white">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-white/20 rounded-lg">
+                <FileText size={24} />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold">Historial de Fichas Socioeconómicas</h3>
+                <p className="text-white/80 text-sm">Listado de fichas registradas por paciente</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-6 max-h-[70vh] overflow-y-auto bg-gray-50 dark:bg-gray-900">
+            {loading ? (
+              <div className="flex flex-col items-center justify-center py-20">
+                <div className="w-10 h-10 border-4 border-brand-200 border-t-brand-600 rounded-full animate-spin mb-4"></div>
+                <p className="text-gray-500">Cargando historial...</p>
+              </div>
+            ) : historial.length > 0 ? (
+              <div className="space-y-4">
+                {historial.map((ficha, index) => {
+                  const creatorName = ficha.pasante 
+                    ? `${ficha.pasante.nombresApellidos} (Pasante)` 
+                    : `${ficha.especialista?.nombresApellidos || ficha.responsable || "Especialista"} (Especialista)`;
+
+                  return (
+                    <div 
+                      key={ficha.id} 
+                      className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden"
+                    >
+                      <div className="px-4 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-gray-900 dark:text-gray-100">
+                              Ficha N° {historial.length - index}
+                            </span>
+                            <Badge 
+                              size="sm" 
+                              color={ficha.activo ? "success" : "error"}
+                            >
+                              {ficha.activo ? "Activo" : "Inactivo"}
+                            </Badge>
+                          </div>
+                          
+                          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-500 dark:text-gray-400">
+                            <span className="flex items-center gap-1">
+                              <Calendar size={14} />
+                              {normalizarFormatoFecha(ficha.fechaElaboracion)}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <User size={14} />
+                              Creado por: {creatorName}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => seleccionarFicha(ficha)}
+                            className="flex items-center gap-2 px-3 py-1.5 bg-brand-50 text-brand-600 border border-brand-200 hover:bg-brand-600 hover:text-white rounded-lg text-sm font-semibold transition-all duration-200 shadow-sm dark:bg-brand-900/20 dark:border-brand-800/50 dark:hover:bg-brand-600 dark:hover:text-white"
+                          >
+                            <Eye size={16} />
+                            Visualizar
+                          </button>
+                          
+                          <button
+                            onClick={() => handleExportPdfForId(ficha.id)}
+                            disabled={isExporting}
+                            className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-semibold transition-all duration-200 shadow-sm border bg-red-50 text-red-600 border-red-200 hover:bg-red-600 hover:text-white hover:border-red-600 dark:bg-red-900/20 dark:border-red-800/50 dark:hover:bg-red-600 dark:hover:text-white"
+                          >
+                            <FileDown size={16} />
+                            Descargar PDF
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="text-center py-20 text-gray-400">
+                <FileText size={48} className="mx-auto mb-4 opacity-20" />
+                <p>No se encontraron fichas socioeconómicas registradas para este paciente.</p>
+              </div>
+            )}
+          </div>
+
+          <div className="p-4 border-t border-gray-100 flex justify-end bg-white dark:bg-gray-800 dark:border-gray-700">
+            <button onClick={onClose} className="px-6 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-300">
+              Cerrar
+            </button>
+          </div>
+        </>
       )}
     </Modal>
   );

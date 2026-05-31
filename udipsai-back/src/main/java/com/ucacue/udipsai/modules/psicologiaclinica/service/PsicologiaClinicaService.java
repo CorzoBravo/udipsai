@@ -26,12 +26,19 @@ public class PsicologiaClinicaService {
     @Autowired
     private PacienteRepository pacienteRepository;
 
+    @Autowired
+    private com.ucacue.udipsai.modules.asignacion.service.AsignacionSecurityService asignacionSecurity;
+
     @Transactional(readOnly = true)
     public List<PsicologiaClinicaDTO> listarFichasPsicologiaClinica() {
         log.info("Consultando todas las fichas de psicología clínica activas");
-        return repository.findAll().stream()
-                .filter(PsicologiaClinica::getActivo)
-                .map(this::convertirADTO)
+        List<Integer> assignedIds = asignacionSecurity.getPasanteAssignedPatientIds();
+        java.util.stream.Stream<PsicologiaClinica> stream = repository.findAll().stream()
+                .filter(PsicologiaClinica::getActivo);
+        if (assignedIds != null) {
+            stream = stream.filter(pc -> pc.getPaciente() != null && assignedIds.contains(pc.getPaciente().getId()));
+        }
+        return stream.map(this::convertirADTO)
                 .collect(Collectors.toList());
     }
 

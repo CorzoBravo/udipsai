@@ -46,11 +46,26 @@ public class FichaSocioeconomicaService {
     @Autowired
     private PasanteRepository pasanteRepository;
 
+    @Autowired
+    private com.ucacue.udipsai.modules.asignacion.service.AsignacionSecurityService asignacionSecurity;
+
     @Transactional(readOnly = true)
     public List<FichaSocioeconomicaDTO> listarFichas() {
         log.info("Consultando todas las fichas socioeconómicas activas");
-        return fichaRepository.findAll().stream()
-                .filter(FichaSocioeconomica::getActivo)
+        List<Integer> assignedIds = asignacionSecurity.getPasanteAssignedPatientIds();
+        java.util.stream.Stream<FichaSocioeconomica> stream = fichaRepository.findAll().stream()
+                .filter(FichaSocioeconomica::getActivo);
+        if (assignedIds != null) {
+            stream = stream.filter(f -> f.getPaciente() != null && assignedIds.contains(f.getPaciente().getId()));
+        }
+        return stream.map(this::convertirADTO)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<FichaSocioeconomicaDTO> obtenerHistorialPorPacienteId(Integer pacienteId) {
+        log.info("Consultando historial de fichas socioeconómicas para paciente ID: {}", pacienteId);
+        return fichaRepository.findByPacienteIdAndActivoTrue(pacienteId).stream()
                 .map(this::convertirADTO)
                 .collect(Collectors.toList());
     }
@@ -76,9 +91,7 @@ public class FichaSocioeconomicaService {
 
         FichaSocioeconomica existing = fichaRepository.findByPacienteIdAndActivo(request.getPacienteId(), true);
         if (existing != null) {
-            log.info("Archivando ficha anterior del paciente ID: {}", request.getPacienteId());
-            existing.setActivo(false);
-            fichaRepository.save(existing);
+            log.info("Ficha anterior encontrada para paciente ID: {}. Manteniendo activa para historial.", request.getPacienteId());
         }
 
         FichaSocioeconomica ficha = new FichaSocioeconomica();

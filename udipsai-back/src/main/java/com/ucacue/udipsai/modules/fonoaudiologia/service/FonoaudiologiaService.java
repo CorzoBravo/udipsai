@@ -26,12 +26,19 @@ public class FonoaudiologiaService {
     @Autowired
     private PacienteRepository pacienteRepository;
 
+    @Autowired
+    private com.ucacue.udipsai.modules.asignacion.service.AsignacionSecurityService asignacionSecurity;
+
     @Transactional(readOnly = true)
     public List<FonoaudiologiaDTO> listarFichasFonoaudiologia() {
         log.info("Consultando todas las fichas de fonoaudiología activas");
-        return fonoaudiologiaRepository.findAll().stream()
-                .filter(Fonoaudiologia::getActivo)
-                .map(this::convertirADTO)
+        List<Integer> assignedIds = asignacionSecurity.getPasanteAssignedPatientIds();
+        java.util.stream.Stream<Fonoaudiologia> stream = fonoaudiologiaRepository.findAll().stream()
+                .filter(Fonoaudiologia::getActivo);
+        if (assignedIds != null) {
+            stream = stream.filter(f -> f.getPaciente() != null && assignedIds.contains(f.getPaciente().getId()));
+        }
+        return stream.map(this::convertirADTO)
                 .collect(Collectors.toList());
     }
 

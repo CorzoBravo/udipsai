@@ -36,9 +36,12 @@ import { FonoaudiologiaViewModal } from "../modals/FonoaudiologiaViewModal";
 import { SocioEconomicoViewModal } from "../modals/SocioEconomicoViewModal";
 import { SeguimientoSocialViewModal } from "../modals/SeguimientoSocialViewModal";
 import { InformeSocialViewModal } from "../modals/InformeSocialViewModal";
+import { InformeSocialDeleteModal } from "../modals/InformeSocialDeleteModal";
+import { SocioEconomicoDeleteModal } from "../modals/SocioEconomicoDeleteModal";
 
 import { useAuth } from "../../context/AuthContext";
 import { fichasService } from "../../services/fichas";
+import { pacientesService } from "../../services";
 
 interface FichaListDTO {
   id: number;
@@ -80,7 +83,7 @@ interface TabConfig {
 
 export default function FichasUnificadasTable() {
   const navigate = useNavigate();
-  const { hasPermission } = useAuth();
+  const { hasPermission, userRole } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const tabs: TabConfig[] = [
@@ -198,6 +201,7 @@ export default function FichasUnificadasTable() {
   const initialTab = getNormalizedTab(searchParams.get("tab"));
   const [activeTabKey, setActiveTabKey] = useState<TabKey>(initialTab);
   const [fichas, setFichas] = useState<FichaListDTO[]>([]);
+  const [assignedPatientIds, setAssignedPatientIds] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [fichaToDelete, setFichaToDelete] = useState<number | null>(null);
@@ -211,10 +215,13 @@ export default function FichasUnificadasTable() {
   const [viewSocioModalOpen, setViewSocioModalOpen] = useState(false);
   const [viewSeguimientoModalOpen, setViewSeguimientoModalOpen] = useState(false);
   const [viewInformeModalOpen, setViewInformeModalOpen] = useState(false);
+  const [deleteInformeModalOpen, setDeleteInformeModalOpen] = useState(false);
+  const [deleteSocioModalOpen, setDeleteSocioModalOpen] = useState(false);
+  const [selectedPacienteNombre, setSelectedPacienteNombre] = useState("");
   const activeTab = tabs.find((t) => t.key === activeTabKey) || tabs[0];
 
 
-  const isSeguimientoSocial = activeTabKey === "seguimiento_social";
+  const isGroupedTab = activeTabKey === "seguimiento_social" || activeTabKey === "informe_social" || activeTabKey === "socioeconomico";
 
   const handleTabChange = (key: TabKey) => {
     setActiveTabKey(key);
@@ -231,13 +238,32 @@ export default function FichasUnificadasTable() {
   useEffect(() => {
     loadFichas();
     setSearchTerm("");
-  }, [activeTabKey]);
+  }, [activeTabKey, userRole]);
 
   const loadFichas = async () => {
     try {
       setLoading(true);
       const data = await activeTab.fetch();
-      setFichas(data || []);
+      
+      let filteredData = data || [];
+      if (userRole === "ROLE_PASANTE") {
+        let ids = assignedPatientIds;
+        if (ids.size === 0) {
+          try {
+            const res = await pacientesService.filtrar({}, 0, 1000);
+            ids = new Set<number>((res?.content || []).map((p: any) => p.id));
+            setAssignedPatientIds(ids);
+          } catch (e) {
+            console.error("Error fetching assigned patients inside loadFichas:", e);
+          }
+        }
+        filteredData = filteredData.filter((ficha) => {
+          const pId = ficha.paciente?.id || ficha.pacienteId;
+          return pId && ids.has(pId);
+        });
+      }
+      
+      setFichas(filteredData);
     } catch (error) {
       console.error(`Error loading fichas for ${activeTab.label}:`, error);
       toast.error(`Error al cargar las fichas de ${activeTab.label}`);
@@ -250,7 +276,19 @@ export default function FichasUnificadasTable() {
     navigate(`${activeTab.editPath}/${id}`);
   };
 
-  const handleDeleteClick = (id: number) => {
+  const handleDeleteClick = (id: number, pId?: number, pNombre?: string) => {
+    if (activeTabKey === "informe_social" && pId) {
+      setSelectedPacienteId(pId);
+      setSelectedPacienteNombre(pNombre || "Paciente");
+      setDeleteInformeModalOpen(true);
+      return;
+    }
+    if (activeTabKey === "socioeconomico" && pId) {
+      setSelectedPacienteId(pId);
+      setSelectedPacienteNombre(pNombre || "Paciente");
+      setDeleteSocioModalOpen(true);
+      return;
+    }
     setFichaToDelete(id);
     setShowDeleteModal(true);
   };
@@ -313,7 +351,7 @@ export default function FichasUnificadasTable() {
   });
 
 
-  const groupedFichas = isSeguimientoSocial ? Object.values(
+  const groupedFichas = isGroupedTab ? Object.values(
     filteredFichas.reduce((acc, ficha) => {
       const pId = ficha.paciente?.id || ficha.pacienteId;
       if (!pId) return acc;
@@ -455,15 +493,15 @@ export default function FichasUnificadasTable() {
                 <TableCell isHeader>Nombres del Paciente</TableCell>
                 <TableCell isHeader>Cédula</TableCell>
 
-                {isSeguimientoSocial && <TableCell isHeader>Fichas Creadas</TableCell>}
+                {isGroupedTab && <TableCell isHeader>Fichas Creadas</TableCell>}
                 <TableCell isHeader>Estado</TableCell>
                 <TableCell isHeader>Acciones</TableCell>
               </TableRow>
             </TableHeader>
             <TableBody className="relative min-h-[400px]">
               {loading ? (
-                <TableLoading colSpan={isSeguimientoSocial ? 5 : 4} message={`Cargando ${activeTab.label}...`} />
-              ) : isSeguimientoSocial ? (
+                <TableLoading colSpan={isGroupedTab ? 5 : 4} message={`Cargando ${activeTab.label}...`} />
+              ) : isGroupedTab ? (
                 // --- RENDERIZADO EXCLUSIVO PARA SEGUIMIENTO SOCIAL (AGRUPADO) ---
                 groupedFichas.length > 0 ? (
                   groupedFichas.map((group) => (
@@ -472,7 +510,7 @@ export default function FichasUnificadasTable() {
                       <TableCell>{group.pacienteCedula}</TableCell>
                       <TableCell>
                         <Badge size="sm" color="info">
-                          {group.fichasCount} {group.fichasCount === 1 ? 'Ficha' : 'Fichas'}
+                          {group.fichasCount} {group.fichasCount === 1 ? (activeTabKey === 'informe_social' ? 'Informe' : 'Ficha') : (activeTabKey === 'informe_social' ? 'Informes' : 'Fichas')}
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -483,7 +521,7 @@ export default function FichasUnificadasTable() {
                       <TableCell>
                         <div className="flex justify-center gap-2">
                           {hasPermission(activeTab.permRead) && (
-                            // El botón ver abre tu SeguimientoSocialViewModal
+                            // El botón ver abre el modal correspondiente
                             <Button size="sm" variant="info" onClick={() => handleViewClick(group.pacienteId)} title="Ver Historial">
                               <Eye size={14} />
                             </Button>
@@ -494,7 +532,12 @@ export default function FichasUnificadasTable() {
                             </Button>
                           )}
                           {hasPermission(activeTab.permDelete) && (
-                            <Button size="sm" variant="danger" onClick={() => handleDeleteClick(group.latestFicha.id)} title="Eliminar Ficha Reciente">
+                            <Button
+                              size="sm"
+                              variant="danger"
+                              onClick={() => handleDeleteClick(group.latestFicha.id, group.pacienteId, group.pacienteNombre)}
+                              title="Eliminar Ficha"
+                            >
                               <Trash size={14} />
                             </Button>
                           )}
@@ -503,7 +546,7 @@ export default function FichasUnificadasTable() {
                     </TableRow>
                   ))
                 ) : (
-                  <TableEmpty colSpan={5} message="No se encontraron registros de Seguimiento Social" />
+                  <TableEmpty colSpan={5} message={`No se encontraron registros de ${activeTab.label}`} />
                 )
               ) : (
 
@@ -600,6 +643,24 @@ export default function FichasUnificadasTable() {
               onClose={() => setViewInformeModalOpen(false)}
               pacienteId={selectedPacienteId}
             />
+            {selectedPacienteId && (
+              <InformeSocialDeleteModal
+                isOpen={deleteInformeModalOpen}
+                onClose={() => setDeleteInformeModalOpen(false)}
+                pacienteId={selectedPacienteId}
+                pacienteNombre={selectedPacienteNombre}
+                onDeleted={loadFichas}
+              />
+            )}
+            {selectedPacienteId && (
+              <SocioEconomicoDeleteModal
+                isOpen={deleteSocioModalOpen}
+                onClose={() => setDeleteSocioModalOpen(false)}
+                pacienteId={selectedPacienteId}
+                pacienteNombre={selectedPacienteNombre}
+                onDeleted={loadFichas}
+              />
+            )}
           </>
         )}
       </div>

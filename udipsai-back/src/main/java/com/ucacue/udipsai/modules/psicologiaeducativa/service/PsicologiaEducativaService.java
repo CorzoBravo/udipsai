@@ -25,12 +25,19 @@ public class PsicologiaEducativaService {
     @Autowired
     private PacienteRepository pacienteRepository;
 
+    @Autowired
+    private com.ucacue.udipsai.modules.asignacion.service.AsignacionSecurityService asignacionSecurity;
+
     @Transactional(readOnly = true)
     public List<PsicologiaEducativaDTO> listarFichasPsicologiaEducativa() {
         log.info("Consultando todas las fichas de psicología educativa activas");
-        return psicologiaEducativaRepository.findAll().stream()
-                .filter(PsicologiaEducativa::getActivo)
-                .map(this::convertirADTO)
+        List<Integer> assignedIds = asignacionSecurity.getPasanteAssignedPatientIds();
+        java.util.stream.Stream<PsicologiaEducativa> stream = psicologiaEducativaRepository.findAll().stream()
+                .filter(PsicologiaEducativa::getActivo);
+        if (assignedIds != null) {
+            stream = stream.filter(pe -> pe.getPaciente() != null && assignedIds.contains(pe.getPaciente().getId()));
+        }
+        return stream.map(this::convertirADTO)
                 .collect(Collectors.toList());
     }
 
