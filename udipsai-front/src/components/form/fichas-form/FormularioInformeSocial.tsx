@@ -642,12 +642,14 @@ export default function FormularioInformeSocial({ fichaId, onSuccess }: Formular
               </p>
             </div>
           </div>
-          <button
-            onClick={() => setShowSelector(true)}
-            className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-          >
-            Cambiar
-          </button>
+          {!isEdit && (
+            <button
+              onClick={() => setShowSelector(true)}
+              className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+            >
+              Cambiar
+            </button>
+          )}
         </div>
       )}
 

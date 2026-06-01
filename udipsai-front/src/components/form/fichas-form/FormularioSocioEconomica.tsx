@@ -386,9 +386,15 @@ const buildRequest = (data: FichaSocioeconomicaState) => {
   };
 };
 
-export default function FormularioFichaSocioeconomica() {
+export interface FormularioSocioeconomicoProps {
+  fichaId?: number | string;
+  onSuccess?: () => void;
+}
+
+export default function FormularioFichaSocioeconomica({ fichaId, onSuccess }: FormularioSocioeconomicoProps = {}) {
   const navigate = useNavigate();
-  const { id } = useParams<{ id: string }>();
+  const { id: paramId } = useParams<{ id: string }>();
+  const id = fichaId?.toString() || paramId;
   const [searchParams] = useSearchParams();
 
   // ✅ OBTENER EL USUARIO AUTENTICADO
@@ -813,7 +819,11 @@ export default function FormularioFichaSocioeconomica() {
         await fichasService.crearSocioEconomico(request);
         toast.success("Ficha creada exitosamente");
       }
-      navigate("/fichas?tab=socioeconomico");
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        navigate("/fichas?tab=socioeconomico");
+      }
     } catch (error: any) {
       if (error.response?.status === 409) {
         toast.error("Este paciente ya tiene una ficha activa.");

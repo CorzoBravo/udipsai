@@ -14,7 +14,9 @@ export default function EditarInformeSocial() {
 
   const [pacienteId, setPacienteId] = useState<number | null>(null);
   const [listaInformes, setListaInformes] = useState<any[]>([]);
-  const [fichaIdSeleccionada, setFichaIdSeleccionada] = useState<number | null>(null);
+  const [fichaIdSeleccionada, setFichaIdSeleccionada] = useState<number | null>(
+    initialFichaId ? Number(initialFichaId) : null
+  );
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
