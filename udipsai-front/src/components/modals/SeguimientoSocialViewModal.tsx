@@ -174,7 +174,7 @@ export const SeguimientoSocialViewModal: React.FC<SeguimientoSocialViewModalProp
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="bg-brand-50/50 dark:bg-brand-900/10 p-3 rounded-lg border border-brand-100 dark:border-brand-800/30 transition-colors hover:bg-brand-50">
                           <p className="text-[11px] font-bold text-brand-600 dark:text-brand-400 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-                            <div className="w-1.5 h-1.5 rounded-full bg-brand-500"></div>
+                            <span className="w-1.5 h-1.5 rounded-full bg-brand-500"></span>
                             Área de Acompañamiento
                           </p>
                           <p className="text-gray-800 dark:text-gray-200 font-medium">{seg.areaAcompanamiento || "No especificada"}</p>
@@ -182,7 +182,7 @@ export const SeguimientoSocialViewModal: React.FC<SeguimientoSocialViewModalProp
                         
                         <div className="bg-amber-50/50 dark:bg-amber-900/10 p-3 rounded-lg border border-amber-100 dark:border-amber-800/30 transition-colors hover:bg-amber-50">
                           <p className="text-[11px] font-bold text-amber-600 dark:text-amber-500 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-                            <div className="w-1.5 h-1.5 rounded-full bg-amber-500"></div>
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
                             Objetivo del Seguimiento
                           </p>
                           <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed italic">"{seg.objetivo || "Sin objetivo definido"}"</p>
