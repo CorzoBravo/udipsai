@@ -56,7 +56,7 @@ public class InformeSocialService {
         Paciente paciente = pacienteRepository.findById(request.getPacienteId())
                 .orElseThrow(() -> new RuntimeException("Paciente no encontrado"));
 
-        FichaSocioeconomica ficha = fichaRepository.findByPacienteIdAndActivo(paciente.getId(), true);
+        FichaSocioeconomica ficha = fichaRepository.findFirstByPacienteIdAndActivoOrderByIdDesc(paciente.getId(), true);
         if (ficha == null) {
             throw new RuntimeException("No existe ficha socioeconómica activa. Cree una ficha primero en el módulo de fichas socioeconómicas");
         }
@@ -313,7 +313,7 @@ public class InformeSocialService {
             stream = stream.filter(i -> i.getPaciente() != null && assignedIds.contains(i.getPaciente().getId()));
         }
         return stream.map(i -> {
-                    FichaSocioeconomica ficha = fichaRepository.findByPacienteIdAndActivo(i.getPaciente().getId(), true);
+                    FichaSocioeconomica ficha = fichaRepository.findFirstByPacienteIdAndActivoOrderByIdDesc(i.getPaciente().getId(), true);
                     return convertirADTO(i, ficha);
                 })
                 .collect(Collectors.toList());
@@ -326,7 +326,7 @@ public class InformeSocialService {
         if (!Boolean.TRUE.equals(informe.getActivo())) {
             throw new RuntimeException("El informe social está inactivo");
         }
-        FichaSocioeconomica ficha = fichaRepository.findByPacienteIdAndActivo(informe.getPaciente().getId(), true);
+        FichaSocioeconomica ficha = fichaRepository.findFirstByPacienteIdAndActivoOrderByIdDesc(informe.getPaciente().getId(), true);
         return convertirADTO(informe, ficha);
     }
 
@@ -339,7 +339,7 @@ public class InformeSocialService {
         List<InformeSocial> informes = informeRepository.findByPacienteIdAndActivoTrue(paciente.getId());
         InformeSocial informe = !informes.isEmpty() ? informes.get(0) : null;
         if (informe != null) {
-            FichaSocioeconomica ficha = fichaRepository.findByPacienteIdAndActivo(paciente.getId(), true);
+            FichaSocioeconomica ficha = fichaRepository.findFirstByPacienteIdAndActivoOrderByIdDesc(paciente.getId(), true);
             return convertirADTO(informe, ficha);
         }
         return null;
@@ -350,7 +350,7 @@ public class InformeSocialService {
         List<InformeSocial> informes = informeRepository.findByPacienteIdAndActivoTrue(pacienteId);
         InformeSocial informe = !informes.isEmpty() ? informes.get(0) : null;
         if (informe != null) {
-            FichaSocioeconomica ficha = fichaRepository.findByPacienteIdAndActivo(pacienteId, true);
+            FichaSocioeconomica ficha = fichaRepository.findFirstByPacienteIdAndActivoOrderByIdDesc(pacienteId, true);
             return convertirADTO(informe, ficha);
         }
         return null;
@@ -362,7 +362,7 @@ public class InformeSocialService {
         return informes.stream()
                 .filter(i -> Boolean.TRUE.equals(i.getActivo()))
                 .map(i -> {
-                    FichaSocioeconomica ficha = fichaRepository.findByPacienteIdAndActivo(pacienteId, true);
+                    FichaSocioeconomica ficha = fichaRepository.findFirstByPacienteIdAndActivoOrderByIdDesc(pacienteId, true);
                     return convertirADTO(i, ficha);
                 })
                 .collect(Collectors.toList());
@@ -378,7 +378,7 @@ public class InformeSocialService {
             throw new RuntimeException("No se puede editar un informe inactivo");
         }
 
-        FichaSocioeconomica ficha = fichaRepository.findByPacienteIdAndActivo(informe.getPaciente().getId(), true);
+        FichaSocioeconomica ficha = fichaRepository.findFirstByPacienteIdAndActivoOrderByIdDesc(informe.getPaciente().getId(), true);
         if (ficha == null) {
             throw new RuntimeException("No existe ficha socioeconómica activa para este paciente");
         }
@@ -498,7 +498,7 @@ public class InformeSocialService {
 
         familiarService.actualizarFamiliar(familiarId.longValue(), fReq);
 
-        FichaSocioeconomica ficha = fichaRepository.findByPacienteIdAndActivo(informe.getPaciente().getId(), true);
+        FichaSocioeconomica ficha = fichaRepository.findFirstByPacienteIdAndActivoOrderByIdDesc(informe.getPaciente().getId(), true);
         return convertirADTO(informe, ficha);
     }
 

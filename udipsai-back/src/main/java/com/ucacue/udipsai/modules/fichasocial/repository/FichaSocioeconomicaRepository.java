@@ -8,6 +8,6 @@ import org.springframework.stereotype.Repository;
 public interface FichaSocioeconomicaRepository extends JpaRepository<FichaSocioeconomica, Integer> {
 
 
-    FichaSocioeconomica findByPacienteIdAndActivo(Integer idPaciente, boolean activo);
+    FichaSocioeconomica findFirstByPacienteIdAndActivoOrderByIdDesc(Integer idPaciente, boolean activo);
     java.util.List<FichaSocioeconomica> findByPacienteIdAndActivoTrue(Integer pacienteId);
 }

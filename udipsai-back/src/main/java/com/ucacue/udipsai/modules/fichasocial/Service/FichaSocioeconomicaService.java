@@ -73,7 +73,7 @@ public class FichaSocioeconomicaService {
     @Transactional(readOnly = true)
     public FichaSocioeconomicaDTO obtenerFichaActivaPorPacienteId(Integer pacienteId) {
         log.info("Consultando ficha socioeconómica activa para paciente ID: {}", pacienteId);
-        FichaSocioeconomica ficha = fichaRepository.findByPacienteIdAndActivo(pacienteId, true);
+        FichaSocioeconomica ficha = fichaRepository.findFirstByPacienteIdAndActivoOrderByIdDesc(pacienteId, true);
         return (ficha != null) ? convertirADTO(ficha) : null;
     }
 
@@ -89,7 +89,7 @@ public class FichaSocioeconomicaService {
     public FichaSocioeconomicaDTO crearFicha(FichaSocioeconomicaRequest request) {
         log.info("Creando ficha socioeconómica para Paciente ID: {}", request.getPacienteId());
 
-        FichaSocioeconomica existing = fichaRepository.findByPacienteIdAndActivo(request.getPacienteId(), true);
+        FichaSocioeconomica existing = fichaRepository.findFirstByPacienteIdAndActivoOrderByIdDesc(request.getPacienteId(), true);
         if (existing != null) {
             log.info("Ficha anterior encontrada para paciente ID: {}. Manteniendo activa para historial.", request.getPacienteId());
         }
