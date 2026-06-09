@@ -4,7 +4,6 @@ import com.ucacue.udipsai.modules.especialistas.domain.Especialista;
 import com.ucacue.udipsai.modules.especialistas.repository.EspecialistaRepository;
 import com.ucacue.udipsai.modules.pasante.domain.Pasante;
 import com.ucacue.udipsai.modules.pasante.repository.PasanteRepository;
-import com.ucacue.udipsai.modules.paciente.domain.Paciente;
 import com.ucacue.udipsai.modules.paciente.repository.PacienteRepository;
 import com.ucacue.udipsai.modules.asignacion.domain.Asignacion;
 import com.ucacue.udipsai.modules.asignacion.repository.AsignacionRepository;
