@@ -164,6 +164,9 @@ export interface FichaSocioeconomicaState {
     condicionEconomica: string;
     capacidadGastoEvaluacion: string;
     actividadesTiempoLibre: string;
+    ingresoPerCapita?: number;
+    categoriaSocioeconomica?: string;
+    grupoSocioeconomico?: number;
   };
 
   desgloseEconomico: {
@@ -284,6 +287,9 @@ export const initialFichaSocioeconomicaState: FichaSocioeconomicaState = {
     condicionEconomica: "",
     capacidadGastoEvaluacion: "",
     actividadesTiempoLibre: "",
+    ingresoPerCapita: 0,
+    categoriaSocioeconomica: "",
+    grupoSocioeconomico: 1,
   },
   desgloseEconomico: {
     egresoAlimentacion: 0,
@@ -348,6 +354,9 @@ const buildRequest = (data: FichaSocioeconomicaState) => {
       condicionEconomica: data.situacionEconomica.condicionEconomica,
       capacidadGastoEvaluacion: data.situacionEconomica.capacidadGastoEvaluacion,
       actividadesTiempoLibre: data.situacionEconomica.actividadesTiempoLibre,
+      ingresoPerCapita: data.situacionEconomica.ingresoPerCapita || 0,
+      categoriaSocioeconomica: data.situacionEconomica.categoriaSocioeconomica || "",
+      grupoSocioeconomico: data.situacionEconomica.grupoSocioeconomico || 1,
     },
 
     desgloseEconomico: data.desgloseEconomico,

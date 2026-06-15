@@ -5,6 +5,9 @@ interface SituacionEconomicaFormProps {
         totalIngresos: number;
         totalEgresos: number;
         condicionEconomica: string;
+        ingresoPerCapita?: number;
+        categoriaSocioeconomica?: string;
+        grupoSocioeconomico?: number;
     };
 
     desglose: {
@@ -73,6 +76,42 @@ const SituacionEconomicaForm: React.FC<SituacionEconomicaFormProps> = ({
     };
     const totalEgresos = calcularTotalEgresos(desglose);
 
+    const numIntegrantes = (familiares?.length || 0) + 1;
+    const perCapita = Number((totalIngresos / numIntegrantes).toFixed(2));
+
+    const obtenerCategoriaSocioeconomica = (val: number) => {
+        if (val < 120.50) {
+            return { grupo: 1, categoria: "Muy bajo" };
+        } else if (val >= 120.50 && val < 241.00) {
+            return { grupo: 2, categoria: "Bajo" };
+        } else if (val >= 241.00 && val < 361.50) {
+            return { grupo: 3, categoria: "Medio" };
+        } else if (val >= 361.50 && val < 482.00) {
+            return { grupo: 4, categoria: "Medio alto" };
+        } else {
+            return { grupo: 5, categoria: "Alto" };
+        }
+    };
+
+    const { grupo, categoria } = obtenerCategoriaSocioeconomica(perCapita);
+
+    const getBadgeColors = (g: number) => {
+        switch (g) {
+            case 1:
+                return "bg-red-500 text-white";
+            case 2:
+                return "bg-orange-500 text-white";
+            case 3:
+                return "bg-blue-500 text-white";
+            case 4:
+                return "bg-teal-500 text-white";
+            case 5:
+                return "bg-green-600 text-white";
+            default:
+                return "bg-gray-500 text-white";
+        }
+    };
+
     // Sync totals to parent when they change
     useEffect(() => {
         if (data.totalIngresos !== totalIngresos) {
@@ -85,6 +124,24 @@ const SituacionEconomicaForm: React.FC<SituacionEconomicaFormProps> = ({
             onChange("totalEgresos", totalEgresos);
         }
     }, [totalEgresos, data.totalEgresos]);
+
+    useEffect(() => {
+        if (data.ingresoPerCapita !== perCapita) {
+            onChange("ingresoPerCapita", perCapita);
+        }
+    }, [perCapita, data.ingresoPerCapita]);
+
+    useEffect(() => {
+        if (data.categoriaSocioeconomica !== categoria) {
+            onChange("categoriaSocioeconomica", categoria);
+        }
+    }, [categoria, data.categoriaSocioeconomica]);
+
+    useEffect(() => {
+        if (data.grupoSocioeconomico !== grupo) {
+            onChange("grupoSocioeconomico", grupo);
+        }
+    }, [grupo, data.grupoSocioeconomico]);
 
     return (
         <div className="space-y-6">
@@ -249,6 +306,46 @@ const SituacionEconomicaForm: React.FC<SituacionEconomicaFormProps> = ({
                     <p className="px-4 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg font-semibold">
                         ${totalEgresos || 0}
                     </p>
+                </div>
+            </div>
+
+            {/* ================= CLASIFICACIÓN SOCIOECONÓMICA ================= */}
+            <div className="p-5 bg-brand-50/5 dark:bg-white/[0.02] rounded-2xl border border-brand-100 dark:border-white/[0.05] space-y-4">
+                <h3 className="text-md font-bold text-brand-600 dark:text-brand-400">
+                    Clasificación Socioeconómica (SBU: $482)
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+                        <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">
+                            Integrantes del Hogar
+                        </span>
+                        <span className="text-lg font-bold text-gray-800 dark:text-white mt-1 block">
+                            {numIntegrantes} {numIntegrantes === 1 ? 'persona' : 'personas'}
+                        </span>
+                    </div>
+
+                    <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+                        <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">
+                            Ingreso Per Cápita
+                        </span>
+                        <span className="text-lg font-bold text-gray-800 dark:text-white mt-1 block">
+                            ${perCapita.toFixed(2)} / persona
+                        </span>
+                    </div>
+
+                    <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col justify-between">
+                        <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-2">
+                            Clasificación Familiar
+                        </span>
+                        <div className="flex items-center gap-2">
+                            <span className={`px-2.5 py-1 text-xs font-bold rounded-full ${getBadgeColors(grupo)}`}>
+                                Grupo {grupo}
+                            </span>
+                            <span className="text-sm font-bold text-gray-700 dark:text-gray-200">
+                                Categoría: {categoria}
+                            </span>
+                        </div>
+                    </div>
                 </div>
             </div>
 

@@ -306,7 +306,7 @@ const SaludForm: React.FC<SaludFormProps> = ({
             <Label>Ayudas Técnicas</Label>
 
             <div className="grid grid-cols-2 gap-2">
-                {["audifonos", "lentes", "jaws", "silla", "otros"].map((a) => (
+                {["Audiófonos", "Lentes", "Jaws", "Silla", "Otros"].map((a) => (
                     <Switch
                         key={a}
                         label={a}

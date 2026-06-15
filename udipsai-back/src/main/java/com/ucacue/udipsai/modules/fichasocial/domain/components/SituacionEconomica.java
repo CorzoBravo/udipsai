@@ -22,4 +22,13 @@ public class SituacionEconomica {
 
     @Column(name = "tiempo_libre_texto", columnDefinition = "TEXT")
     private String actividadesTiempoLibre;
+
+    @Column(name = "ingreso_per_capita")
+    private Double ingresoPerCapita;
+
+    @Column(name = "categoria_socioeconomica")
+    private String categoriaSocioeconomica;
+
+    @Column(name = "grupo_socioeconomico")
+    private Integer grupoSocioeconomico;
 }

@@ -1121,6 +1121,21 @@
                 style="margin-top: 3px"
                 th:text="${f.situacionEconomica?.condicionEconomica == 'Mala' ? 'Mala (X)' : 'Mala ( )'}"
               ></div>
+              <div style="margin-top: 12px; border-top: 1px dashed #bbb; padding-top: 8px; font-size: 11px;">
+                <strong>Clasificación Socioeconómica:</strong>
+                <div style="margin-top: 4px;">
+                  Ingreso per cápita:
+                  <strong th:text="${f.situacionEconomica?.ingresoPerCapita != null ? '$' + f.situacionEconomica.ingresoPerCapita : 'N/A'}"></strong>
+                </div>
+                <div style="margin-top: 3px;">
+                  Grupo:
+                  <strong th:text="${f.situacionEconomica?.grupoSocioeconomico != null ? 'Grupo ' + f.situacionEconomica.grupoSocioeconomico : 'N/A'}"></strong>
+                </div>
+                <div style="margin-top: 3px;">
+                  Categoría:
+                  <strong th:text="${f.situacionEconomica?.categoriaSocioeconomica != null ? f.situacionEconomica.categoriaSocioeconomica : 'N/A'}"></strong>
+                </div>
+              </div>
             </td>
           </tr>
         </tbody>

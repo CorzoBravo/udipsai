@@ -1236,14 +1236,40 @@ export const SocioEconomicoViewModal: React.FC<SocioEconomicoProps> = ({
                 </div>
               </div>
 
-              {/* Condición */}
-              <div className="space-y-3">
-                <h5 className="font-bold text-gray-800 dark:text-gray-200 border-b pb-1 dark:border-gray-800">
-                  Condición Económica
-                </h5>
-                <div className="pt-1.5">
-                  {renderOpciones(data.situacionEconomica?.condicionEconomica, ["Muy buena", "Buena", "Regular", "Mala"])}
+              {/* Condición y Clasificación */}
+              <div className="space-y-4">
+                <div>
+                  <h5 className="font-bold text-gray-800 dark:text-gray-200 border-b pb-1 dark:border-gray-800">
+                    Condición Económica
+                  </h5>
+                  <div className="pt-1.5">
+                    {renderOpciones(data.situacionEconomica?.condicionEconomica, ["Muy buena", "Buena", "Regular", "Mala"])}
+                  </div>
                 </div>
+
+                {data.situacionEconomica?.ingresoPerCapita !== undefined && data.situacionEconomica?.ingresoPerCapita !== null && (
+                  <div className="pt-2">
+                    <h5 className="font-bold text-gray-800 dark:text-gray-200 border-b pb-1 dark:border-gray-800 mb-2">
+                      Clasificación Socioeconómica
+                    </h5>
+                    <div className="space-y-2 bg-gray-50 dark:bg-gray-800/30 p-3.5 rounded-2xl border border-gray-100 dark:border-gray-800">
+                      <div className="flex justify-between">
+                        <span className="font-semibold text-gray-600 dark:text-gray-400">Ingreso Per Cápita:</span>
+                        <span className="font-bold">${Number(data.situacionEconomica.ingresoPerCapita).toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="font-semibold text-gray-600 dark:text-gray-400">Grupo:</span>
+                        <span>Grupo {data.situacionEconomica.grupoSocioeconomico ?? 1}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="font-semibold text-gray-600 dark:text-gray-400">Categoría:</span>
+                        <span className="font-bold text-brand-600 dark:text-brand-400">
+                          {data.situacionEconomica.categoriaSocioeconomica || "N/A"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </section>
