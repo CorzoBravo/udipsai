@@ -34,6 +34,9 @@ const validateSituacionEconomica = (data: SituacionEconomicaFormProps["data"]): 
     if (!data.condicionEconomica || data.condicionEconomica.trim() === "") {
         errors.push("Condición económica es requerida");
     }
+    if (!data.totalEgresos || data.totalEgresos <= 0) {
+        errors.push("Debe registrar los egresos (gastos) familiares y deben ser mayores a 0");
+    }
     return errors;
 };
 
@@ -61,7 +64,7 @@ const SituacionEconomicaForm: React.FC<SituacionEconomicaFormProps> = ({
             return acc + Number(fam.ingresoMensual || 0);
         }, 0);
     };
-    const totalIngresos = calcularTotalIngresos(familiares);
+    const totalIngresos = Number(calcularTotalIngresos(familiares).toFixed(2));
 
     const calcularTotalEgresos = (d: any) => {
         return (
@@ -74,7 +77,7 @@ const SituacionEconomicaForm: React.FC<SituacionEconomicaFormProps> = ({
             Number(d.egresoOtros || 0)
         );
     };
-    const totalEgresos = calcularTotalEgresos(desglose);
+    const totalEgresos = Number(calcularTotalEgresos(desglose).toFixed(2));
 
     const numIntegrantes = (familiares?.length || 0) + 1;
     const perCapita = Number((totalIngresos / numIntegrantes).toFixed(2));

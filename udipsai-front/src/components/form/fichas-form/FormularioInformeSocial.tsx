@@ -7,6 +7,7 @@ import { MessageSquare, User, Upload, X } from "lucide-react";
 import { pacientesService, especialistasService, pasantesService } from "../../../services";
 import PatientSelector from "../../common/PatientSelector";
 import { useAuth } from "../../../context/AuthContext.tsx";
+import { validarCedulaEcuatoriana, validarEmail, validarSoloNumeros } from "../../../services/validators";
 
 
 // Secciones
@@ -525,6 +526,110 @@ export default function FormularioInformeSocial({ fichaId, onSuccess }: Formular
       return;
     }
 
+    // 1. Conformación Familiar
+    if (!formData.familiares || formData.familiares.length === 0) {
+      toast.error("Conformación Familiar (Familiares): Debe registrar al menos un miembro familiar");
+      return;
+    }
+
+    // 2. Dinámica Familiar
+    if (!formData.tipoFamilia) {
+      toast.error("Conformación Familiar: El tipo de familia es requerido");
+      return;
+    }
+    if (formData.tipoFamilia === "Otros" && !formData.tipoFamiliaEspecificar?.trim()) {
+      toast.error("Conformación Familiar: Debe especificar el tipo de familia");
+      return;
+    }
+    if (!formData.descripcionDinamicaFamiliar?.trim()) {
+      toast.error("Descripción de la Dinámica Familiar: La descripción es requerida");
+      return;
+    }
+
+    // Genograma
+    if (!formData.genogramFile && !formData.genogramaUrl) {
+      toast.error("Genograma: Debe cargar la imagen del genograma");
+      return;
+    }
+
+    // 3. Situación Económica
+    if (!formData.situacionEconomica?.trim()) {
+      toast.error("Situación Económica: La descripción es requerida");
+      return;
+    }
+
+    // 4. Situación de Habitabilidad
+    if (!formData.situacionHabitabilidad?.trim()) {
+      toast.error("Situación de Habitabilidad y Vivienda: La descripción es requerida");
+      return;
+    }
+
+    // 5. Situación Laboral
+    if (!formData.situacionLaboral?.trim()) {
+      toast.error("Situación Laboral / Ocupacional: La descripción es requerida");
+      return;
+    }
+
+    // 6. Situación Entorno
+    if (!formData.situacionEntorno?.trim()) {
+      toast.error("Situación del Entorno Familiar / Social: La descripción es requerida");
+      return;
+    }
+
+    // 7. Situación Educativo Cultural
+    if (!formData.situacionEducativoCultural?.trim()) {
+      toast.error("Situación Educativo / Cultural: La descripción es requerida");
+      return;
+    }
+
+    // 8. Situación Salud
+    if (!formData.situacionSalud?.trim()) {
+      toast.error("Situación de Salud: La descripción es requerida");
+      return;
+    }
+
+    // 9. Situación Legal (en caso de existir)
+    if (secciones.situacionLegal && !formData.situacionLegal?.trim()) {
+      toast.error("Situación Legal: La descripción es requerida");
+      return;
+    }
+
+    // Ecomapa
+    if (!formData.ecomapFile && !formData.ecomapaUrl) {
+      toast.error("Ecomapa: Debe cargar la imagen del ecomapa");
+      return;
+    }
+
+    // 10. Valoración Profesional
+    if (!formData.valoracionProfesional?.trim()) {
+      toast.error("Valoración Profesional / Diagnóstico: La descripción es requerida");
+      return;
+    }
+
+    // 11. Recomendaciones
+    if (!formData.recomendaciones?.trim()) {
+      toast.error("Recomendaciones / Propuesta de Intervención: La descripción es requerida");
+      return;
+    }
+
+    // 12. Informante
+    if (!formData.informanteNombre?.trim() || !formData.informanteParentesco?.trim() || !formData.informanteCedula?.trim()) {
+      toast.error("Persona que Proporciona la Información (Informante): El nombre, parentesco y cédula del informante son requeridos");
+      return;
+    }
+    if (formData.informanteCedula && !validarCedulaEcuatoriana(formData.informanteCedula)) {
+      toast.error("Persona que Proporciona la Información (Informante): La cédula ingresada no es válida");
+      return;
+    }
+    if (formData.informanteCorreo && !validarEmail(formData.informanteCorreo)) {
+      toast.error("Persona que Proporciona la Información (Informante): El correo electrónico no tiene un formato válido");
+      return;
+    }
+    if (formData.informanteTelefono && !validarSoloNumeros(formData.informanteTelefono)) {
+      toast.error("Persona que Proporciona la Información (Informante): El teléfono debe contener solo números");
+      return;
+    }
+
     try {
       setLoading(true);
 
@@ -832,6 +937,13 @@ export default function FormularioInformeSocial({ fichaId, onSuccess }: Formular
       />
       {secciones.familiares && (
         <ComponentCard title="1. DATOS DE IDENTIFICACIÓN">
+          {(!formData.familiares || formData.familiares.length === 0) && (
+            <div className="p-3 px-4 mb-4 bg-red-500/5 dark:bg-red-500/10 border border-red-500/20 rounded-xl">
+              <p className="text-xs text-red-600 dark:text-red-400 font-semibold">
+                * Debe registrar al menos un familiar en la ficha socioeconómica.
+              </p>
+            </div>
+          )}
           <ConformacionFamiliar
             data={formData.familiares}
             readOnly={true}
@@ -855,6 +967,18 @@ export default function FormularioInformeSocial({ fichaId, onSuccess }: Formular
       />
       {secciones.dinamicaFamiliar && (
         <ComponentCard title="2. CONFORMACIÓN FAMILIAR">
+          {(!formData.descripcionDinamicaFamiliar?.trim() || !formData.tipoFamilia || (formData.tipoFamilia === "Otros" && !formData.tipoFamiliaEspecificar?.trim())) && (
+            <div className="p-3 px-4 mb-4 bg-red-500/5 dark:bg-red-500/10 border border-red-500/20 rounded-xl">
+              <p className="text-xs text-red-600 dark:text-red-400 font-semibold mb-1">
+                Campos pendientes:
+              </p>
+              <ul className="list-disc pl-4 text-xs text-red-600 dark:text-red-400">
+                {!formData.tipoFamilia && <li>El tipo de familia es requerido</li>}
+                {formData.tipoFamilia === "Otros" && !formData.tipoFamiliaEspecificar?.trim() && <li>Debe especificar el tipo de familia</li>}
+                {!formData.descripcionDinamicaFamiliar?.trim() && <li>La descripción de la dinámica familiar es requerida</li>}
+              </ul>
+            </div>
+          )}
           <div className="space-y-6">
             {/* Tipo de Familia Matrix */}
             <div>
@@ -914,7 +1038,7 @@ export default function FormularioInformeSocial({ fichaId, onSuccess }: Formular
                 setFormData({ ...formData, descripcionDinamicaFamiliar: value })
               }
               onValidate={(isValid) =>
-                setValidaciones({ ...validaciones, dinamicaFamiliar: isValid })
+                setValidaciones((prev) => ({ ...prev, dinamicaFamiliar: isValid }))
               }
             />
           </div>
@@ -936,6 +1060,13 @@ export default function FormularioInformeSocial({ fichaId, onSuccess }: Formular
       />
       {secciones.genograma && (
         <ComponentCard title="3. GENOGRAMA">
+          {(!formData.genogramFile && !formData.genogramaUrl) && (
+            <div className="p-3 px-4 mb-4 bg-red-500/5 dark:bg-red-500/10 border border-red-500/20 rounded-xl">
+              <p className="text-xs text-red-600 dark:text-red-400 font-semibold">
+                * Debe cargar la imagen del genograma.
+              </p>
+            </div>
+          )}
           <div className="space-y-3">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               Genograma
@@ -1010,13 +1141,20 @@ export default function FormularioInformeSocial({ fichaId, onSuccess }: Formular
       />
       {secciones.situacionEconomica && (
         <ComponentCard title="4. SITUACIÓN ECONÓMICA">
+          {!formData.situacionEconomica?.trim() && (
+            <div className="p-3 px-4 mb-4 bg-red-500/5 dark:bg-red-500/10 border border-red-500/20 rounded-xl">
+              <p className="text-xs text-red-600 dark:text-red-400 font-semibold">
+                * La descripción de la situación económica es requerida.
+              </p>
+            </div>
+          )}
           <SituacionEconomicaInformeForm
             data={formData.situacionEconomica}
             onChange={(value) =>
               setFormData({ ...formData, situacionEconomica: value })
             }
             onValidate={(isValid) =>
-              setValidaciones({ ...validaciones, situacionEconomica: isValid })
+              setValidaciones((prev) => ({ ...prev, situacionEconomica: isValid }))
             }
           />
         </ComponentCard>
@@ -1037,13 +1175,20 @@ export default function FormularioInformeSocial({ fichaId, onSuccess }: Formular
       />
       {secciones.situacionHabitabilidad && (
         <ComponentCard title="5. SITUACIÓN DE HABITABILIDAD O VIVIENDA">
+          {!formData.situacionHabitabilidad?.trim() && (
+            <div className="p-3 px-4 mb-4 bg-red-500/5 dark:bg-red-500/10 border border-red-500/20 rounded-xl">
+              <p className="text-xs text-red-600 dark:text-red-400 font-semibold">
+                * La descripción de la situación de habitabilidad es requerida.
+              </p>
+            </div>
+          )}
           <SituacionHabitabilidadForm
             data={formData.situacionHabitabilidad}
             onChange={(value) =>
               setFormData({ ...formData, situacionHabitabilidad: value })
             }
             onValidate={(isValid) =>
-              setValidaciones({ ...validaciones, situacionHabitabilidad: isValid })
+              setValidaciones((prev) => ({ ...prev, situacionHabitabilidad: isValid }))
             }
           />
         </ComponentCard>
@@ -1064,13 +1209,20 @@ export default function FormularioInformeSocial({ fichaId, onSuccess }: Formular
       />
       {secciones.situacionLaboral && (
         <ComponentCard title="6. SITUACIÓN LABORAL">
+          {!formData.situacionLaboral?.trim() && (
+            <div className="p-3 px-4 mb-4 bg-red-500/5 dark:bg-red-500/10 border border-red-500/20 rounded-xl">
+              <p className="text-xs text-red-600 dark:text-red-400 font-semibold">
+                * La descripción de la situación laboral es requerida.
+              </p>
+            </div>
+          )}
           <SituacionLaboralForm
             data={formData.situacionLaboral}
             onChange={(value) =>
               setFormData({ ...formData, situacionLaboral: value })
             }
             onValidate={(isValid) =>
-              setValidaciones({ ...validaciones, situacionLaboral: isValid })
+              setValidaciones((prev) => ({ ...prev, situacionLaboral: isValid }))
             }
           />
         </ComponentCard>
@@ -1091,13 +1243,20 @@ export default function FormularioInformeSocial({ fichaId, onSuccess }: Formular
       />
       {secciones.situacionEntorno && (
         <ComponentCard title="7. SITUACIÓN SOCIAL: RELACIÓN CON EL ENTORNO">
+          {!formData.situacionEntorno?.trim() && (
+            <div className="p-3 px-4 mb-4 bg-red-500/5 dark:bg-red-500/10 border border-red-500/20 rounded-xl">
+              <p className="text-xs text-red-600 dark:text-red-400 font-semibold">
+                * La descripción de la situación social (entorno) es requerida.
+              </p>
+            </div>
+          )}
           <SituacionEntornoForm
             data={formData.situacionEntorno}
             onChange={(value) =>
               setFormData({ ...formData, situacionEntorno: value })
             }
             onValidate={(isValid) =>
-              setValidaciones({ ...validaciones, situacionEntorno: isValid })
+              setValidaciones((prev) => ({ ...prev, situacionEntorno: isValid }))
             }
           />
         </ComponentCard>
@@ -1118,16 +1277,23 @@ export default function FormularioInformeSocial({ fichaId, onSuccess }: Formular
       />
       {secciones.situacionEducativoCultural && (
         <ComponentCard title="8. SITUACIÓN EDUCATIVO – CULTURAL">
+          {!formData.situacionEducativoCultural?.trim() && (
+            <div className="p-3 px-4 mb-4 bg-red-500/5 dark:bg-red-500/10 border border-red-500/20 rounded-xl">
+              <p className="text-xs text-red-600 dark:text-red-400 font-semibold">
+                * La descripción de la situación educativo-cultural es requerida.
+              </p>
+            </div>
+          )}
           <SituacionEducativoCulturalForm
             data={formData.situacionEducativoCultural}
             onChange={(value) =>
               setFormData({ ...formData, situacionEducativoCultural: value })
             }
             onValidate={(isValid) =>
-              setValidaciones({
-                ...validaciones,
+              setValidaciones((prev) => ({
+                ...prev,
                 situacionEducativoCultural: isValid,
-              })
+              }))
             }
           />
         </ComponentCard>
@@ -1148,13 +1314,20 @@ export default function FormularioInformeSocial({ fichaId, onSuccess }: Formular
       />
       {secciones.situacionSalud && (
         <ComponentCard title="9. SITUACIÓN DE SALUD FISICA Y PSICOLOGICA">
+          {!formData.situacionSalud?.trim() && (
+            <div className="p-3 px-4 mb-4 bg-red-500/5 dark:bg-red-500/10 border border-red-500/20 rounded-xl">
+              <p className="text-xs text-red-600 dark:text-red-400 font-semibold">
+                * La descripción de la situación de salud es requerida.
+              </p>
+            </div>
+          )}
           <SituacionSaludForm
             data={formData.situacionSalud}
             onChange={(value) =>
               setFormData({ ...formData, situacionSalud: value })
             }
             onValidate={(isValid) =>
-              setValidaciones({ ...validaciones, situacionSalud: isValid })
+              setValidaciones((prev) => ({ ...prev, situacionSalud: isValid }))
             }
           />
         </ComponentCard>
@@ -1175,13 +1348,20 @@ export default function FormularioInformeSocial({ fichaId, onSuccess }: Formular
       />
       {secciones.situacionLegal && (
         <ComponentCard title="10. SITUACIÓN LEGAL (en caso de existir)">
+          {!formData.situacionLegal?.trim() && (
+            <div className="p-3 px-4 mb-4 bg-red-500/5 dark:bg-red-500/10 border border-red-500/20 rounded-xl">
+              <p className="text-xs text-red-600 dark:text-red-400 font-semibold">
+                * La descripción de la situación legal es requerida.
+              </p>
+            </div>
+          )}
           <SituacionLegalForm
             data={formData.situacionLegal}
             onChange={(value) =>
               setFormData({ ...formData, situacionLegal: value })
             }
             onValidate={(isValid) =>
-              setValidaciones({ ...validaciones, situacionLegal: isValid })
+              setValidaciones((prev) => ({ ...prev, situacionLegal: isValid }))
             }
           />
         </ComponentCard>
@@ -1202,6 +1382,13 @@ export default function FormularioInformeSocial({ fichaId, onSuccess }: Formular
       />
       {secciones.ecomapa && (
         <ComponentCard title="11. ECOMAPA">
+          {(!formData.ecomapFile && !formData.ecomapaUrl) && (
+            <div className="p-3 px-4 mb-4 bg-red-500/5 dark:bg-red-500/10 border border-red-500/20 rounded-xl">
+              <p className="text-xs text-red-600 dark:text-red-400 font-semibold">
+                * Debe cargar la imagen del ecomapa.
+              </p>
+            </div>
+          )}
           <div className="space-y-3">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               Ecomapa
@@ -1276,13 +1463,20 @@ export default function FormularioInformeSocial({ fichaId, onSuccess }: Formular
       />
       {secciones.valoracionProfesional && (
         <ComponentCard title="12. VALORACIÓN PROFESIONAL">
+          {!formData.valoracionProfesional?.trim() && (
+            <div className="p-3 px-4 mb-4 bg-red-500/5 dark:bg-red-500/10 border border-red-500/20 rounded-xl">
+              <p className="text-xs text-red-600 dark:text-red-400 font-semibold">
+                * La descripción de la valoración profesional es requerida.
+              </p>
+            </div>
+          )}
           <ValoracionProfesionalForm
             data={formData.valoracionProfesional}
             onChange={(value) =>
               setFormData({ ...formData, valoracionProfesional: value })
             }
             onValidate={(isValid) =>
-              setValidaciones({ ...validaciones, valoracionProfesional: isValid })
+              setValidaciones((prev) => ({ ...prev, valoracionProfesional: isValid }))
             }
           />
         </ComponentCard>
@@ -1303,13 +1497,20 @@ export default function FormularioInformeSocial({ fichaId, onSuccess }: Formular
       />
       {secciones.recomendaciones && (
         <ComponentCard title="13. RECOMENDACIONES">
+          {!formData.recomendaciones?.trim() && (
+            <div className="p-3 px-4 mb-4 bg-red-500/5 dark:bg-red-500/10 border border-red-500/20 rounded-xl">
+              <p className="text-xs text-red-600 dark:text-red-400 font-semibold">
+                * Las recomendaciones son requeridas.
+              </p>
+            </div>
+          )}
           <RecomendacionesForm
             data={formData.recomendaciones}
             onChange={(value) =>
               setFormData({ ...formData, recomendaciones: value })
             }
             onValidate={(isValid) =>
-              setValidaciones({ ...validaciones, recomendaciones: isValid })
+              setValidaciones((prev) => ({ ...prev, recomendaciones: isValid }))
             }
           />
         </ComponentCard>
@@ -1330,6 +1531,26 @@ export default function FormularioInformeSocial({ fichaId, onSuccess }: Formular
       />
       {secciones.informante && (
         <ComponentCard title="Persona que Proporciona la Información">
+          {(!formData.informanteNombre?.trim() || 
+            !formData.informanteParentesco?.trim() || 
+            !formData.informanteCedula?.trim() || 
+            (formData.informanteCedula && !validarCedulaEcuatoriana(formData.informanteCedula)) ||
+            (formData.informanteCorreo && !validarEmail(formData.informanteCorreo)) ||
+            (formData.informanteTelefono && !validarSoloNumeros(formData.informanteTelefono))) && (
+            <div className="p-3 px-4 mb-4 bg-red-500/5 dark:bg-red-500/10 border border-red-500/20 rounded-xl">
+              <p className="text-xs text-red-600 dark:text-red-400 font-semibold mb-1">
+                Campos pendientes:
+              </p>
+              <ul className="list-disc pl-4 text-xs text-red-600 dark:text-red-400">
+                {!formData.informanteNombre?.trim() && <li>El nombre del informante es obligatorio</li>}
+                {!formData.informanteParentesco?.trim() && <li>El parentesco del informante es obligatorio</li>}
+                {!formData.informanteCedula?.trim() && <li>La cédula del informante es obligatoria</li>}
+                {formData.informanteCedula && !validarCedulaEcuatoriana(formData.informanteCedula) && <li>La cédula del informante no es válida (debe ser una cédula ecuatoriana de 10 dígitos)</li>}
+                {formData.informanteCorreo && !validarEmail(formData.informanteCorreo) && <li>El correo electrónico no es válido</li>}
+                {formData.informanteTelefono && !validarSoloNumeros(formData.informanteTelefono) && <li>El teléfono debe contener solo números</li>}
+              </ul>
+            </div>
+          )}
           <div className="space-y-4">
             {formData.familiares && formData.familiares.length > 0 && (
               <div>

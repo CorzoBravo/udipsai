@@ -442,6 +442,15 @@ export default function FormularioFichaSocioeconomica({ fichaId, onSuccess }: Fo
     situacionEconomica: false,
     capacidadGasto: false,
   });
+  const [erroresSecciones, setErroresSecciones] = useState<Record<string, string[]>>({
+    conformacionFamiliar: [],
+    riesgosFamiliares: [],
+    vulnerabilidades: [],
+    relacionFamiliar: [],
+    condicionesVivienda: [],
+    salud: [],
+    situacionEconomica: [],
+  });
   const [selectedPatient, setSelectedPatient] = useState<{
     id: number;
     nombresApellidos: string;
@@ -749,10 +758,14 @@ export default function FormularioFichaSocioeconomica({ fichaId, onSuccess }: Fo
     }));
   };
   const handleValidateConformacionFamiliar = useCallback(
-    (isValid: boolean, _errors: string[]) => {
+    (isValid: boolean, errors: string[]) => {
       setValidaciones((prev) => ({
         ...prev,
         conformacionFamiliar: isValid,
+      }));
+      setErroresSecciones((prev) => ({
+        ...prev,
+        conformacionFamiliar: errors || [],
       }));
     },
     []
@@ -781,35 +794,157 @@ export default function FormularioFichaSocioeconomica({ fichaId, onSuccess }: Fo
       return;
     }
 
-    const seccionesRequeridas = [
-      { key: "conformacionFamiliar", nombre: "Conformación Familiar", activa: verConformacionFamiliar },
-      { key: "riesgosFamiliares", nombre: "Riesgos Familiares", activa: verRiesgosFamiliares },
-      { key: "vulnerabilidades", nombre: "Vulnerabilidades", activa: verVulnerabilidades },
-      { key: "relacionFamiliar", nombre: "Dinámica Familiar", activa: verRelacionFamiliar },
-      { key: "tipoHogar", nombre: "Tipo de Hogar", activa: verTipoHogar, check: () => !!formData.dinamicaFamiliar.tipoHogar?.trim() },
-      { key: "condicionesVivienda", nombre: "Condiciones de Vivienda", activa: verVivienda },
-      { key: "salud", nombre: "Salud", activa: verSalud },
-      { key: "tiempoLibre", nombre: "Uso del Tiempo Libre", activa: verTiempoLibre, check: () => !!formData.situacionEconomica.actividadesTiempoLibre?.trim() },
-      { key: "situacionEconomica", nombre: "Situación Económica", activa: verSituacionEconomica },
-      { key: "capacidadGasto", nombre: "Capacidad de Gasto en Evaluación", activa: verCapacidadGasto, check: () => !!formData.situacionEconomica.capacidadGastoEvaluacion?.trim() }
-    ];
-
-    for (const seccion of seccionesRequeridas) {
-      if (seccion.activa) {
-        if (seccion.check ? !seccion.check() : !validaciones[seccion.key]) {
-          toast.error(`Complete la sección de ${seccion.nombre}`);
-          return;
-        }
+    // 1. Conformación Familiar
+    if (!formData.familiares || formData.familiares.length === 0) {
+      toast.error("Conformación Familiar: Debe registrar al menos un miembro familiar");
+      return;
+    }
+    for (let i = 0; i < formData.familiares.length; i++) {
+      const f = formData.familiares[i];
+      if (!f.relacion?.trim()) {
+        toast.error(`Conformación Familiar: Relación es requerida para el miembro #${i + 1}`);
+        return;
+      }
+      if (!f.nombresApellidos?.trim()) {
+        toast.error(`Conformación Familiar: Nombres y apellidos es requerido para el miembro #${i + 1}`);
+        return;
+      }
+      if (!f.edad || f.edad <= 0) {
+        toast.error(`Conformación Familiar: Edad es requerida para el miembro #${i + 1}`);
+        return;
       }
     }
 
-    if (!formData.conclusiones || formData.conclusiones.trim() === "") {
-      toast.error("Las conclusiones son requeridas");
+    // 2. Riesgos Familiares
+    const r = formData.riesgosFamiliares;
+    if (!r.problemasSociales || r.problemasSociales.trim() === "") {
+      toast.error("Riesgos Familiares: Debe seleccionar al menos un problema social");
+      return;
+    }
+    if (r.migroExterior) {
+      if (!r.lugarMigracion?.trim()) {
+        toast.error("Riesgos Familiares: Lugar de migración es requerido");
+        return;
+      }
+      if (!r.tiempoMigracion?.trim()) {
+        toast.error("Riesgos Familiares: Tiempo de migración es requerido");
+        return;
+      }
+      if (!r.afectacionFamiliar?.trim()) {
+        toast.error("Riesgos Familiares: Afectación familiar es requerida");
+        return;
+      }
+    }
+
+    // 3. Dinámica Familiar
+    const d = formData.dinamicaFamiliar;
+    if (!d.resolucionConflictos?.trim()) {
+      toast.error("Dinámica Familiar: Resolución de conflictos es requerida");
+      return;
+    }
+    if (!d.cumplenReglas && !d.quienesIncumplenReglas?.trim()) {
+      toast.error("Dinámica Familiar: Quiénes no cumplen las reglas es requerido");
+      return;
+    }
+    if (!d.relacionHermanos?.trim()) {
+      toast.error("Dinámica Familiar: Relación entre hermanos es requerida");
+      return;
+    }
+    if (!d.relacionPadresHijos?.trim()) {
+      toast.error("Dinámica Familiar: Relación entre padres e hijos es requerida");
+      return;
+    }
+    if (!d.comunicacionFamiliar?.trim()) {
+      toast.error("Dinámica Familiar: Comunicación familiar es requerida");
       return;
     }
 
+    // 4. Tipo de Hogar
+    if (!formData.dinamicaFamiliar.tipoHogar?.trim()) {
+      toast.error("Tipo de Hogar: El tipo de hogar es requerido");
+      return;
+    }
+
+    // 5. Condiciones de Vivienda
+    const v = formData.vivienda;
+    if (!v.tipoTenencia?.trim()) {
+      toast.error("Condiciones de Vivienda: Tipo de tenencia es requerido");
+      return;
+    }
+    if (!v.materialParedes?.trim()) {
+      toast.error("Condiciones de Vivienda: Material de paredes es requerido");
+      return;
+    }
+    if (!v.materialPiso?.trim()) {
+      toast.error("Condiciones de Vivienda: Material de piso es requerido");
+      return;
+    }
+    if (!v.materialTecho?.trim()) {
+      toast.error("Condiciones de Vivienda: Material de techo es requerido");
+      return;
+    }
+    if (v.numeroCuartos === undefined || v.numeroCuartos < 0) {
+      toast.error("Condiciones de Vivienda: Número de cuartos es requerido");
+      return;
+    }
+    if (v.numeroDormitorios === undefined || v.numeroDormitorios < 0) {
+      toast.error("Condiciones de Vivienda: Número de dormitorios es requerido");
+      return;
+    }
+    if (v.numeroCamas === undefined || v.numeroCamas < 0) {
+      toast.error("Condiciones de Vivienda: Número de camas es requerido");
+      return;
+    }
+    if (v.numeroSanitarios === undefined || v.numeroSanitarios < 0) {
+      toast.error("Condiciones de Vivienda: Número de sanitarios es requerido");
+      return;
+    }
+    if (!v.tipoSanitario?.trim()) {
+      toast.error("Condiciones de Vivienda: Tipo de sanitario es requerido");
+      return;
+    }
+    if (!v.procedenciaAgua?.trim()) {
+      toast.error("Condiciones de Vivienda: Procedencia de agua es requerida");
+      return;
+    }
+
+    // 6. Salud
+    if (!formData.salud.lugarAtencionMedica?.trim()) {
+      toast.error("Salud: Lugar de atención médica es requerido");
+      return;
+    }
+
+    // 7. Uso del Tiempo Libre
+    if (!formData.situacionEconomica.actividadesTiempoLibre || formData.situacionEconomica.actividadesTiempoLibre === "[]" || formData.situacionEconomica.actividadesTiempoLibre.trim() === "") {
+      toast.error("Uso del Tiempo Libre: Debe seleccionar al menos una actividad de tiempo libre");
+      return;
+    }
+
+    // 8. Situación Económica
+    if (!formData.situacionEconomica.condicionEconomica?.trim()) {
+      toast.error("Situación Económica: Condición económica es requerida");
+      return;
+    }
+    if (!formData.situacionEconomica.totalEgresos || formData.situacionEconomica.totalEgresos <= 0) {
+      toast.error("Situación Económica: Debe registrar los egresos (gastos) familiares y deben ser mayores a 0");
+      return;
+    }
+
+    // 9. Capacidad de Gasto
+    if (!formData.situacionEconomica.capacidadGastoEvaluacion?.trim()) {
+      toast.error("Capacidad de Gasto en Evaluación: La capacidad de gasto es requerida");
+      return;
+    }
+
+    // 10. Conclusiones
+    if (!formData.conclusiones || formData.conclusiones.trim() === "") {
+      toast.error("Conclusiones: Las conclusiones son requeridas");
+      return;
+    }
+
+    // 11. Recomendaciones
     if (!formData.recomendaciones || formData.recomendaciones.trim() === "") {
-      toast.error("Las recomendaciones son requeridas");
+      toast.error("Recomendaciones: Las recomendaciones son requeridas");
       return;
     }
 
@@ -1042,6 +1177,18 @@ export default function FormularioFichaSocioeconomica({ fichaId, onSuccess }: Fo
               }
               bodyDisabled={!verConformacionFamiliar}
             >
+              {erroresSecciones.conformacionFamiliar?.length > 0 && (
+                <div className="p-3 px-4 mb-4 bg-red-500/5 dark:bg-red-500/10 border border-red-500/20 rounded-xl">
+                  <p className="text-xs font-semibold text-red-500 uppercase tracking-wider mb-1">
+                    Campos pendientes:
+                  </p>
+                  <ul className="list-disc list-inside text-xs text-red-600 dark:text-red-400 space-y-0.5">
+                    {erroresSecciones.conformacionFamiliar.map((err, i) => (
+                      <li key={i}>{err}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
               <ConformacionFamiliar
                 data={formData.familiares}
                 onChange={(index, field, value) => {
@@ -1112,6 +1259,18 @@ export default function FormularioFichaSocioeconomica({ fichaId, onSuccess }: Fo
               }
               bodyDisabled={!verRiesgosFamiliares}
             >
+              {erroresSecciones.riesgosFamiliares?.length > 0 && (
+                <div className="p-3 px-4 mb-4 bg-red-500/5 dark:bg-red-500/10 border border-red-500/20 rounded-xl">
+                  <p className="text-xs font-semibold text-red-500 uppercase tracking-wider mb-1">
+                    Campos pendientes:
+                  </p>
+                  <ul className="list-disc list-inside text-xs text-red-600 dark:text-red-400 space-y-0.5">
+                    {erroresSecciones.riesgosFamiliares.map((err, i) => (
+                      <li key={i}>{err}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
               <RiesgosFamiliaresForm
                 data={
                   formData.riesgosFamiliares ||
@@ -1124,14 +1283,15 @@ export default function FormularioFichaSocioeconomica({ fichaId, onSuccess }: Fo
                     value
                   )
                 }
-                onValidate={(isValid) => {
+                onValidate={(isValid, errors) => {
                   setValidaciones((prev) => {
                     if (prev.riesgosFamiliares === isValid) return prev;
-                    return {
-                      ...prev,
-                      riesgosFamiliares: isValid,
-                    };
+                    return { ...prev, riesgosFamiliares: isValid };
                   });
+                  setErroresSecciones((prev) => ({
+                    ...prev,
+                    riesgosFamiliares: errors || [],
+                  }));
                 }}
               />
             </ComponentCard>
@@ -1158,6 +1318,18 @@ export default function FormularioFichaSocioeconomica({ fichaId, onSuccess }: Fo
               }
               bodyDisabled={!verVulnerabilidades}
             >
+              {erroresSecciones.vulnerabilidades?.length > 0 && (
+                <div className="p-3 px-4 mb-4 bg-red-500/5 dark:bg-red-500/10 border border-red-500/20 rounded-xl">
+                  <p className="text-xs font-semibold text-red-500 uppercase tracking-wider mb-1">
+                    Campos pendientes:
+                  </p>
+                  <ul className="list-disc list-inside text-xs text-red-600 dark:text-red-400 space-y-0.5">
+                    {erroresSecciones.vulnerabilidades.map((err, i) => (
+                      <li key={i}>{err}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
               <VulnerabilidadesForm
                 data={formData.vulnerabilidadesDetalle}
                 onChange={(field, value) =>
@@ -1167,14 +1339,15 @@ export default function FormularioFichaSocioeconomica({ fichaId, onSuccess }: Fo
                     value
                   )
                 }
-                onValidate={(isValid) => {
+                onValidate={(isValid, errors) => {
                   setValidaciones((prev) => {
                     if (prev.vulnerabilidades === isValid) return prev;
-                    return {
-                      ...prev,
-                      vulnerabilidades: isValid,
-                    };
+                    return { ...prev, vulnerabilidades: isValid };
                   });
+                  setErroresSecciones((prev) => ({
+                    ...prev,
+                    vulnerabilidades: errors || [],
+                  }));
                 }}
               />
             </ComponentCard>
@@ -1201,6 +1374,18 @@ export default function FormularioFichaSocioeconomica({ fichaId, onSuccess }: Fo
               }
               bodyDisabled={!verRelacionFamiliar}
             >
+              {erroresSecciones.relacionFamiliar?.length > 0 && (
+                <div className="p-3 px-4 mb-4 bg-red-500/5 dark:bg-red-500/10 border border-red-500/20 rounded-xl">
+                  <p className="text-xs font-semibold text-red-500 uppercase tracking-wider mb-1">
+                    Campos pendientes:
+                  </p>
+                  <ul className="list-disc list-inside text-xs text-red-600 dark:text-red-400 space-y-0.5">
+                    {erroresSecciones.relacionFamiliar.map((err, i) => (
+                      <li key={i}>{err}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
               <RelacionFamiliar
                 data={formData.dinamicaFamiliar}
                 onChange={(field, value) =>
@@ -1210,14 +1395,15 @@ export default function FormularioFichaSocioeconomica({ fichaId, onSuccess }: Fo
                     value
                   )
                 }
-                onValidate={(isValid) => {
+                onValidate={(isValid, errors) => {
                   setValidaciones((prev) => {
                     if (prev.relacionFamiliar === isValid) return prev;
-                    return {
-                      ...prev,
-                      relacionFamiliar: isValid,
-                    };
+                    return { ...prev, relacionFamiliar: isValid };
                   });
+                  setErroresSecciones((prev) => ({
+                    ...prev,
+                    relacionFamiliar: errors || [],
+                  }));
                 }}
               />
             </ComponentCard>
@@ -1239,6 +1425,16 @@ export default function FormularioFichaSocioeconomica({ fichaId, onSuccess }: Fo
               onHeaderClick={() => setVerTipoHogar(!verTipoHogar)}
               bodyDisabled={!verTipoHogar}
             >
+              {!formData.dinamicaFamiliar.tipoHogar?.trim() && (
+                <div className="p-3 px-4 mb-4 bg-red-500/5 dark:bg-red-500/10 border border-red-500/20 rounded-xl">
+                  <p className="text-xs text-red-600 dark:text-red-400 font-semibold mb-1">
+                    Campos pendientes:
+                  </p>
+                  <ul className="list-disc pl-4 text-xs text-red-600 dark:text-red-400">
+                    <li>El tipo de hogar es requerido</li>
+                  </ul>
+                </div>
+              )}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {["Completo", "Incompleto", "Funcional", "Disfuncional"].map((t) => (
                   <label key={t} className="flex items-center gap-2 cursor-pointer p-3 border rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800">
@@ -1276,19 +1472,32 @@ export default function FormularioFichaSocioeconomica({ fichaId, onSuccess }: Fo
               }
               bodyDisabled={!verVivienda}
             >
+              {erroresSecciones.condicionesVivienda?.length > 0 && (
+                <div className="p-3 px-4 mb-4 bg-red-500/5 dark:bg-red-500/10 border border-red-500/20 rounded-xl">
+                  <p className="text-xs font-semibold text-red-500 uppercase tracking-wider mb-1">
+                    Campos pendientes:
+                  </p>
+                  <ul className="list-disc list-inside text-xs text-red-600 dark:text-red-400 space-y-0.5">
+                    {erroresSecciones.condicionesVivienda.map((err, i) => (
+                      <li key={i}>{err}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
               <CondicionesViviendaForm
                 data={formData.vivienda}
                 onChange={(field, value) =>
                   handleNestedChange("vivienda", field, value)
                 }
-                onValidate={(isValid) => {
+                onValidate={(isValid, errors) => {
                   setValidaciones((prev) => {
                     if (prev.condicionesVivienda === isValid) return prev;
-                    return {
-                      ...prev,
-                      condicionesVivienda: isValid,
-                    };
+                    return { ...prev, condicionesVivienda: isValid };
                   });
+                  setErroresSecciones((prev) => ({
+                    ...prev,
+                    condicionesVivienda: errors || [],
+                  }));
                 }}
               />
             </ComponentCard>
@@ -1305,40 +1514,55 @@ export default function FormularioFichaSocioeconomica({ fichaId, onSuccess }: Fo
         />
 
         {verSalud && (
-          <SaludForm
-            data={formData.salud}
-            familiares={formData.familiares}
-            onChange={(field, value) =>
-              handleNestedChange("salud", field, value)
-            }
-            onChangeFamiliar={(index, field, value) => {
-              setFormData((prev) => {
-                const updated = [...prev.familiares];
+          <div className="space-y-4">
+            {erroresSecciones.salud?.length > 0 && (
+              <div className="p-3 px-4 mb-4 bg-red-500/5 dark:bg-red-500/10 border border-red-500/20 rounded-xl">
+                <p className="text-xs font-semibold text-red-500 uppercase tracking-wider mb-1">
+                  Campos pendientes:
+                </p>
+                <ul className="list-disc list-inside text-xs text-red-600 dark:text-red-400 space-y-0.5">
+                  {erroresSecciones.salud.map((err, i) => (
+                    <li key={i}>{err}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            <SaludForm
+              data={formData.salud}
+              familiares={formData.familiares}
+              onChange={(field, value) =>
+                handleNestedChange("salud", field, value)
+              }
+              onChangeFamiliar={(index, field, value) => {
+                setFormData((prev) => {
+                  const updated = [...prev.familiares];
 
-                updated[index] = {
-                  ...updated[index],
-                  salud: {
-                    ...updated[index].salud,
-                    [field]: value,
-                  },
-                };
+                  updated[index] = {
+                    ...updated[index],
+                    salud: {
+                      ...updated[index].salud,
+                      [field]: value,
+                    },
+                  };
 
-                return {
+                  return {
+                    ...prev,
+                    familiares: updated,
+                  };
+                });
+              }}
+              onValidate={(isValid, errors) => {
+                setValidaciones((prev) => {
+                  if (prev.salud === isValid) return prev;
+                  return { ...prev, salud: isValid };
+                });
+                setErroresSecciones((prev) => ({
                   ...prev,
-                  familiares: updated,
-                };
-              });
-            }}
-            onValidate={(isValid) => {
-              setValidaciones((prev) => {
-                if (prev.salud === isValid) return prev;
-                return {
-                  ...prev,
-                  salud: isValid,
-                };
-              });
-            }}
-          />
+                  salud: errors || [],
+                }));
+              }}
+            />
+          </div>
         )}
 
         {/* USO DEL TIEMPO LIBRE */}
@@ -1356,6 +1580,16 @@ export default function FormularioFichaSocioeconomica({ fichaId, onSuccess }: Fo
               onHeaderClick={() => setVerTiempoLibre(!verTiempoLibre)}
               bodyDisabled={!verTiempoLibre}
             >
+              {(!formData.situacionEconomica.actividadesTiempoLibre || formData.situacionEconomica.actividadesTiempoLibre === "[]" || formData.situacionEconomica.actividadesTiempoLibre.trim() === "") && (
+                <div className="p-3 px-4 mb-4 bg-red-500/5 dark:bg-red-500/10 border border-red-500/20 rounded-xl">
+                  <p className="text-xs text-red-600 dark:text-red-400 font-semibold mb-1">
+                    Campos pendientes:
+                  </p>
+                  <ul className="list-disc pl-4 text-xs text-red-600 dark:text-red-400">
+                    <li>Debe seleccionar al menos una actividad de tiempo libre</li>
+                  </ul>
+                </div>
+              )}
               {(() => {
                 let actividadesSeleccionadas: string[] = [];
                 try {
@@ -1473,32 +1707,47 @@ export default function FormularioFichaSocioeconomica({ fichaId, onSuccess }: Fo
           }
         />
         {verSituacionEconomica && (
-          <SituacionEconomicaForm
-            data={formData.situacionEconomica}
-            desglose={formData.desgloseEconomico}
-            familiares={formData.familiares}
-            onChange={(field, value) =>
-              handleNestedChange("situacionEconomica", field, value)
-            }
-            onChangeDesglose={(field: string, value: number) =>
-              setFormData((prev) => ({
-                ...prev,
-                desgloseEconomico: {
-                  ...prev.desgloseEconomico,
-                  [field]: value,
-                },
-              }))
-            }
-            onValidate={(isValid) => {
-              setValidaciones((prev) => {
-                if (prev.situacionEconomica === isValid) return prev;
-                return {
+          <div className="space-y-4">
+            {erroresSecciones.situacionEconomica?.length > 0 && (
+              <div className="p-3 px-4 mb-4 bg-red-500/5 dark:bg-red-500/10 border border-red-500/20 rounded-xl">
+                <p className="text-xs font-semibold text-red-500 uppercase tracking-wider mb-1">
+                  Campos pendientes:
+                </p>
+                <ul className="list-disc list-inside text-xs text-red-600 dark:text-red-400 space-y-0.5">
+                  {erroresSecciones.situacionEconomica.map((err, i) => (
+                    <li key={i}>{err}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            <SituacionEconomicaForm
+              data={formData.situacionEconomica}
+              desglose={formData.desgloseEconomico}
+              familiares={formData.familiares}
+              onChange={(field, value) =>
+                handleNestedChange("situacionEconomica", field, value)
+              }
+              onChangeDesglose={(field: string, value: number) =>
+                setFormData((prev) => ({
                   ...prev,
-                  situacionEconomica: isValid,
-                };
-              });
-            }}
-          />
+                  desgloseEconomico: {
+                    ...prev.desgloseEconomico,
+                    [field]: value,
+                  },
+                }))
+              }
+              onValidate={(isValid, errors) => {
+                setValidaciones((prev) => {
+                  if (prev.situacionEconomica === isValid) return prev;
+                  return { ...prev, situacionEconomica: isValid };
+                });
+                setErroresSecciones((prev) => ({
+                  ...prev,
+                  situacionEconomica: errors || [],
+                }));
+              }}
+            />
+          </div>
         )}
 
         {/* CONCLUSIONES */}
@@ -1518,6 +1767,16 @@ export default function FormularioFichaSocioeconomica({ fichaId, onSuccess }: Fo
               onHeaderClick={() => setVerConclusiones(!verConclusiones)}
               bodyDisabled={!verConclusiones}
             >
+              {!formData.conclusiones?.trim() && (
+                <div className="p-3 px-4 mb-4 bg-red-500/5 dark:bg-red-500/10 border border-red-500/20 rounded-xl">
+                  <p className="text-xs text-red-600 dark:text-red-400 font-semibold mb-1">
+                    Campos pendientes:
+                  </p>
+                  <ul className="list-disc pl-4 text-xs text-red-600 dark:text-red-400">
+                    <li>Las conclusiones son requeridas</li>
+                  </ul>
+                </div>
+              )}
               <textarea
                 value={formData.conclusiones}
                 onChange={(e) => setFormData((prev) => ({ ...prev, conclusiones: e.target.value }))}
@@ -1545,6 +1804,16 @@ export default function FormularioFichaSocioeconomica({ fichaId, onSuccess }: Fo
               onHeaderClick={() => setVerRecomendaciones(!verRecomendaciones)}
               bodyDisabled={!verRecomendaciones}
             >
+              {!formData.recomendaciones?.trim() && (
+                <div className="p-3 px-4 mb-4 bg-red-500/5 dark:bg-red-500/10 border border-red-500/20 rounded-xl">
+                  <p className="text-xs text-red-600 dark:text-red-400 font-semibold mb-1">
+                    Campos pendientes:
+                  </p>
+                  <ul className="list-disc pl-4 text-xs text-red-600 dark:text-red-400">
+                    <li>Las recomendaciones son requeridas</li>
+                  </ul>
+                </div>
+              )}
               <textarea
                 value={formData.recomendaciones}
                 onChange={(e) => setFormData((prev) => ({ ...prev, recomendaciones: e.target.value }))}
@@ -1570,6 +1839,16 @@ export default function FormularioFichaSocioeconomica({ fichaId, onSuccess }: Fo
               onHeaderClick={() => setVerCapacidadGasto(!verCapacidadGasto)}
               bodyDisabled={!verCapacidadGasto}
             >
+              {!formData.situacionEconomica.capacidadGastoEvaluacion?.trim() && (
+                <div className="p-3 px-4 mb-4 bg-red-500/5 dark:bg-red-500/10 border border-red-500/20 rounded-xl">
+                  <p className="text-xs text-red-600 dark:text-red-400 font-semibold mb-1">
+                    Campos pendientes:
+                  </p>
+                  <ul className="list-disc pl-4 text-xs text-red-600 dark:text-red-400">
+                    <li>La capacidad de gasto es requerida</li>
+                  </ul>
+                </div>
+              )}
               <div className="space-y-3">
                 {[
                   { label: "3$ por sesión", value: "3" },
