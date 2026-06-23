@@ -522,10 +522,10 @@ export const fichasService = {
     }
   },
 
-  obtenerGenogramaInformeSocial: async (pacienteId: number | string) => {
+  obtenerGenogramaInformeSocial: async (informeId: number | string) => {
     try {
       const response = await api.get(
-        `/informes-sociales/paciente/${pacienteId}/genograma`,
+        `/informes-sociales/id/${informeId}/genograma`,
         {
           responseType: "blob",
         }
@@ -537,10 +537,10 @@ export const fichasService = {
     }
   },
 
-  obtenerEcomapaInformeSocial: async (pacienteId: number | string) => {
+  obtenerEcomapaInformeSocial: async (informeId: number | string) => {
     try {
       const response = await api.get(
-        `/informes-sociales/paciente/${pacienteId}/ecomapa`,
+        `/informes-sociales/id/${informeId}/ecomapa`,
         {
           responseType: "blob",
         }
